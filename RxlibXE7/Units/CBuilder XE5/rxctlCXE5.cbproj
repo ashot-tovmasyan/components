@@ -1,0 +1,457 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{17C0F8D6-9850-4D81-AF74-FFCA28DAF98E}</ProjectGuid>
+        <MainSource>rxctlCXE5.cpp</MainSource>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <ProjectVersion>15.3</ProjectVersion>
+        <Base>True</Base>
+        <AppType>Library</AppType>
+        <FrameworkType>VCL</FrameworkType>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <TargetedPlatforms>1</TargetedPlatforms>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+        <Cfg_1_Win32>true</Cfg_1_Win32>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <ProjectType>CppPackage</ProjectType>
+        <VerInfo_Locale>1049</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
+        <LinkPackageStatics>rtl.lib;vcl.lib;vclx.lib</LinkPackageStatics>
+        <_TCHARMapping>wchar_t</_TCHARMapping>
+        <IntermediateOutputDir>.\$(Platform)\$(Config)</IntermediateOutputDir>
+        <IncludePath>..\;..\..\Units;$(IncludePath)</IncludePath>
+        <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
+        <BCC_PCHCache>true</BCC_PCHCache>
+        <DCC_ResourcePath>..\;$(DCC_ResourcePath)</DCC_ResourcePath>
+        <ILINK_AppType>Windows</ILINK_AppType>
+        <TASM_IncludePath>$(BDS)\include;$(BDS)\include\vcl;$(BDS)\rx\units;$(TASM_IncludePath)</TASM_IncludePath>
+        <BRCC_IncludePath>..\;$(BDS)\include;$(BDS)\include\vcl;$(BRCC_IncludePath)</BRCC_IncludePath>
+        <ILINK_GenerateLibFile>true</ILINK_GenerateLibFile>
+        <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
+        <BRCC_UserSuppliedOptions> -I$(BDS)\include;$(BDS)\include\vcl;$(BDS)\rx\units;$(BDS)\include\dinkumware</BRCC_UserSuppliedOptions>
+        <DCC_IncludePath>..\;.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_IncludePath)</DCC_IncludePath>
+        <ILINK_GenerateImportLibrary>true</ILINK_GenerateImportLibrary>
+        <DCC_UnitSearchPath>..\;.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <ILINK_Description>RX Library Controls and Tools Package</ILINK_Description>
+        <AllPackageLibs>rtl.lib;vcl.lib;vclx.lib</AllPackageLibs>
+        <ILINK_ObjectSearchPath>..\;$(ILINK_ObjectSearchPath)</ILINK_ObjectSearchPath>
+        <TASM_Debugging>None</TASM_Debugging>
+        <TASM_AdditionalSwitches> /w2</TASM_AdditionalSwitches>
+        <ILINK_WinAppType>Package</ILINK_WinAppType>
+        <OutputExt>bpl</OutputExt>
+        <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
+        <DCC_ObjPath>..\;$(DCC_ObjPath)</DCC_ObjPath>
+        <DCC_AdditionalSwitches> -M</DCC_AdditionalSwitches>
+        <ILINK_LibraryPath>..\..\Units;..\;$(BDS)\lib;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <TASM_Defines>USEPACKAGES;$(TASM_Defines)</TASM_Defines>
+        <BRCC_Defines>USEPACKAGES;$(BRCC_Defines)</BRCC_Defines>
+        <BCC_UserSuppliedOptions> -Tkh30000 -Vx -Ve</BCC_UserSuppliedOptions>
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <ILINK_LibraryPath>$(BDSLIB)\$(PLATFORM)\debug;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+        <BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
+        <IntermediateOutputDir>Debug_Build</IntermediateOutputDir>
+        <ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
+        <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
+        <BCC_DisableOptimizations>true</BCC_DisableOptimizations>
+        <TASM_Debugging>Full</TASM_Debugging>
+        <BCC_InlineFunctionExpansion>false</BCC_InlineFunctionExpansion>
+        <TASM_DisplaySourceLines>true</TASM_DisplaySourceLines>
+        <BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <BCC_Defines>_DEBUG;$(BCC_Defines)</BCC_Defines>
+        <BCC_UserSuppliedOptions> -Tkh30000 -Vx -Ve -k</BCC_UserSuppliedOptions>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <IntermediateOutputDir>Release_Build</IntermediateOutputDir>
+        <DCC_AdditionalSwitches> -M -$O+</DCC_AdditionalSwitches>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <BCC_Defines>NDEBUG;$(BCC_Defines)</BCC_Defines>
+        <BCC_UserSuppliedOptions> -Tkh30000 -Vx -Ve -r</BCC_UserSuppliedOptions>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="..\Anifile.pas">
+            <BuildOrder>39</BuildOrder>
+            <BuildOrder>16</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Animate.pas">
+            <BuildOrder>9</BuildOrder>
+            <BuildOrder>36</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\AppEvent.pas">
+            <BuildOrder>46</BuildOrder>
+            <BuildOrder>1</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Apputls.pas">
+            <BuildOrder>65</BuildOrder>
+            <BuildOrder>24</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Boxprocs.pas">
+            <BuildOrder>34</BuildOrder>
+            <BuildOrder>11</BuildOrder>
+        </DelphiCompile>
+        <PackageImport Include="rtl.bpi">
+            <BuildOrder>65</BuildOrder>
+            <BuildOrder>24</BuildOrder>
+        </PackageImport>
+        <CppCompile Include="rxctlCXE5.cpp">
+            <BuildOrder>-1</BuildOrder>
+            <BuildOrder>0</BuildOrder>
+        </CppCompile>
+        <PackageImport Include="vcl.bpi">
+            <BuildOrder>66</BuildOrder>
+            <BuildOrder>21</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="vclx.bpi">
+            <BuildOrder>67</BuildOrder>
+            <BuildOrder>22</BuildOrder>
+        </PackageImport>
+        <DelphiCompile Include="..\Clipicon.pas">
+            <BuildOrder>35</BuildOrder>
+            <BuildOrder>12</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\ClipMon.pas">
+            <BuildOrder>41</BuildOrder>
+            <BuildOrder>14</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\ClipView.pas">
+            <BuildOrder>40</BuildOrder>
+            <BuildOrder>13</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Curredit.pas">
+            <BuildOrder>44</BuildOrder>
+            <BuildOrder>3</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\DataConv.pas">
+            <BuildOrder>56</BuildOrder>
+            <BuildOrder>33</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Dateutil.pas">
+            <BuildOrder>50</BuildOrder>
+            <BuildOrder>5</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\DualList.pas">
+            <BuildOrder>38</BuildOrder>
+            <BuildOrder>15</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\ExcptDlg.pas">
+            <BuildOrder>60</BuildOrder>
+            <BuildOrder>19</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\FDualLst.pas">
+            <BuildOrder>39</BuildOrder>
+            <BuildOrder>16</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Fileutil.pas">
+            <BuildOrder>53</BuildOrder>
+            <BuildOrder>26</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Gifctrl.pas">
+            <BuildOrder>64</BuildOrder>
+            <BuildOrder>23</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Icolist.pas">
+            <BuildOrder>62</BuildOrder>
+            <BuildOrder>17</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Maxmin.pas">
+            <BuildOrder>66</BuildOrder>
+            <BuildOrder>21</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\MrgMngr.pas">
+            <BuildOrder>44</BuildOrder>
+            <BuildOrder>3</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\MRUList.pas">
+            <BuildOrder>7</BuildOrder>
+            <BuildOrder>48</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Objstr.pas">
+            <BuildOrder>63</BuildOrder>
+            <BuildOrder>18</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Ole2Auto.pas">
+            <BuildOrder>58</BuildOrder>
+            <BuildOrder>31</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\PageMngr.pas">
+            <BuildOrder>43</BuildOrder>
+            <BuildOrder>2</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Parsing.pas">
+            <BuildOrder>51</BuildOrder>
+            <BuildOrder>28</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\PicClip.pas">
+            <BuildOrder>37</BuildOrder>
+            <BuildOrder>10</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Pickdate.pas">
+            <BuildOrder>61</BuildOrder>
+            <BuildOrder>20</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Placemnt.pas">
+            <BuildOrder>52</BuildOrder>
+            <BuildOrder>29</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxcalc.pas">
+            <BuildOrder>56</BuildOrder>
+            <BuildOrder>33</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxcconst.pas">
+            <BuildOrder>64</BuildOrder>
+            <BuildOrder>23</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxclock.pas">
+            <BuildOrder>8</BuildOrder>
+            <BuildOrder>42</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxcombos.pas">
+            <BuildOrder>60</BuildOrder>
+            <BuildOrder>19</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxconst.pas">
+            <BuildOrder>67</BuildOrder>
+            <BuildOrder>22</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxctrls.pas">
+            <BuildOrder>-1</BuildOrder>
+            <BuildOrder>1</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxdice.pas">
+            <BuildOrder>40</BuildOrder>
+            <BuildOrder>13</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxgconst.pas">
+            <BuildOrder>62</BuildOrder>
+            <BuildOrder>17</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxgif.pas">
+            <BuildOrder>63</BuildOrder>
+            <BuildOrder>18</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxgraph.pas">
+            <BuildOrder>9</BuildOrder>
+            <BuildOrder>36</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxGrdCpt.pas">
+            <BuildOrder>54</BuildOrder>
+            <BuildOrder>27</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxgrids.pas">
+            <BuildOrder>43</BuildOrder>
+            <BuildOrder>2</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxhints.pas">
+            <BuildOrder>55</BuildOrder>
+            <BuildOrder>32</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxhook.pas">
+            <BuildOrder>51</BuildOrder>
+            <BuildOrder>28</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxIni.pas">
+            <BuildOrder>49</BuildOrder>
+            <BuildOrder>4</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxMenus.pas">
+            <BuildOrder>52</BuildOrder>
+            <BuildOrder>29</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxNotify.pas">
+            <BuildOrder>53</BuildOrder>
+            <BuildOrder>26</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxprgrss.pas">
+            <BuildOrder>58</BuildOrder>
+            <BuildOrder>31</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxprops.pas">
+            <BuildOrder>57</BuildOrder>
+            <BuildOrder>30</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxRichEd.pas">
+            <BuildOrder>34</BuildOrder>
+            <BuildOrder>11</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxShell.pas">
+            <BuildOrder>50</BuildOrder>
+            <BuildOrder>5</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxslider.pas">
+            <BuildOrder>7</BuildOrder>
+            <BuildOrder>48</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxspin.pas">
+            <BuildOrder>37</BuildOrder>
+            <BuildOrder>10</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxsplit.pas">
+            <BuildOrder>6</BuildOrder>
+            <BuildOrder>47</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxswitch.pas">
+            <BuildOrder>35</BuildOrder>
+            <BuildOrder>12</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxTConst.pas">
+            <BuildOrder>57</BuildOrder>
+            <BuildOrder>30</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Rxtimer.pas">
+            <BuildOrder>54</BuildOrder>
+            <BuildOrder>27</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxVerInf.pas">
+            <BuildOrder>59</BuildOrder>
+            <BuildOrder>25</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\SbSetup.pas">
+            <BuildOrder>8</BuildOrder>
+            <BuildOrder>42</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\SPEEDBAR.PAS">
+            <BuildOrder>41</BuildOrder>
+            <BuildOrder>14</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\SplshWnd.pas">
+            <BuildOrder>55</BuildOrder>
+            <BuildOrder>32</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Str16.pas">
+            <BuildOrder>61</BuildOrder>
+            <BuildOrder>20</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\StrHlder.pas">
+            <BuildOrder>45</BuildOrder>
+            <BuildOrder>0</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Strutls.pas">
+            <BuildOrder>59</BuildOrder>
+            <BuildOrder>25</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\TimerLst.pas">
+            <BuildOrder>6</BuildOrder>
+            <BuildOrder>47</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Tooledit.pas">
+            <BuildOrder>49</BuildOrder>
+            <BuildOrder>4</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\Vclutils.pas">
+            <BuildOrder>38</BuildOrder>
+            <BuildOrder>15</BuildOrder>
+        </DelphiCompile>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>CPlusPlusBuilder.Personality.12</Borland.Personality>
+        <Borland.ProjectType>CppPackage</Borland.ProjectType>
+        <BorlandProject>
+            <CPlusPlusBuilder.Personality>
+                <VersionInfo>
+                    <VersionInfo Name="IncludeVerInfo">False</VersionInfo>
+                    <VersionInfo Name="AutoIncBuild">False</VersionInfo>
+                    <VersionInfo Name="MajorVer">1</VersionInfo>
+                    <VersionInfo Name="MinorVer">0</VersionInfo>
+                    <VersionInfo Name="Release">0</VersionInfo>
+                    <VersionInfo Name="Build">0</VersionInfo>
+                    <VersionInfo Name="Debug">False</VersionInfo>
+                    <VersionInfo Name="PreRelease">False</VersionInfo>
+                    <VersionInfo Name="Special">False</VersionInfo>
+                    <VersionInfo Name="Private">False</VersionInfo>
+                    <VersionInfo Name="DLL">False</VersionInfo>
+                    <VersionInfo Name="Locale">1049</VersionInfo>
+                    <VersionInfo Name="CodePage">1251</VersionInfo>
+                </VersionInfo>
+                <VersionInfoKeys>
+                    <VersionInfoKeys Name="CompanyName"/>
+                    <VersionInfoKeys Name="FileDescription"/>
+                    <VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="InternalName"/>
+                    <VersionInfoKeys Name="LegalCopyright"/>
+                    <VersionInfoKeys Name="LegalTrademarks"/>
+                    <VersionInfoKeys Name="OriginalFilename"/>
+                    <VersionInfoKeys Name="ProductName"/>
+                    <VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="Comments"/>
+                </VersionInfoKeys>
+                <Debugging>
+                    <Debugging Name="DebugSourceDirs">$(BCB)\source\vcl</Debugging>
+                </Debugging>
+                <Parameters>
+                    <Parameters Name="RemoteHost"/>
+                    <Parameters Name="RemotePath"/>
+                    <Parameters Name="RemoteParams"/>
+                    <Parameters Name="RemoteLauncher"/>
+                    <Parameters Name="UseRemoteLauncher">False</Parameters>
+                    <Parameters Name="RemoteCWD"/>
+                    <Parameters Name="RemoteDebug">False</Parameters>
+                </Parameters>
+                <Source>
+                    <Source Name="MainSource">rxctlCXE5.cpp</Source>
+                </Source>
+                <ProjectProperties>
+                    <ProjectProperties Name="AutoShowDeps">False</ProjectProperties>
+                    <ProjectProperties Name="ManagePaths">True</ProjectProperties>
+                    <ProjectProperties Name="VerifyPackages">True</ProjectProperties>
+                </ProjectProperties>
+            </CPlusPlusBuilder.Personality>
+            <Platforms>
+                <Platform value="Win32">True</Platform>
+            </Platforms>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Condition="Exists('$(BDS)\Bin\CodeGear.Cpp.Targets')" Project="$(BDS)\Bin\CodeGear.Cpp.Targets"/>
+    <Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+</Project>

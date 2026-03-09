@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="dclrxC6.bpl"/>
+    <OBJFILES value="dclrxC6.obj RxLConst.obj HintProp.obj CheckItm.obj StrLEdit.obj
+      RxColors.obj RxDsgn.obj PresrDsn.obj MinMaxEd.obj SbEdit.obj PgMngrEd.obj 
+      TimLstEd.obj IcoLEdit.obj RxResExp.obj PictEdit.obj RxDirFrm.obj 
+      GradEdit.obj RxCtlReg.obj RxTooReg.obj"/>
+    <RESFILES value=""/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib vcl.lib vclx.lib rxctlC6.lib"/>
+    <PACKAGES value="rxctlC6.bpi rtl.bpi vcl.bpi vclx.bpi dclstd.bpi designide.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value=""/>
+    <SYSDEFINES value="NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="dclrxC6.cpp"/>
+    <INCLUDEPATH value="$(BCB)\include;$(BCB)\include\vcl;$(BCB)\rx\units"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;$(BCB)\lib\release;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\rx\units"/>
+    <WARNINGS value="-w-par -w-8027 -w-8026"/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-src_suffix cpp -I$(BCB)\include -I$(BCB)\include\vcl -I$(BCB)\rx\units -boa"/>
+    <CFLAG1 value="-O2 -H=d:\PROGRA~1\borland\CBUILD~1\lib\vcl60.csm -Hc -Vx -Ve -Tkh30000 
+      -X- -a8 -b- -k- -vi -c"/>
+    <CFLAG2 value=""/>
+    <CFLAG3 value=""/>
+    <PFLAGS value="-$YD -$V- -$L- -$D- -$A8 -LUdclstd -v -M -JPHNE"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;RX Library Controls and Tools&quot; -aa -Tpp -Gpd -x -Gn -Gl -Gi"/>
+    <IFLAGS value=""/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="dclrxC6.cpp" FORMNAME="" UNITNAME="dclrxC6" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="rxctlC6.bpi" FORMNAME="" UNITNAME="rxctlC6" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxLConst.pas" FORMNAME="" UNITNAME="RxLConst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\HintProp.pas" FORMNAME="" UNITNAME="HintProp" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\CheckItm.pas" FORMNAME="" UNITNAME="CheckItm" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\StrLEdit.pas" FORMNAME="" UNITNAME="StrLEdit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxColors.pas" FORMNAME="" UNITNAME="RxColors" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxDsgn.pas" FORMNAME="" UNITNAME="RxDsgn" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\PresrDsn.pas" FORMNAME="" UNITNAME="PresrDsn" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\MinMaxEd.pas" FORMNAME="" UNITNAME="MinMaxEd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\SbEdit.pas" FORMNAME="" UNITNAME="SbEdit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\PgMngrEd.pas" FORMNAME="" UNITNAME="PgMngrEd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\TimLstEd.pas" FORMNAME="" UNITNAME="TimLstEd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\IcoLEdit.pas" FORMNAME="" UNITNAME="IcoLEdit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxResExp.pas" FORMNAME="" UNITNAME="RxResExp" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\PictEdit.pas" FORMNAME="" UNITNAME="PictEdit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxDirFrm.pas" FORMNAME="" UNITNAME="RxDirFrm" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\GradEdit.pas" FORMNAME="" UNITNAME="GradEdit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxCtlReg.pas" FORMNAME="" UNITNAME="RxCtlReg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxTooReg.pas" FORMNAME="" UNITNAME="RxTooReg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vcl.bpi" FORMNAME="" UNITNAME="vcl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vclx.bpi" FORMNAME="" UNITNAME="vclx" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="dclstd.bpi" FORMNAME="" UNITNAME="dclstd" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="designide.bpi" FORMNAME="" UNITNAME="designide" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1049
+CodePage=1251
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

@@ -1,0 +1,245 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{78FB561A-C8AF-42DA-BE4B-33F9FF67932B}</ProjectGuid>
+        <ProjectType>CppPackage</ProjectType>
+        <MainSource>dclrxdbCXE6.cpp</MainSource>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <ProjectVersion>15.4</ProjectVersion>
+        <Base>True</Base>
+        <AppType>Library</AppType>
+        <FrameworkType>VCL</FrameworkType>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <TargetedPlatforms>1</TargetedPlatforms>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+        <Cfg_1_Win32>true</Cfg_1_Win32>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <SanitizedProjectName>dclrxdbCXE6</SanitizedProjectName>
+        <VerInfo_Locale>1049</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Bde;Winapi;$(DCC_Namespace)</DCC_Namespace>
+        <LinkPackageStatics>rtl.lib;vcl.lib;rxctlCXE6.lib;dclrxCXE6.lib;rxdbCXE6.lib;dbrtl.lib;vcldb.lib;bdertl.lib</LinkPackageStatics>
+        <_TCHARMapping>wchar_t</_TCHARMapping>
+        <IntermediateOutputDir>.\$(Config)\$(Platform)</IntermediateOutputDir>
+        <DesignOnlyPackage>true</DesignOnlyPackage>
+        <IncludePath>..\;..\..\Units;$(IncludePath)</IncludePath>
+        <BCC_PCHCache>true</BCC_PCHCache>
+        <ILINK_FullDebugInfo>true</ILINK_FullDebugInfo>
+        <DCC_ResourcePath>..\;$(DCC_ResourcePath)</DCC_ResourcePath>
+        <DCC_UnitSearchPath>..\;.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <ILINK_AppType>Windows</ILINK_AppType>
+        <UsePackages>true</UsePackages>
+        <BRCC_IncludePath>..\;$(BDS)\include;$(BDS)\include\vcl;$(BDS)\rx\units;$(BRCC_IncludePath)</BRCC_IncludePath>
+        <BRCC_UserSuppliedOptions> -I$(BDS)\include;$(BDS)\include\vcl;$(BDS)\rx\units;$(BDS)\include\dinkumware</BRCC_UserSuppliedOptions>
+        <ILINK_GenerateLibFile>true</ILINK_GenerateLibFile>
+        <BCC_SourceDebuggingOn>true</BCC_SourceDebuggingOn>
+        <DCC_IncludePath>..\;.\;$(BDS)\lib;$(BDS)\lib\obj;$(DCC_IncludePath)</DCC_IncludePath>
+        <TASM_IncludePath>$(BDS)\include;$(BDS)\include\vcl;$(BDS)\rx\units;$(TASM_IncludePath)</TASM_IncludePath>
+        <ILINK_GenerateImportLibrary>true</ILINK_GenerateImportLibrary>
+        <BCC_DisableOptimizations>true</BCC_DisableOptimizations>
+        <AllPackageLibs>rtl.lib;vcl.lib;rxctlCXE6.lib;dclrxCXE6.lib;rxdbCXE6.lib;dbrtl.lib;vcldb.lib;bdertl.lib</AllPackageLibs>
+        <OutputExt>bpl</OutputExt>
+        <ILINK_WinAppType>Package</ILINK_WinAppType>
+        <TASM_AdditionalSwitches> /w2</TASM_AdditionalSwitches>
+        <ILINK_Description>RX Library Database Components</ILINK_Description>
+        <ILINK_ObjectSearchPath>..\;$(ILINK_ObjectSearchPath)</ILINK_ObjectSearchPath>
+        <DCC_AdditionalSwitches> -LUdclstd -M</DCC_AdditionalSwitches>
+        <DCC_ObjPath>..\;$(DCC_ObjPath)</DCC_ObjPath>
+        <DCC_CBuilderOutput>JPHNE</DCC_CBuilderOutput>
+        <BCC_DebugLineNumbers>true</BCC_DebugLineNumbers>
+        <BCC_InlineFunctionExpansion>false</BCC_InlineFunctionExpansion>
+        <ILINK_LibraryPath>..\..\Units;..\;$(BDS)\lib;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <TASM_Defines>USEPACKAGES;$(TASM_Defines)</TASM_Defines>
+        <BRCC_Defines>USEPACKAGES;$(BRCC_Defines)</BRCC_Defines>
+        <BCC_UserSuppliedOptions> -Tkh30000 -Vx -r- -k -Ve</BCC_UserSuppliedOptions>
+        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <ILINK_LibraryPath>$(BDS)\lib\debug;$(ILINK_LibraryPath);$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <IntermediateOutputDir>Debug_Build</IntermediateOutputDir>
+        <DCC_Define>DEBUG;$(DCC_Define);$(DCC_Define)</DCC_Define>
+        <ILINK_DisableIncrementalLinking>true</ILINK_DisableIncrementalLinking>
+        <TASM_Debugging>Full</TASM_Debugging>
+        <TASM_DisplaySourceLines>true</TASM_DisplaySourceLines>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <ILINK_LibraryPath>D:\Documents and Settings\All Users\Documents\RAD Studio\14.0\DCP\;$(BDS)\lib\win32\release\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
+        <BCC_Defines>_DEBUG;$(BCC_Defines);$(BCC_Defines)</BCC_Defines>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <IntermediateOutputDir>Release_Build</IntermediateOutputDir>
+        <BCC_OptimizeForSpeed>true</BCC_OptimizeForSpeed>
+        <TASM_Debugging>None</TASM_Debugging>
+        <DCC_AdditionalSwitches> -LUdclstd -M -$O+</DCC_AdditionalSwitches>
+        <BCC_InlineFunctionExpansion>true</BCC_InlineFunctionExpansion>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <BCC_UserSuppliedOptions> -Tkh30000 -Vx -r- -k -Ve -r</BCC_UserSuppliedOptions>
+        <BCC_Defines>NDEBUG;$(BCC_Defines);$(BCC_Defines)</BCC_Defines>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageImport Include="bdertl.bpi">
+            <BuildOrder>6</BuildOrder>
+            <BuildOrder>11</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="dbrtl.bpi">
+            <BuildOrder>9</BuildOrder>
+            <BuildOrder>0</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="dclrxCXE6.bpi">
+            <BuildOrder>3</BuildOrder>
+            <BuildOrder>10</BuildOrder>
+        </PackageImport>
+        <CppCompile Include="dclrxdbCXE6.cpp">
+            <BuildOrder>-1</BuildOrder>
+            <BuildOrder>0</BuildOrder>
+        </CppCompile>
+        <PackageImport Include="dclstd.bpi">
+            <BuildOrder>5</BuildOrder>
+            <BuildOrder>12</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="designide.bpi">
+            <BuildOrder>4</BuildOrder>
+            <BuildOrder>13</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="rtl.bpi">
+            <BuildOrder>7</BuildOrder>
+            <BuildOrder>2</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="rxctlCXE6.bpi">
+            <BuildOrder>-1</BuildOrder>
+            <BuildOrder>1</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="rxdbCXE6.bpi">
+            <BuildOrder>7</BuildOrder>
+            <BuildOrder>2</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="vcl.bpi">
+            <BuildOrder>8</BuildOrder>
+            <BuildOrder>1</BuildOrder>
+        </PackageImport>
+        <PackageImport Include="vcldb.bpi">
+            <BuildOrder>3</BuildOrder>
+            <BuildOrder>10</BuildOrder>
+        </PackageImport>
+        <DelphiCompile Include="..\QBndDlg.pas">
+            <BuildOrder>4</BuildOrder>
+            <BuildOrder>13</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxBDEReg.pas">
+            <BuildOrder>6</BuildOrder>
+            <BuildOrder>11</BuildOrder>
+        </DelphiCompile>
+        <DelphiCompile Include="..\RxDBReg.pas">
+            <BuildOrder>5</BuildOrder>
+            <BuildOrder>12</BuildOrder>
+        </DelphiCompile>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <Import Condition="Exists('$(BDS)\Bin\CodeGear.Cpp.Targets')" Project="$(BDS)\Bin\CodeGear.Cpp.Targets"/>
+    <ProjectExtensions>
+        <Borland.Personality>CPlusPlusBuilder.Personality.12</Borland.Personality>
+        <Borland.ProjectType>CppPackage</Borland.ProjectType>
+        <BorlandProject>
+            <CPlusPlusBuilder.Personality>
+                <VersionInfo>
+                    <VersionInfo Name="IncludeVerInfo">False</VersionInfo>
+                    <VersionInfo Name="AutoIncBuild">False</VersionInfo>
+                    <VersionInfo Name="MajorVer">1</VersionInfo>
+                    <VersionInfo Name="MinorVer">0</VersionInfo>
+                    <VersionInfo Name="Release">0</VersionInfo>
+                    <VersionInfo Name="Build">0</VersionInfo>
+                    <VersionInfo Name="Debug">False</VersionInfo>
+                    <VersionInfo Name="PreRelease">False</VersionInfo>
+                    <VersionInfo Name="Special">False</VersionInfo>
+                    <VersionInfo Name="Private">False</VersionInfo>
+                    <VersionInfo Name="DLL">False</VersionInfo>
+                    <VersionInfo Name="Locale">1049</VersionInfo>
+                    <VersionInfo Name="CodePage">1251</VersionInfo>
+                </VersionInfo>
+                <VersionInfoKeys>
+                    <VersionInfoKeys Name="CompanyName"/>
+                    <VersionInfoKeys Name="FileDescription"/>
+                    <VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="InternalName"/>
+                    <VersionInfoKeys Name="LegalCopyright"/>
+                    <VersionInfoKeys Name="LegalTrademarks"/>
+                    <VersionInfoKeys Name="OriginalFilename"/>
+                    <VersionInfoKeys Name="ProductName"/>
+                    <VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="Comments"/>
+                </VersionInfoKeys>
+                <Debugging>
+                    <Debugging Name="DebugSourceDirs">$(BCB)\source\vcl</Debugging>
+                </Debugging>
+                <Parameters>
+                    <Parameters Name="RemoteHost"/>
+                    <Parameters Name="RemotePath"/>
+                    <Parameters Name="RemoteParams"/>
+                    <Parameters Name="RemoteLauncher"/>
+                    <Parameters Name="UseRemoteLauncher">False</Parameters>
+                    <Parameters Name="RemoteCWD"/>
+                    <Parameters Name="RemoteDebug">False</Parameters>
+                </Parameters>
+                <Source>
+                    <Source Name="MainSource">dclrxdbCXE6.cpp</Source>
+                </Source>
+                <ProjectProperties>
+                    <ProjectProperties Name="AutoShowDeps">False</ProjectProperties>
+                    <ProjectProperties Name="ManagePaths">True</ProjectProperties>
+                    <ProjectProperties Name="VerifyPackages">True</ProjectProperties>
+                    <ProjectProperties Name="IndexFiles">False</ProjectProperties>
+                </ProjectProperties>
+            </CPlusPlusBuilder.Personality>
+            <Platforms>
+                <Platform value="Win32">True</Platform>
+            </Platforms>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+</Project>

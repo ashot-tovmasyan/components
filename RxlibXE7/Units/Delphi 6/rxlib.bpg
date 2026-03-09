@@ -1,0 +1,35 @@
+#------------------------------------------------------------------------------
+VERSION = BWS.01
+#------------------------------------------------------------------------------
+!ifndef ROOT
+ROOT = $(MAKEDIR)\..
+!endif
+#------------------------------------------------------------------------------
+MAKE = $(ROOT)\bin\make.exe -$(MAKEFLAGS) -f$**
+DCC = $(ROOT)\bin\dcc32.exe $**
+BRCC = $(ROOT)\bin\brcc32.exe $**
+#------------------------------------------------------------------------------
+PROJECTS = rxctl6.bpl rxdb6.bpl rxbde6.bpl dclrx6.bpl dclrxdb6.bpl dclrxbd6.bpl
+#------------------------------------------------------------------------------
+default: $(PROJECTS)
+#------------------------------------------------------------------------------
+
+rxctl6.bpl: rxctl6.dpk
+  $(DCC)
+
+rxdb6.bpl: rxdb6.dpk
+  $(DCC)
+
+rxbde6.bpl: rxbde6.dpk
+  $(DCC)
+
+dclrx6.bpl: dclrx6.dpk
+  $(DCC)
+
+dclrxdb6.bpl: dclrxdb6.dpk
+  $(DCC)
+
+dclrxbd6.bpl: dclrxbd6.dpk
+  $(DCC)
+
+

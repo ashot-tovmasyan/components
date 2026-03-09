@@ -1,0 +1,96 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{3146B12C-D286-439F-829C-2CE5F795FEC7}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="rxctlDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="rxdbDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="rxbdeDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="dclrxDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="dclrxdbDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="dclrxbdDXE3.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="rxctlDXE3">
+        <MSBuild Projects="rxctlDXE3.dproj"/>
+    </Target>
+    <Target Name="rxctlDXE3:Clean">
+        <MSBuild Projects="rxctlDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="rxctlDXE3:Make">
+        <MSBuild Projects="rxctlDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="rxdbDXE3">
+        <MSBuild Projects="rxdbDXE3.dproj"/>
+    </Target>
+    <Target Name="rxdbDXE3:Clean">
+        <MSBuild Projects="rxdbDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="rxdbDXE3:Make">
+        <MSBuild Projects="rxdbDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="rxbdeDXE3">
+        <MSBuild Projects="rxbdeDXE3.dproj"/>
+    </Target>
+    <Target Name="rxbdeDXE3:Clean">
+        <MSBuild Projects="rxbdeDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="rxbdeDXE3:Make">
+        <MSBuild Projects="rxbdeDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dclrxDXE3">
+        <MSBuild Projects="dclrxDXE3.dproj"/>
+    </Target>
+    <Target Name="dclrxDXE3:Clean">
+        <MSBuild Projects="dclrxDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dclrxDXE3:Make">
+        <MSBuild Projects="dclrxDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dclrxdbDXE3">
+        <MSBuild Projects="dclrxdbDXE3.dproj"/>
+    </Target>
+    <Target Name="dclrxdbDXE3:Clean">
+        <MSBuild Projects="dclrxdbDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dclrxdbDXE3:Make">
+        <MSBuild Projects="dclrxdbDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="dclrxbdDXE3">
+        <MSBuild Projects="dclrxbdDXE3.dproj"/>
+    </Target>
+    <Target Name="dclrxbdDXE3:Clean">
+        <MSBuild Projects="dclrxbdDXE3.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dclrxbdDXE3:Make">
+        <MSBuild Projects="dclrxbdDXE3.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="rxctlDXE3;rxdbDXE3;rxbdeDXE3;dclrxDXE3;dclrxdbDXE3;dclrxbdDXE3"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="rxctlDXE3:Clean;rxdbDXE3:Clean;rxbdeDXE3:Clean;dclrxDXE3:Clean;dclrxdbDXE3:Clean;dclrxbdDXE3:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="rxctlDXE3:Make;rxdbDXE3:Make;rxbdeDXE3:Make;dclrxDXE3:Make;dclrxdbDXE3:Make;dclrxbdDXE3:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

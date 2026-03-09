@@ -1,0 +1,32 @@
+/****************************************************************************
+
+rxcconst.res
+
+Delphi VCL Extensions (RX)
+Copyright (c) 1995 AO ROSNO
+Copyright (c) 1997 Master-Bank
+
+Translated to Spanish by Jose Manuel Rodriguez (E-Mail: qkysoft@arrakis.es)
+
+*****************************************************************************/
+
+#include "rxcconst.pas"
+
+#ifdef win32
+LANGUAGE LANG_SPANISH,1
+#endif
+
+STRINGTABLE 
+{
+ SBrowse, "Visualizar"
+ SDefaultFilter, "Todos los ficheros (*.*)|*.*"
+ SDateDlgTitle, "Seleccione un fecha"
+ SNextYear, "Año siguiente|"
+ SNextMonth, "Mes siguiente|"
+ SPrevYear, "Año anterior|"
+ SPrevMonth, "Mes anterior|"
+ SNotImplemented, "Función aún no implementada"
+ SFileNotExec, "El fichero indicado no es un ejecutable, ni una DLL ni un fichero de iconos"
+ SLoadLibError, "No se pudo cargar la librería '%s' "
+ SDetails, "Detalles"
+}

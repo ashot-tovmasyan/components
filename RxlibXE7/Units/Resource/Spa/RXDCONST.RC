@@ -1,0 +1,66 @@
+/****************************************************************************
+
+rxdconst.res
+
+Delphi VCL Extensions (RX)
+Copyright (c) 1995,1996 AO ROSNO
+Copyright (c) 1997 Master-Bank
+
+Translated to Spanish by Jose Manuel Rodriguez (E-Mail: qkysoft@arrakis.es)
+
+*****************************************************************************/
+
+#include "rxdconst.pas"
+
+#ifdef win32
+LANGUAGE LANG_SPANISH,1
+#endif
+
+STRINGTABLE 
+{
+ SLocalDatabase, "No puedo ejecutar esta operación sobre una base de datos local"
+ SRetryLogin, "¿Seguro que quiere reintentar la conexión con la base de datos?"
+ SExprNotBoolean, "El campo '%s' no es de tipo lógico"
+ SExprBadNullTest, "NULL sólo se permite con '=' y '<>'"
+ SExprBadField, "El campo '%s' no se puede usar en una expresión de filtro"
+ SCaptureFilter, "No se puede ejecutar esta operación mientras los controles están capturados"
+ SNotCaptureFilter, "No se puede ejecutar esta operación cuando los controles no están capturados"
+ SInactiveData, "Cerrado"
+ SBrowseData, "Visualizar"
+ SEditData, "Editar"
+ SInsertData, "Insertar"
+ SSetKeyData, "Buscar"
+ SCalcFieldsData, "Calcular"
+ SRegistration, "Operación de registro"
+ SAppTitleLabel, "Aplicación %s"
+ SHintLabel, "Teclee su nombre y contraseña"
+ SUserNameLabel, "Nombre de &usuario:"
+ SPasswordLabel, "&Contraseña:"
+ SInvalidUserName, "Nombre de usuario o contraseña inválidos"
+ SChangePassword, "Cambiar contraseña"
+ SOldPasswordLabel, "Contraseña &Antigua:"
+ SNewPasswordLabel, "Contraseña &Nueva:"
+ SConfirmPasswordLabel, "&Confirmar contraseña:"
+ SPasswordChanged, "La contraseña ha sido cambiada"
+ SPasswordNotChanged, "La contraseña no ha sido cambiada"
+ SPasswordsMismatch, "La contraseña nueva y la confirmada no concuerdan"
+ SDBExceptCaption, "Error del motor de datos"
+ SBDEErrorLabel, "Error del BDE"
+ SServerErrorLabel, "Error del Servidor"
+ SErrorMsgLabel, "Mensaje de Error"
+ SNextButton, "&Siguiente"
+ SPrevButton, "&Anterior"
+ SExprIncorrect, "Expresión del filtro incorrectamente formada"
+ SExprTermination, "Expresión del filtro incorrectamente terminada"
+ SExprNameError, "Nombre del campo sin acabar"
+ SExprStringError, "Literal alfanumérico inacabado"
+ SExprInvalidChar, "El caracter: '%s' es una expresión de filtro inválida"
+ SExprNoRParen, "Se esperaba un ')'  pero se encontró %s"
+ SExprExpected, "Se esperaba una expresión pero se encontró  %s"
+ SExprBadCompare, "Los operadores relacionales requieren un campo y una constante"
+ SConfirmSave, "Los datos han cambiado ¿Guardarlos?"
+ SDatabaseName, "Nombre de la base de datos: %s"
+ SUnlockCaption, "Aplicación no bloqueada"
+ SUnlockHint, "Teclee su contraseña"
+ SDeleteMultipleRecords, "¿Borrar todos los registros seleccionados?"
+}

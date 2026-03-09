@@ -1,0 +1,72 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{D99FD7ED-BA5A-435A-824E-96BFE9392766}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="rxctlC2010.cbproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="rxdbC2010.cbproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="dclrxC2010.cbproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="dclrxdbC2010.cbproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="rxctlC2010">
+			<MSBuild Projects="rxctlC2010.cbproj"/>
+		</Target>
+		<Target Name="rxctlC2010:Clean">
+			<MSBuild Targets="Clean" Projects="rxctlC2010.cbproj"/>
+		</Target>
+		<Target Name="rxctlC2010:Make">
+			<MSBuild Targets="Make" Projects="rxctlC2010.cbproj"/>
+		</Target>
+		<Target Name="rxdbC2010">
+			<MSBuild Projects="rxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="rxdbC2010:Clean">
+			<MSBuild Targets="Clean" Projects="rxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="rxdbC2010:Make">
+			<MSBuild Targets="Make" Projects="rxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxC2010">
+			<MSBuild Projects="dclrxC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxC2010:Clean">
+			<MSBuild Targets="Clean" Projects="dclrxC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxC2010:Make">
+			<MSBuild Targets="Make" Projects="dclrxC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxdbC2010">
+			<MSBuild Projects="dclrxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxdbC2010:Clean">
+			<MSBuild Targets="Clean" Projects="dclrxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="dclrxdbC2010:Make">
+			<MSBuild Targets="Make" Projects="dclrxdbC2010.cbproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="rxctlC2010;rxdbC2010;dclrxC2010;dclrxdbC2010"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="rxctlC2010:Clean;rxdbC2010:Clean;dclrxC2010:Clean;dclrxdbC2010:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="rxctlC2010:Make;rxdbC2010:Make;dclrxC2010:Make;dclrxdbC2010:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>

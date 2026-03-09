@@ -1,0 +1,52 @@
+{*******************************************************}
+{                                                       }
+{         Delphi VCL Extensions (RX)                    }
+{                                                       }
+{         Copyright (c) 1998 Master-Bank                }
+{                                                       }
+{*******************************************************}
+
+package dclrxdbDXE4;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'RX Library Database Components'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  designide,
+  VclSmp,
+  dclrxDXE4,
+  rxctlDXE4,
+  rxdbDXE4,
+  DclDB;
+
+contains
+  SelDSFrm in '..\SelDSFrm.pas',
+  RxDBReg in '..\RxDBReg.pas';
+
+end.

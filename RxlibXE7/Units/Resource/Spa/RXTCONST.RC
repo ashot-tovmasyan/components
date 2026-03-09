@@ -1,0 +1,35 @@
+/****************************************************************************
+
+rxtconst.res
+
+Delphi VCL Extensions (RX)
+Copyright (c) 1995 AO ROSNO
+Copyright (c) 1997 Master-Bank
+
+Translated to Spanish by Jose Manuel Rodriguez (E-Mail: qkysoft@arrakis.es)
+
+*****************************************************************************/
+
+#include "rxtconst.pas"
+
+#ifdef win32
+LANGUAGE LANG_SPANISH,1
+#endif
+
+STRINGTABLE 
+{
+ SDualListSrcCaption, "&Fuente"
+ SDualListDestCaption, "&Destino"
+ SClipbrdUnknown, "No puedo mostrar nada. Los datos del portapapeles están en un formato desconocido"
+ SClipbrdEmpty, "El portapapeles está vacío"
+ SCustomizeSpeedbar, "Personalizar la barra de herramientas"
+ SAvailButtons, "&Botones disponibles:"
+ SSpeedbarCategories, "&Categorías:"
+ SSpeedbarEditHint, "Para añadir botones, arrástrelos y suéltelos sobre la barra de herramientas. Para quitarlos, arrástrelos fuera de la barra de herramientas"
+ SParseSyntaxError, "Error de sintaxis"
+ SParseNotCramp, "Condición inválida (sin soporte)"
+ SParseDivideByZero, "División entre 0"
+ SParseSqrError, "Operación de coma flotante inválida"
+ SParseLogError, "Operación de coma flotante inválida"
+ SParseInvalidFloatOperation, "Operación de coma flotante inválida"
+}

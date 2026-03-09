@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <PersonalityInfo>
+    <Option>
+      <Option Name="Personality">Default.Personality</Option>
+      <Option Name="ProjectType"></Option>
+      <Option Name="Version">1.0</Option>
+      <Option Name="GUID">{DA226640-EAC2-4FE5-A224-5E86953FEFEE}</Option>
+    </Option>
+  </PersonalityInfo>
+  <Default.Personality>
+    
+    
+    
+    
+    
+    <Projects>
+      <Projects Name="rxctlC2006.bpl">rxctlC2006.bdsproj</Projects>
+      <Projects Name="rxdbC2006.bpl">rxdbC2006.bdsproj</Projects>
+      <Projects Name="dclrxC2006.bpl">dclrxC2006.bdsproj</Projects>
+      <Projects Name="dclrxdbC2006.bpl">dclrxdbC2006.bdsproj</Projects>
+      <Projects Name="Targets">rxctlC2006.bpl rxdbC2006.bpl dclrxC2006.bpl dclrxdbC2006.bpl</Projects>
+    </Projects>
+    <Dependencies/>
+  </Default.Personality>
+  <StarTeamAssociation></StarTeamAssociation>
+  <StarTeamNonRelativeFiles></StarTeamNonRelativeFiles>
+</BorlandProject>

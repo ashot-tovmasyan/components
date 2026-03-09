@@ -1,0 +1,187 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="rxctlC6.bpl"/>
+    <OBJFILES value="rxctlC6.obj Rxctrls.obj Rxgrids.obj Curredit.obj Tooledit.obj Dateutil.obj
+      Rxsplit.obj Rxslider.obj Rxclock.obj Animate.obj Rxspin.obj RxRichEd.obj 
+      Rxswitch.obj Rxdice.obj ClipMon.obj Vclutils.obj Anifile.obj Icolist.obj 
+      Objstr.obj Rxcombos.obj Pickdate.obj Maxmin.obj Rxconst.obj Rxcconst.obj 
+      Apputls.obj Strutls.obj Fileutil.obj Rxtimer.obj Rxhook.obj Placemnt.obj 
+      Rxprops.obj Rxprgrss.obj Rxhints.obj Rxcalc.obj Boxprocs.obj Clipicon.obj 
+      Rxgraph.obj PicClip.obj DualList.obj FDualLst.obj ClipView.obj 
+      Speedbar.obj SbSetup.obj PageMngr.obj MrgMngr.obj StrHlder.obj AppEvent.obj 
+      TimerLst.obj MRUList.obj RxIni.obj RxShell.obj Parsing.obj RxMenus.obj 
+      RxNotify.obj RxGrdCpt.obj SplshWnd.obj DataConv.obj RxTConst.obj 
+      Ole2Auto.obj RxVerInf.obj ExcptDlg.obj Str16.obj Rxgconst.obj Rxgif.obj 
+      Gifctrl.obj"/>
+    <RESFILES value=""/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib vcl.lib vclx.lib"/>
+    <PACKAGES value="rtl.bpi vcl.bpi vclx.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value=""/>
+    <SYSDEFINES value="NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="rxctlC6.cpp"/>
+    <INCLUDEPATH value="$(BCB)\include;$(BCB)\include\vcl;$(BCB)\rx\units"/>
+    <LIBPATH value="$(BCB)\lib\release;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\rx\units"/>
+    <WARNINGS value="-w-par -w-8027 -w-8026"/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-src_suffix cpp -I$(BCB)\include -I$(BCB)\include\vcl -I$(BCB)\rx\units -boa"/>
+    <CFLAG1 value="-O2 -H=d:\PROGRA~1\borland\CBUILD~1\lib\vcl60.csm -Hc -Vx -Ve -Tkh30000 
+      -X- -a8 -b- -k- -vi -c"/>
+    <CFLAG2 value=""/>
+    <CFLAG3 value=""/>
+    <PFLAGS value="-$YD -$V- -$L- -$D- -$A8 -v -M -JPHNE"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;RX Library Controls and Tools Package&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi"/>
+    <IFLAGS value=""/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="rxctlC6.cpp" FORMNAME="" UNITNAME="rxctlC6" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxctrls.pas" FORMNAME="" UNITNAME="Rxctrls" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxgrids.pas" FORMNAME="" UNITNAME="Rxgrids" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Curredit.pas" FORMNAME="" UNITNAME="Curredit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Tooledit.pas" FORMNAME="" UNITNAME="Tooledit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Dateutil.pas" FORMNAME="" UNITNAME="Dateutil" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxsplit.pas" FORMNAME="" UNITNAME="Rxsplit" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxslider.pas" FORMNAME="" UNITNAME="Rxslider" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxclock.pas" FORMNAME="" UNITNAME="Rxclock" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Animate.pas" FORMNAME="" UNITNAME="Animate" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxspin.pas" FORMNAME="" UNITNAME="Rxspin" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxRichEd.pas" FORMNAME="" UNITNAME="RxRichEd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxswitch.pas" FORMNAME="" UNITNAME="Rxswitch" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxdice.pas" FORMNAME="" UNITNAME="Rxdice" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\ClipMon.pas" FORMNAME="" UNITNAME="ClipMon" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Vclutils.pas" FORMNAME="" UNITNAME="Vclutils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Anifile.pas" FORMNAME="" UNITNAME="Anifile" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Icolist.pas" FORMNAME="" UNITNAME="Icolist" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Objstr.pas" FORMNAME="" UNITNAME="Objstr" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxcombos.pas" FORMNAME="" UNITNAME="Rxcombos" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Pickdate.pas" FORMNAME="" UNITNAME="Pickdate" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Maxmin.pas" FORMNAME="" UNITNAME="Maxmin" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxconst.pas" FORMNAME="" UNITNAME="Rxconst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxcconst.pas" FORMNAME="" UNITNAME="Rxcconst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Apputls.pas" FORMNAME="" UNITNAME="Apputls" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Strutls.pas" FORMNAME="" UNITNAME="Strutls" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Fileutil.pas" FORMNAME="" UNITNAME="Fileutil" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxtimer.pas" FORMNAME="" UNITNAME="Rxtimer" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxhook.pas" FORMNAME="" UNITNAME="Rxhook" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Placemnt.pas" FORMNAME="" UNITNAME="Placemnt" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxprops.pas" FORMNAME="" UNITNAME="Rxprops" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxprgrss.pas" FORMNAME="" UNITNAME="Rxprgrss" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxhints.pas" FORMNAME="" UNITNAME="Rxhints" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxcalc.pas" FORMNAME="" UNITNAME="Rxcalc" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Boxprocs.pas" FORMNAME="" UNITNAME="Boxprocs" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Clipicon.pas" FORMNAME="" UNITNAME="Clipicon" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxgraph.pas" FORMNAME="" UNITNAME="Rxgraph" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\PicClip.pas" FORMNAME="" UNITNAME="PicClip" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DualList.pas" FORMNAME="" UNITNAME="DualList" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\FDualLst.pas" FORMNAME="" UNITNAME="FDualLst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\ClipView.pas" FORMNAME="" UNITNAME="ClipView" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Speedbar.pas" FORMNAME="" UNITNAME="Speedbar" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\SbSetup.pas" FORMNAME="" UNITNAME="SbSetup" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\PageMngr.pas" FORMNAME="" UNITNAME="PageMngr" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\MrgMngr.pas" FORMNAME="" UNITNAME="MrgMngr" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\StrHlder.pas" FORMNAME="" UNITNAME="StrHlder" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\AppEvent.pas" FORMNAME="" UNITNAME="AppEvent" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\TimerLst.pas" FORMNAME="" UNITNAME="TimerLst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\MRUList.pas" FORMNAME="" UNITNAME="MRUList" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxIni.pas" FORMNAME="" UNITNAME="RxIni" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxShell.pas" FORMNAME="" UNITNAME="RxShell" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Parsing.pas" FORMNAME="" UNITNAME="Parsing" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxMenus.pas" FORMNAME="" UNITNAME="RxMenus" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxNotify.pas" FORMNAME="" UNITNAME="RxNotify" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxGrdCpt.pas" FORMNAME="" UNITNAME="RxGrdCpt" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\SplshWnd.pas" FORMNAME="" UNITNAME="SplshWnd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DataConv.pas" FORMNAME="" UNITNAME="DataConv" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxTConst.pas" FORMNAME="" UNITNAME="RxTConst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Ole2Auto.pas" FORMNAME="" UNITNAME="Ole2Auto" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxVerInf.pas" FORMNAME="" UNITNAME="RxVerInf" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\ExcptDlg.pas" FORMNAME="" UNITNAME="ExcptDlg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Str16.pas" FORMNAME="" UNITNAME="Str16" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxgconst.pas" FORMNAME="" UNITNAME="Rxgconst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Rxgif.pas" FORMNAME="" UNITNAME="Rxgif" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\Gifctrl.pas" FORMNAME="" UNITNAME="Gifctrl" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vcl.bpi" FORMNAME="" UNITNAME="vcl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vclx.bpi" FORMNAME="" UNITNAME="vclx" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1049
+CodePage=1251
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

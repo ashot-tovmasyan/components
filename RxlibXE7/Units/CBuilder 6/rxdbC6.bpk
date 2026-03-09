@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="rxdbC6.bpl"/>
+    <OBJFILES value="rxdbC6.obj RxDBCtrl.obj RxLookup.obj DBQBE.obj DBFilter.obj DBLists.obj
+      DBIndex.obj DBPrgrss.obj DBSecur.obj RxRemLog.obj RxLogin.obj LoginDlg.obj 
+      RxDConst.obj ChPswDlg.obj DBUtils.obj BdeUtils.obj RxQuery.obj 
+      RxDBComb.obj DBRichEd.obj MemTable.obj DBExcpt.obj RxMemDS.obj"/>
+    <RESFILES value=""/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value="rtl.lib vcl.lib rxctlC6.lib dbrtl.lib vcldb.lib bdertl.lib"/>
+    <PACKAGES value="rxctlC6.bpi rtl.bpi vcl.bpi dbrtl.bpi vcldb.bpi bdertl.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value=""/>
+    <SYSDEFINES value="NO_STRICT;USEPACKAGES"/>
+    <MAINSOURCE value="rxdbC6.cpp"/>
+    <INCLUDEPATH value="$(BCB)\include;$(BCB)\include\vcl;$(BCB)\rx\units"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;$(BCB)\lib\release;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\rx\units"/>
+    <WARNINGS value="-w-par -w-8027 -w-8026"/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-src_suffix cpp -I$(BCB)\include -I$(BCB)\include\vcl -I$(BCB)\rx\units -boa"/>
+    <CFLAG1 value="-O2 -H=d:\PROGRA~1\borland\CBUILD~1\lib\vcl60.csm -Hc -Vx -Ve -Tkh30000 
+      -X- -a8 -b- -k- -vi -c"/>
+    <CFLAG2 value=""/>
+    <CFLAG3 value=""/>
+    <PFLAGS value="-$YD -$V- -$L- -$D- -$A8 -v -M -JPHNE"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;RX Library DB Components Package&quot; -aa -Tpp -Gpr -x -Gn -Gl -Gi"/>
+    <IFLAGS value=""/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0pkg32.obj $(PACKAGES) sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="rxdbC6.cpp" FORMNAME="" UNITNAME="rxdbC6" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="rxctlC6.bpi" FORMNAME="" UNITNAME="rxctlC6" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxDBCtrl.pas" FORMNAME="" UNITNAME="RxDBCtrl" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxLookup.pas" FORMNAME="" UNITNAME="RxLookup" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBQBE.pas" FORMNAME="" UNITNAME="DBQBE" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBFilter.pas" FORMNAME="" UNITNAME="DBFilter" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBLists.pas" FORMNAME="" UNITNAME="DBLists" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBIndex.pas" FORMNAME="" UNITNAME="DBIndex" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBPrgrss.pas" FORMNAME="" UNITNAME="DBPrgrss" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBSecur.pas" FORMNAME="" UNITNAME="DBSecur" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxRemLog.pas" FORMNAME="" UNITNAME="RxRemLog" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxLogin.pas" FORMNAME="" UNITNAME="RxLogin" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\LoginDlg.pas" FORMNAME="" UNITNAME="LoginDlg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxDConst.pas" FORMNAME="" UNITNAME="RxDConst" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\ChPswDlg.pas" FORMNAME="" UNITNAME="ChPswDlg" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBUtils.pas" FORMNAME="" UNITNAME="DBUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\BdeUtils.pas" FORMNAME="" UNITNAME="BdeUtils" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxQuery.pas" FORMNAME="" UNITNAME="RxQuery" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxDBComb.pas" FORMNAME="" UNITNAME="RxDBComb" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBRichEd.pas" FORMNAME="" UNITNAME="DBRichEd" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\MemTable.pas" FORMNAME="" UNITNAME="MemTable" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\DBExcpt.pas" FORMNAME="" UNITNAME="DBExcpt" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\RxMemDS.pas" FORMNAME="" UNITNAME="RxMemDS" CONTAINERID="PascalCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="rtl.bpi" FORMNAME="" UNITNAME="rtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vcl.bpi" FORMNAME="" UNITNAME="vcl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="dbrtl.bpi" FORMNAME="" UNITNAME="dbrtl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="vcldb.bpi" FORMNAME="" UNITNAME="vcldb" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="bdertl.bpi" FORMNAME="" UNITNAME="bdertl" CONTAINERID="BPITool" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=0
+MajorVer=1
+MinorVer=0
+Release=0
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1049
+CodePage=1251
+
+[Debugging]
+DebugSourceDirs=$(BCB)\source\vcl
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>

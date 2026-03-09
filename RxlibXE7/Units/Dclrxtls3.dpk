@@ -1,0 +1,25 @@
+{*******************************************************}
+{                                                       }
+{         Delphi VCL Extensions (RX)                    }
+{                                                       }
+{         Copyright (c) 1997, 1998 Master-Bank          }
+{                                                       }
+{*******************************************************}
+
+package DclRxTls3;
+
+{$DEBUGINFO OFF}
+{$DESCRIPTION 'RX Library Tools'}
+{$DESIGNONLY}
+{$IMPLICITBUILD OFF}
+{$L-,Y-,C-,D-}
+
+requires
+  DclRxCtl3,
+  RxTools3;
+
+contains
+  PresrDsn, MinMaxEd, SbEdit, PgMngrEd, TimLstEd, IcoLEdit, RxResExp,
+  PictEdit, RxDirFrm, GradEdit, RxTooReg;
+
+end.
