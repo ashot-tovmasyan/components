@@ -1,10 +1,13 @@
+# Delphi compiled files
 *.dcu
-*.res
-__history/
 *.exe
 *.dll
 *.dcp
 *.bpl
+
+# RAD Studio history
+__history/
+
+# local IDE files
 *.identcache
 *.local
-*.dsk
