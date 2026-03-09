@@ -16,11 +16,7 @@ uses
   {$IFDEF USEOWNDSGNSTUFF}
   dcdsgnstuff,
   {$ELSE}
-    {$IFDEF D6}
     DesignIntf,DesignEditors,VCLEditors,
-    {$ELSE}
-    dsgnintf,
-    {$ENDIF}
   {$ENDIF}
   
   dcconsts, dcdreamlib{$IFDEF DREAMINFOTREE}, DCFieldsSelectDlg{$ENDIF};

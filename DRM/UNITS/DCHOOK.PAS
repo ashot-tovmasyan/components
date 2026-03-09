@@ -586,14 +586,14 @@ end;
 
 {------------------------------------------------------------------}
 
-function MGetMem(Size: Integer): Pointer;
+function MGetMem(Size: NativeInt): Pointer;
 begin
   result := MManager.GetMem(Size);
 end;
 
 {------------------------------------------------------------------}
 
-function MReallocMem (P: Pointer; Size: Integer): Pointer;
+function MReallocMem (P: Pointer; Size: NativeInt): Pointer;
 begin
   result := MManager.ReallocMem(P, Size);
 end;

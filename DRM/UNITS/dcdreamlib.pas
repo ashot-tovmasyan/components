@@ -18,9 +18,7 @@ uses
   {$ENDIF}
 
   Typinfo, dcHook, dcClasses
-  {$IFDEF D6}
   ,RTLConsts, Variants
-  {$ENDIF}
   ;
 
 
@@ -299,7 +297,7 @@ type
   
   TVariantStack = class
   private
-    fLst  : PPointerList;
+    fLst  : TPointerList;
     fList : TList;
     fSize : integer;
 
@@ -878,7 +876,7 @@ end;
 procedure TVariantStack.FillWithItems(buffer : PInt; firstitem, itemnum : cardinal);
 var
   i : integer;
-  _lst : PPointerList;
+  _lst : TPointerList;
 begin
   _lst := fLst;
   for i := 0 to itemnum - 1 do
@@ -1319,30 +1317,32 @@ end;
 
 {------------------------------------------------------------------}
 
-procedure CopyList(FromList,ToList : TList);
-Var
-  Size : Integer;
+procedure CopyList(FromList, ToList: TList);
+var
+  Size: Integer;
 begin
-  If FromList <> ToList Then
+  if FromList <> ToList then
   begin
     Size := FromList.Count;
     ToList.Count := Size;
-    Move( FromList.List^, ToList.List^, Size * SizeOf( Pointer ) );
+    if Size > 0 then
+      Move(FromList.List[0], ToList.List[0], Size * SizeOf(Pointer));
   end;
 end;
-
 {------------------------------------------------------------------}
 
-Procedure AppendList( FromList, ToList : TList );
-Var
-  OldSize, Size : Integer;
+procedure AppendList(FromList, ToList: TList);
+var
+  OldSize, Size: Integer;
 begin
-  If FromList <> ToList Then
+  if FromList <> ToList then
   begin
     Size := FromList.Count;
-    OldSize := ToList.Count; 
+    OldSize := ToList.Count;
     ToList.Count := ToList.Count + Size;
-    Move( FromList.List^, ToList.List^[OldSize], Size * SizeOf( Pointer ) );
+
+    if Size > 0 then
+      Move(FromList.List[0], ToList.List[OldSize], Size * SizeOf(Pointer));
   end;
 end;
 
@@ -1678,7 +1678,7 @@ function TSortedListEx.InternalFindNearest(Item: Pointer; var Index: Integer;
            CompareProc : TListCompare) : boolean;
 var
   L, H, I, C: Integer;
-  list : PPointerList;
+  list : TPointerList;
 begin
   Result := False;
   L := 0;
@@ -2269,7 +2269,7 @@ type
 const
         skew = sizeof(StrRec);
 
-function BackPosEx(const SubStr, S : String; FromChar : Integer) : Integer;
+function BackPosEx(const SubStr, S : AnsiString; FromChar : Integer) : Integer;
 asm
         TEST    EAX,EAX
         JE      @@noWork
@@ -2350,7 +2350,7 @@ end;
 
 {------------------------------------------------------------------}
 
-function PosEx(const SubStr, S : String; FromChar : Integer) : Integer;
+function PosEx(const SubStr, S : AnsiString; FromChar : Integer) : Integer;
 asm
         TEST    EAX,EAX
         JE      @@noWork

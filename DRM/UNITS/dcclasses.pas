@@ -23,9 +23,7 @@ type
   TListCompare = function (Item1, Item2: Pointer): Integer of Object;
 
 type
-  TFastList = class(TList)
-    destructor Destroy; override;
-  end;
+  TFastList = class(TList);
 
   TCustomSortedList = class
   private
@@ -72,7 +70,7 @@ implementation
 function WriteMemory(const lpBaseAddress: Pointer; lpBuffer: Pointer;
   nSize: DWORD) : boolean;
 var
-  V1 : DWORD;
+  V1 : SIZE_T;
 begin
 {$IFDEF WIN32}
   Windows.WriteProcessMemory(GetCurrentProcess, lpBaseAddress, lpBuffer, nSize, V1);
@@ -80,12 +78,6 @@ begin
   WriteProcessMemory(0, lpBaseAddress, lpBuffer, nSize, V1);
 {$ENDIF}
   result := V1 = nsize;
-end;
-
-
-destructor TFastList.Destroy;
-begin
-  FreeMem(List);
 end;
 
 {******************************************************************}
@@ -155,7 +147,7 @@ function TCustomSortedList.InternalFind(Item: Pointer; var Index: Integer;
            CompareProc:TListCompare): Boolean;
 var
   L, H, I, C: Integer;
-  list : PPointerList;
+  list : TPointerList;
 begin
   Result := False;
   L := 0;
