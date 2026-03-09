@@ -1,0 +1,5699 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit CONTROLS_C5;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  activex,
+  dcscript,
+  dcsystem,
+  dcdreamlib,
+  Messages,
+  Windows,
+  MultiMon,
+  Classes,
+  Sysutils,
+  Graphics,
+  Menus,
+  CommCtrl,
+  Imm,
+  ImgList,
+  ActnList,
+  Controls;
+function ConvertTCMActivateToVariant(var R : TCMActivate) : OleVariant;
+function ConvertVariantToTCMActivate(const V : OleVariant) : TCMActivate;
+function ConvertTCMCancelModeToVariant(var R : TCMCancelMode) : OleVariant;
+function ConvertVariantToTCMCancelMode(const V : OleVariant) : TCMCancelMode;
+function ConvertTCMChangedToVariant(var R : TCMChanged) : OleVariant;
+function ConvertVariantToTCMChanged(const V : OleVariant) : TCMChanged;
+function ConvertTCMChildKeyToVariant(var R : TCMChildKey) : OleVariant;
+function ConvertVariantToTCMChildKey(const V : OleVariant) : TCMChildKey;
+function ConvertTCMControlChangeToVariant(var R : TCMControlChange) : OleVariant;
+function ConvertVariantToTCMControlChange(const V : OleVariant) : TCMControlChange;
+function ConvertTCMControlListChangeToVariant(var R : TCMControlListChange) : OleVariant;
+function ConvertVariantToTCMControlListChange(const V : OleVariant) : TCMControlListChange;
+function ConvertTCMDeactivateToVariant(var R : TCMDeactivate) : OleVariant;
+function ConvertVariantToTCMDeactivate(const V : OleVariant) : TCMDeactivate;
+function ConvertTCMDesignHitTestToVariant(var R : TCMDesignHitTest) : OleVariant;
+function ConvertVariantToTCMDesignHitTest(const V : OleVariant) : TCMDesignHitTest;
+function ConvertTCMDialogCharToVariant(var R : TCMDialogChar) : OleVariant;
+function ConvertVariantToTCMDialogChar(const V : OleVariant) : TCMDialogChar;
+function ConvertTCMDialogKeyToVariant(var R : TCMDialogKey) : OleVariant;
+function ConvertVariantToTCMDialogKey(const V : OleVariant) : TCMDialogKey;
+function ConvertTCMDockClientToVariant(var R : TCMDockClient) : OleVariant;
+function ConvertVariantToTCMDockClient(const V : OleVariant) : TCMDockClient;
+function ConvertTCMDockNotificationToVariant(var R : TCMDockNotification) : OleVariant;
+function ConvertVariantToTCMDockNotification(const V : OleVariant) : TCMDockNotification;
+function ConvertTCMDragToVariant(var R : TCMDrag) : OleVariant;
+function ConvertVariantToTCMDrag(const V : OleVariant) : TCMDrag;
+function ConvertTCMEnterToVariant(var R : TCMEnter) : OleVariant;
+function ConvertVariantToTCMEnter(const V : OleVariant) : TCMEnter;
+function ConvertTCMExitToVariant(var R : TCMExit) : OleVariant;
+function ConvertVariantToTCMExit(const V : OleVariant) : TCMExit;
+function ConvertTCMFloatToVariant(var R : TCMFloat) : OleVariant;
+function ConvertVariantToTCMFloat(const V : OleVariant) : TCMFloat;
+function ConvertTCMFocusChangedToVariant(var R : TCMFocusChanged) : OleVariant;
+function ConvertVariantToTCMFocusChanged(const V : OleVariant) : TCMFocusChanged;
+function ConvertTCMGotFocusToVariant(var R : TCMGotFocus) : OleVariant;
+function ConvertVariantToTCMGotFocus(const V : OleVariant) : TCMGotFocus;
+function ConvertTCMHitTestToVariant(var R : TCMHitTest) : OleVariant;
+function ConvertVariantToTCMHitTest(const V : OleVariant) : TCMHitTest;
+function ConvertTCMLostFocusToVariant(var R : TCMLostFocus) : OleVariant;
+function ConvertVariantToTCMLostFocus(const V : OleVariant) : TCMLostFocus;
+function ConvertTCMMouseWheelToVariant(var R : TCMMouseWheel) : OleVariant;
+function ConvertVariantToTCMMouseWheel(const V : OleVariant) : TCMMouseWheel;
+function ConvertTCMUnDockClientToVariant(var R : TCMUnDockClient) : OleVariant;
+function ConvertVariantToTCMUnDockClient(const V : OleVariant) : TCMUnDockClient;
+function ConvertTCMWantSpecialKeyToVariant(var R : TCMWantSpecialKey) : OleVariant;
+function ConvertVariantToTCMWantSpecialKey(const V : OleVariant) : TCMWantSpecialKey;
+function ConvertTCreateParamsToVariant(var R : TCreateParams) : OleVariant;
+function ConvertVariantToTCreateParams(const V : OleVariant) : TCreateParams;
+function ConvertTDockNotifyRecToVariant(var R : TDockNotifyRec) : OleVariant;
+function ConvertVariantToTDockNotifyRec(const V : OleVariant) : TDockNotifyRec;
+function ConvertTDragRecToVariant(var R : TDragRec) : OleVariant;
+function ConvertVariantToTDragRec(const V : OleVariant) : TDragRec;
+function ConvertTMessageToVariant(var R : TMessage) : OleVariant;
+function ConvertVariantToTMessage(const V : OleVariant) : TMessage;
+function ConvertTMsgToVariant(var R : TMsg) : OleVariant;
+function ConvertVariantToTMsg(const V : OleVariant) : TMsg;
+function ConvertTPointToVariant(var R : TPoint) : OleVariant;
+function ConvertVariantToTPoint(const V : OleVariant) : TPoint;
+function ConvertTRectToVariant(var R : TRect) : OleVariant;
+function ConvertVariantToTRect(const V : OleVariant) : TRect;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type __TRect__Wrapper = class(TDCRecordWrapper)
+private
+fR : TRect;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setLeft(const val : Integer);
+function getLeft : Integer;
+property Left : Integer read getLeft write setLeft;
+procedure setTop(const val : Integer);
+function getTop : Integer;
+property Top : Integer read getTop write setTop;
+procedure setRight(const val : Integer);
+function getRight : Integer;
+property Right : Integer read getRight write setRight;
+procedure setBottom(const val : Integer);
+function getBottom : Integer;
+property Bottom : Integer read getBottom write setBottom;
+end;
+type __TPoint__Wrapper = class(TDCRecordWrapper)
+private
+fR : TPoint;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setx(const val : Longint);
+function getx : Longint;
+property x : Longint read getx write setx;
+procedure sety(const val : Longint);
+function gety : Longint;
+property y : Longint read gety write sety;
+end;
+type __TCMActivate__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMActivate;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMCancelMode__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMCancelMode;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setUnused(const val : Integer);
+function getUnused : Integer;
+property Unused : Integer read getUnused write setUnused;
+procedure setSender(const val : TControl);
+function getSender : TControl;
+property Sender : TControl read getSender write setSender;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMChanged__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMChanged;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setUnused(const val : Longint);
+function getUnused : Longint;
+property Unused : Longint read getUnused write setUnused;
+procedure setChild(const val : TControl);
+function getChild : TControl;
+property Child : TControl read getChild write setChild;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMChildKey__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMChildKey;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setCharCode(const val : Word);
+function getCharCode : Word;
+property CharCode : Word read getCharCode write setCharCode;
+procedure setUnused(const val : Word);
+function getUnused : Word;
+property Unused : Word read getUnused write setUnused;
+procedure setSender(const val : TWinControl);
+function getSender : TWinControl;
+property Sender : TWinControl read getSender write setSender;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMControlChange__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMControlChange;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setControl(const val : TControl);
+function getControl : TControl;
+property Control : TControl read getControl write setControl;
+procedure setInserting(const val : LongBool);
+function getInserting : LongBool;
+property Inserting : LongBool read getInserting write setInserting;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMControlListChange__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMControlListChange;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setControl(const val : TControl);
+function getControl : TControl;
+property Control : TControl read getControl write setControl;
+procedure setInserting(const val : LongBool);
+function getInserting : LongBool;
+property Inserting : LongBool read getInserting write setInserting;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMDeactivate__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDeactivate;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMDesignHitTest__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDesignHitTest;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setKeys(const val : Longint);
+function getKeys : Longint;
+property Keys : Longint read getKeys write setKeys;
+procedure setXPos(const val : SmallInt);
+function getXPos : SmallInt;
+property XPos : SmallInt read getXPos write setXPos;
+procedure setYPos(const val : SmallInt);
+function getYPos : SmallInt;
+property YPos : SmallInt read getYPos write setYPos;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMDialogChar__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDialogChar;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setCharCode(const val : Word);
+function getCharCode : Word;
+property CharCode : Word read getCharCode write setCharCode;
+procedure setUnused(const val : Word);
+function getUnused : Word;
+property Unused : Word read getUnused write setUnused;
+procedure setKeyData(const val : Longint);
+function getKeyData : Longint;
+property KeyData : Longint read getKeyData write setKeyData;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMDialogKey__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDialogKey;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setCharCode(const val : Word);
+function getCharCode : Word;
+property CharCode : Word read getCharCode write setCharCode;
+procedure setUnused(const val : Word);
+function getUnused : Word;
+property Unused : Word read getUnused write setUnused;
+procedure setKeyData(const val : Longint);
+function getKeyData : Longint;
+property KeyData : Longint read getKeyData write setKeyData;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMDockClient__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDockClient;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setDockSource(const val : TDragDockObject);
+function getDockSource : TDragDockObject;
+property DockSource : TDragDockObject read getDockSource write setDockSource;
+procedure setResult(const val : Integer);
+function getResult : Integer;
+property Result : Integer read getResult write setResult;
+end;
+type __TCMDockNotification__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDockNotification;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setClient(const val : TControl);
+function getClient : TControl;
+property Client : TControl read getClient write setClient;
+procedure setResult(const val : Integer);
+function getResult : Integer;
+property Result : Integer read getResult write setResult;
+end;
+type __TCMDrag__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMDrag;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setDragMessage(const val : TDragMessage);
+function getDragMessage : TDragMessage;
+property DragMessage : TDragMessage read getDragMessage write setDragMessage;
+procedure setReserved1(const val : Byte);
+function getReserved1 : Byte;
+property Reserved1 : Byte read getReserved1 write setReserved1;
+procedure setReserved2(const val : Word);
+function getReserved2 : Word;
+property Reserved2 : Word read getReserved2 write setReserved2;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMEnter__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMEnter;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMExit__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMExit;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMFloat__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMFloat;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setReserved(const val : Integer);
+function getReserved : Integer;
+property Reserved : Integer read getReserved write setReserved;
+procedure setDockSource(const val : TDragDockObject);
+function getDockSource : TDragDockObject;
+property DockSource : TDragDockObject read getDockSource write setDockSource;
+procedure setResult(const val : Integer);
+function getResult : Integer;
+property Result : Integer read getResult write setResult;
+end;
+type __TCMFocusChanged__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMFocusChanged;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setUnused(const val : Integer);
+function getUnused : Integer;
+property Unused : Integer read getUnused write setUnused;
+procedure setSender(const val : TWinControl);
+function getSender : TWinControl;
+property Sender : TWinControl read getSender write setSender;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMGotFocus__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMGotFocus;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMHitTest__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMHitTest;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setUnused(const val : Longint);
+function getUnused : Longint;
+property Unused : Longint read getUnused write setUnused;
+procedure setXPos(const val : SmallInt);
+function getXPos : SmallInt;
+property XPos : SmallInt read getXPos write setXPos;
+procedure setYPos(const val : SmallInt);
+function getYPos : SmallInt;
+property YPos : SmallInt read getYPos write setYPos;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMLostFocus__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMLostFocus;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMMouseWheel__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMMouseWheel;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setUnused(const val : Byte);
+function getUnused : Byte;
+property Unused : Byte read getUnused write setUnused;
+procedure setWheelDelta(const val : SmallInt);
+function getWheelDelta : SmallInt;
+property WheelDelta : SmallInt read getWheelDelta write setWheelDelta;
+procedure setXPos(const val : SmallInt);
+function getXPos : SmallInt;
+property XPos : SmallInt read getXPos write setXPos;
+procedure setYPos(const val : SmallInt);
+function getYPos : SmallInt;
+property YPos : SmallInt read getYPos write setYPos;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCMUnDockClient__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMUnDockClient;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setNewTarget(const val : TControl);
+function getNewTarget : TControl;
+property NewTarget : TControl read getNewTarget write setNewTarget;
+procedure setClient(const val : TControl);
+function getClient : TControl;
+property Client : TControl read getClient write setClient;
+procedure setResult(const val : Integer);
+function getResult : Integer;
+property Result : Integer read getResult write setResult;
+end;
+type __TCMWantSpecialKey__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCMWantSpecialKey;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setCharCode(const val : Word);
+function getCharCode : Word;
+property CharCode : Word read getCharCode write setCharCode;
+procedure setUnused(const val : Word);
+function getUnused : Word;
+property Unused : Word read getUnused write setUnused;
+procedure setKeyData(const val : Longint);
+function getKeyData : Longint;
+property KeyData : Longint read getKeyData write setKeyData;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+end;
+type __TCreateParams__Wrapper = class(TDCRecordWrapper)
+private
+fR : TCreateParams;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setStyle(const val : DWORD);
+function getStyle : DWORD;
+property Style : DWORD read getStyle write setStyle;
+procedure setExStyle(const val : DWORD);
+function getExStyle : DWORD;
+property ExStyle : DWORD read getExStyle write setExStyle;
+procedure setX(const val : Integer);
+function getX : Integer;
+property X : Integer read getX write setX;
+procedure setY(const val : Integer);
+function getY : Integer;
+property Y : Integer read getY write setY;
+procedure setWidth(const val : Integer);
+function getWidth : Integer;
+property Width : Integer read getWidth write setWidth;
+procedure setHeight(const val : Integer);
+function getHeight : Integer;
+property Height : Integer read getHeight write setHeight;
+end;
+type __TDockNotifyRec__Wrapper = class(TDCRecordWrapper)
+private
+fR : TDockNotifyRec;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setClientMsg(const val : Cardinal);
+function getClientMsg : Cardinal;
+property ClientMsg : Cardinal read getClientMsg write setClientMsg;
+procedure setMsgWParam(const val : Integer);
+function getMsgWParam : Integer;
+property MsgWParam : Integer read getMsgWParam write setMsgWParam;
+procedure setMsgLParam(const val : Integer);
+function getMsgLParam : Integer;
+property MsgLParam : Integer read getMsgLParam write setMsgLParam;
+end;
+type __TDragRec__Wrapper = class(TDCRecordWrapper)
+private
+fR : TDragRec;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setSource(const val : TDragObject);
+function getSource : TDragObject;
+property Source : TDragObject read getSource write setSource;
+procedure setDocking(const val : Boolean);
+function getDocking : Boolean;
+property Docking : Boolean read getDocking write setDocking;
+end;
+type __TMessage__Wrapper = class(TDCRecordWrapper)
+private
+fR : TMessage;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setWParam(const val : Longint);
+function getWParam : Longint;
+property WParam : Longint read getWParam write setWParam;
+procedure setLParam(const val : Longint);
+function getLParam : Longint;
+property LParam : Longint read getLParam write setLParam;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+procedure setWParamLo(const val : Word);
+function getWParamLo : Word;
+property WParamLo : Word read getWParamLo write setWParamLo;
+procedure setWParamHi(const val : Word);
+function getWParamHi : Word;
+property WParamHi : Word read getWParamHi write setWParamHi;
+procedure setLParamLo(const val : Word);
+function getLParamLo : Word;
+property LParamLo : Word read getLParamLo write setLParamLo;
+procedure setLParamHi(const val : Word);
+function getLParamHi : Word;
+property LParamHi : Word read getLParamHi write setLParamHi;
+procedure setResultLo(const val : Word);
+function getResultLo : Word;
+property ResultLo : Word read getResultLo write setResultLo;
+procedure setResultHi(const val : Word);
+function getResultHi : Word;
+property ResultHi : Word read getResultHi write setResultHi;
+end;
+type __TMsg__Wrapper = class(TDCRecordWrapper)
+private
+fR : TMsg;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setmessage(const val : UINT);
+function getmessage : UINT;
+property message : UINT read getmessage write setmessage;
+procedure setWPARAM(const val : WPARAM);
+function getWPARAM : WPARAM;
+property WPARAM : WPARAM read getWPARAM write setWPARAM;
+procedure setLPARAM(const val : LPARAM);
+function getLPARAM : LPARAM;
+property LPARAM : LPARAM read getLPARAM write setLPARAM;
+procedure settime(const val : DWORD);
+function gettime : DWORD;
+property time : DWORD read gettime write settime;
+end;
+type __TControl__ = class(TControl);
+type __TDockTree__ = class(TDockTree);
+type __TDragDockObject__ = class(TDragDockObject);
+type __TWinControl__ = class(TWinControl);
+type
+_T0 = function (p0 : TObject): Boolean of object;
+
+_T1 = function (p0 : HWND): TWinControl of object;
+
+_T2 = function (const p0 : IDispatch): TWinControl of object;
+
+_T3 = function (const p0 : IDispatch;
+p1 : Boolean): TControl of object;
+
+_T4 = function : TControl of object;
+
+_T5 = procedure (p0 : TControl) of object;
+
+_T6 = procedure  of object;
+
+_T7 = function (p0 : TCursor): string of object;
+
+_T8 = function (const p0 : string): TCursor of object;
+
+{_T9 = procedure (p0 : TGetStrProc) of object;}
+
+_T10 = function (p0 : Longint;
+var p1 : string): Boolean of object;
+
+_T11 = function (const p0 : string;
+var p1 : Longint): Boolean of object;
+
+_T12 = function (const p0 : string): string of object;
+
+_T13 = _T12;
+
+_T14 = function (p0 : HWND;
+p1 : Longint;
+p2 : Longint;
+p3 : Longint): Longint of object;
+
+_T15 = procedure (var p0 : TAlignment) of object;
+
+_T16 = function (p0 : Cardinal;
+p1 : Longint;
+p2 : Longint): Longint of object;
+
+_T17 = procedure (p0 : HDC;
+p1 : Integer;
+p2 : Integer) of object;
+
+_T18 = procedure (p0 : HWND;
+p1 : TImeMode) of object;
+
+_T19 = procedure (p0 : TImeName) of object;
+
+_T20 = function (p0 : HWND;
+p1 : Boolean): Boolean of object;
+
+_T21 = function (p0 : HWND): HIMC of object;
+
+_T22 = function (p0 : HWND;
+p1 : HIMC): Boolean of object;
+
+_T23 = function (p0 : HIMC;
+var p1 : DWORD;
+var p2 : DWORD): Boolean of object;
+
+_T24 = function (p0 : HIMC;
+p1 : DWORD;
+p2 : DWORD): Boolean of object;
+
+_T25 = function (p0 : HIMC;
+p1 : Boolean): Boolean of object;
+
+{_T26 = function (p0 : HIMC;
+p1 : PCOMPOSITIONFORM): Boolean of object;}
+
+{_T27 = function (p0 : HIMC;
+p1 : PLOGFONTA): Boolean of object;}
+
+_T28 = function (p0 : HIMC;
+p1 : DWORD;
+p2 : Pointer;
+p3 : DWORD): Longint of object;
+
+_T29 = function (p0 : hKl): Boolean of object;
+
+_T30 = function (p0 : HIMC;
+p1 : DWORD;
+p2 : DWORD;
+p3 : DWORD): Boolean of object;
+
+_T31 = procedure (p0 : TObject;
+p1 : Integer;
+p2 : Integer) of object;
+
+_T32 = _T5;
+
+_T33 = procedure (p0 : TObject;
+p1 : Boolean) of object;
+
+_T34 = _T6;
+
+_T35 = _T6;
+
+_T36 = function (var p0 : Integer;
+var p1 : Integer): Boolean of object;
+
+_T37 = _T36;
+
+_T38 = procedure (p0 : Integer;
+p1 : Integer) of object;
+
+_T39 = _T6;
+
+_T40 = procedure (var p0 : Integer;
+var p1 : Integer;
+var p2 : Integer;
+var p3 : Integer) of object;
+
+_T41 = _T6;
+
+_T42 = procedure (p0 : TDragDockObject;
+p1 : Boolean) of object;
+
+_T43 = procedure (p0 : TDragDockObject;
+p1 : Integer;
+p2 : Integer) of object;
+
+_T44 = procedure (const p0 : IDispatch;
+var p1 : Boolean) of object;
+
+_T45 = _T31;
+
+_T46 = procedure (p0 : TWinControl;
+const p1 : IDispatch) of object;
+
+_T47 = procedure (var p0 : TDragObject) of object;
+
+_T48 = _T6;
+
+_T49 = procedure (p0 : TObject;
+p1 : Integer;
+p2 : Integer;
+p3 : TDragState;
+var p4 : Boolean) of object;
+
+_T50 = _T31;
+
+_T51 = _T47;
+
+_T52 = procedure (p0 : TDragDockObject) of object;
+
+_T53 = _T52;
+
+{_T54 = function : TControlActionLinkClass of object;}
+
+_T55 = function : IDispatch of object;
+
+_T56 = _T55;
+
+_T57 = function (var p0 : HWND): HDC of object;
+
+_T58 = function (const p0 : IDispatch): TAlign of object;
+
+_T59 = function : TDragImageList of object;
+
+_T60 = function : Boolean of object;
+
+_T61 = _T60;
+
+{_T62 = function : TWinControlClass of object;}
+
+_T63 = function : HPALETTE of object;
+
+_T64 = function : TPopupMenu of object;
+
+_T65 = procedure (p0 : TMouseButton;
+p1 : TShiftState;
+p2 : Integer;
+p3 : Integer) of object;
+
+_T66 = procedure (p0 : TShiftState;
+p1 : Integer;
+p2 : Integer) of object;
+
+_T67 = _T65;
+
+_T68 = _T52;
+
+_T69 = function (p0 : Boolean): Boolean of object;
+
+_T70 = _T6;
+
+_T71 = _T6;
+
+_T72 = procedure (p0 : TDragMode) of object;
+
+_T73 = procedure (p0 : Boolean) of object;
+
+_T74 = procedure (p0 : TWinControl) of object;
+
+_T75 = _T73;
+
+_T76 = procedure (p0 : TBiDiMode) of object;
+
+_T77 = _T73;
+
+_T78 = _T6;
+
+_T79 = procedure (const p0 : IDispatch) of object;
+
+_T80 = procedure (p0 : Boolean;
+p1 : Integer) of object;
+
+_T81 = _T6;
+
+_T82 = function (const p0 : IDispatch): IDispatch of object;
+
+_T83 = _T46;
+
+_T84 = _T60;
+
+_T85 = _T31;
+
+_T86 = function (p0 : Longint): Longint of object;
+
+_T87 = function : Longint of object;
+
+_T88 = _T73;
+
+_T89 = function : TAlignment of object;
+
+{_T90 = function (p0 : PChar;
+p1 : Integer): Integer of object;}
+
+_T91 = function : Integer of object;
+
+_T92 = _T6;
+
+_T93 = _T6;
+
+_T94 = _T6;
+
+_T95 = _T60;
+
+_T96 = function (p0 : TWinControl;
+p1 : TControl;
+p2 : TAlign): Boolean of object;
+
+_T97 = function (const p0 : IDispatch): Boolean of object;
+
+_T98 = _T16;
+
+_T99 = _T6;
+
+_T100 = _T6;
+
+_T101 = function (p0 : TControl;
+p1 : TWinControl;
+p2 : TControl;
+p3 : TAlign): Boolean of object;
+
+_T102 = _T82;
+
+_T103 = _T6;
+
+_T104 = procedure (p0 : Integer;
+p1 : Integer;
+p2 : Integer;
+p3 : Integer) of object;
+
+{_T105 = procedure (p0 : PChar) of object;}
+
+_T106 = _T6;
+
+_T107 = _T6;
+
+_T108 = _T60;
+
+_T109 = _T60;
+
+_T110 = _T60;
+
+_T111 = function (var p0 : string): Boolean of object;
+
+_T112 = _T6;
+
+_T113 = _T6;
+
+_T114 = _T6;
+
+_T115 = procedure (p0 : TControl;
+const p1 : IDispatch) of object;
+
+_T116 = function (const p0 : IDispatch;
+out p1 : Integer): TControl of object;
+
+_T117 = procedure (p0 : TControl;
+p1 : TAlign;
+p2 : TControl) of object;
+
+_T118 = procedure (p0 : TStream) of object;
+
+_T119 = procedure (p0 : TCanvas;
+p1 : TControl;
+const p2 : IDispatch) of object;
+
+_T120 = procedure (p0 : TControl;
+p1 : TControl;
+p2 : TAlign;
+const p3 : IDispatch) of object;
+
+_T121 = _T5;
+
+_T122 = _T118;
+
+_T123 = _T73;
+
+_T124 = _T74;
+
+_T125 = procedure (p0 : HDC) of object;
+
+_T126 = procedure (p0 : TDockTree) of object;
+
+_T127 = _T6;
+
+_T128 = _T6;
+
+_T129 = _T79;
+
+_T130 = _T6;
+
+_T131 = _T6;
+
+_T132 = _T91;
+
+_T133 = function (p0 : HWND;
+p1 : Integer;
+p2 : Integer): Boolean of object;
+
+_T134 = _T133;
+
+_T135 = function (p0 : Integer;
+p1 : Integer): Boolean of object;
+
+_T136 = _T6;
+
+_T137 = _T60;
+
+_T138 = _T6;
+
+_T139 = function (p0 : Integer;
+p1 : Integer;
+p2 : Integer): Boolean of object;
+
+_T140 = _T6;
+
+_T141 = procedure (p0 : TObject;
+p1 : Integer;
+p2 : Integer;
+p3 : Boolean) of object;
+
+_T142 = function (p0 : Boolean;
+p1 : Integer;
+p2 : Integer): TCursor of object;
+
+_T143 = _T59;
+
+_T144 = procedure (p0 : TDragObject) of object;
+
+_T145 = function : string of object;
+
+_T146 = _T6;
+
+_T147 = function : THandle of object;
+
+_T148 = _T6;
+
+_T149 = _T6;
+
+_T150 = procedure (const p0 : IDispatch;
+const p1 : string) of object;
+
+_T151 = procedure (const p0 : IDispatch;
+const p1 : string;
+p2 : Pointer) of object;
+
+_T152 = function (p0 : Integer;
+const p1 : string;
+p2 : Pointer): IDispatch of object;
+
+_T153 = _T97;
+
+_T154 = _T6;
+
+_T155 = _T6;
+
+_T156 = procedure (p0 : Integer) of object;
+
+_T157 = _T6;
+
+_T158 = _T5;
+
+_T159 = _T79;
+
+_T160 = _T115;
+
+{_T161 = function : IDockManager of object;}
+
+_T162 = _T6;
+
+_T163 = _T79;
+
+_T164 = _T79;
+
+_T165 = _T6;
+
+_T166 = _T6;
+
+_T167 = _T6;
+
+_T168 = _T115;
+
+_T169 = procedure (p0 : TDragDockObject;
+p1 : Integer;
+p2 : Integer;
+p3 : TDragState;
+var p4 : Boolean) of object;
+
+_T170 = _T169;
+
+_T171 = _T6;
+
+_T172 = _T6;
+
+_T173 = _T6;
+
+_T174 = function (p0 : TShiftState;
+p1 : Integer;
+const p2 : IDispatch): Boolean of object;
+
+_T175 = function (p0 : TShiftState;
+const p1 : IDispatch): Boolean of object;
+
+_T176 = _T175;
+
+_T177 = _T5;
+
+_T178 = function (p0 : TWinControl;
+p1 : TControl): Boolean of object;
+
+_T179 = _T55;
+
+_T180 = procedure (p0 : TControl;
+const p1 : IDispatch;
+const p2 : IDispatch;
+var p3 : Boolean) of object;
+
+_T181 = procedure (var p0 : Word;
+p1 : TShiftState) of object;
+
+_T182 = _T181;
+
+_T183 = procedure (var p0 : Char) of object;
+
+_T184 = _T125;
+
+_T185 = procedure (const p0 : string;
+var p1 : TControl) of object;
+
+_T186 = _T5;
+
+_T187 = procedure (p0 : HWND) of object;
+
+_T188 = _T1;
+
+_T189 = procedure (var p0) of object;
+
+_T190 = _T60;
+
+_T191 = function (p0 : TControl): Boolean of object;
+
+_T192 = function (const p0 : IDispatch;
+p1 : Boolean;
+p2 : Boolean): TControl of object;
+
+_T193 = _T6;
+
+_T194 = _T43;
+
+_T195 = _T6;
+
+_T196 = function (const p0 : string): TControl of object;
+
+_T197 = _T73;
+
+_T198 = _T60;
+
+_T199 = procedure (p0 : TList) of object;
+
+_T200 = _T60;
+
+_T201 = _T6;
+
+_T202 = _T5;
+
+_T203 = _T79;
+
+_T204 = _T17;
+
+_T205 = _T5;
+
+_T206 = _T6;
+
+_T207 = _T38;
+
+_T208 = _T38;
+
+_T209 = _T6;
+
+_T210 = _T6;
+
+function __TRect__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TRect__Wrapper.setLeft(const val : Integer);
+begin
+TRect(GetRecordPtr^).Left := val;
+end;
+function __TRect__Wrapper.getLeft : Integer;
+begin
+result := TRect(GetRecordPtr^).Left;
+end;
+procedure __TRect__Wrapper.setTop(const val : Integer);
+begin
+TRect(GetRecordPtr^).Top := val;
+end;
+function __TRect__Wrapper.getTop : Integer;
+begin
+result := TRect(GetRecordPtr^).Top;
+end;
+procedure __TRect__Wrapper.setRight(const val : Integer);
+begin
+TRect(GetRecordPtr^).Right := val;
+end;
+function __TRect__Wrapper.getRight : Integer;
+begin
+result := TRect(GetRecordPtr^).Right;
+end;
+procedure __TRect__Wrapper.setBottom(const val : Integer);
+begin
+TRect(GetRecordPtr^).Bottom := val;
+end;
+function __TRect__Wrapper.getBottom : Integer;
+begin
+result := TRect(GetRecordPtr^).Bottom;
+end;
+function __TPoint__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TPoint__Wrapper.setx(const val : Longint);
+begin
+TPoint(GetRecordPtr^).x := val;
+end;
+function __TPoint__Wrapper.getx : Longint;
+begin
+result := TPoint(GetRecordPtr^).x;
+end;
+procedure __TPoint__Wrapper.sety(const val : Longint);
+begin
+TPoint(GetRecordPtr^).y := val;
+end;
+function __TPoint__Wrapper.gety : Longint;
+begin
+result := TPoint(GetRecordPtr^).y;
+end;
+function __TCMActivate__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMActivate__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMActivate(GetRecordPtr^).Msg := val;
+end;
+function __TCMActivate__Wrapper.getMsg : Cardinal;
+begin
+result := TCMActivate(GetRecordPtr^).Msg;
+end;
+procedure __TCMActivate__Wrapper.setResult(const val : Longint);
+begin
+TCMActivate(GetRecordPtr^).Result := val;
+end;
+function __TCMActivate__Wrapper.getResult : Longint;
+begin
+result := TCMActivate(GetRecordPtr^).Result;
+end;
+function __TCMCancelMode__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMCancelMode__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMCancelMode(GetRecordPtr^).Msg := val;
+end;
+function __TCMCancelMode__Wrapper.getMsg : Cardinal;
+begin
+result := TCMCancelMode(GetRecordPtr^).Msg;
+end;
+procedure __TCMCancelMode__Wrapper.setUnused(const val : Integer);
+begin
+TCMCancelMode(GetRecordPtr^).Unused := val;
+end;
+function __TCMCancelMode__Wrapper.getUnused : Integer;
+begin
+result := TCMCancelMode(GetRecordPtr^).Unused;
+end;
+procedure __TCMCancelMode__Wrapper.setSender(const val : TControl);
+begin
+TCMCancelMode(GetRecordPtr^).Sender := val;
+end;
+function __TCMCancelMode__Wrapper.getSender : TControl;
+begin
+result := TCMCancelMode(GetRecordPtr^).Sender;
+end;
+procedure __TCMCancelMode__Wrapper.setResult(const val : Longint);
+begin
+TCMCancelMode(GetRecordPtr^).Result := val;
+end;
+function __TCMCancelMode__Wrapper.getResult : Longint;
+begin
+result := TCMCancelMode(GetRecordPtr^).Result;
+end;
+function __TCMChanged__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMChanged__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMChanged(GetRecordPtr^).Msg := val;
+end;
+function __TCMChanged__Wrapper.getMsg : Cardinal;
+begin
+result := TCMChanged(GetRecordPtr^).Msg;
+end;
+procedure __TCMChanged__Wrapper.setUnused(const val : Longint);
+begin
+TCMChanged(GetRecordPtr^).Unused := val;
+end;
+function __TCMChanged__Wrapper.getUnused : Longint;
+begin
+result := TCMChanged(GetRecordPtr^).Unused;
+end;
+procedure __TCMChanged__Wrapper.setChild(const val : TControl);
+begin
+TCMChanged(GetRecordPtr^).Child := val;
+end;
+function __TCMChanged__Wrapper.getChild : TControl;
+begin
+result := TCMChanged(GetRecordPtr^).Child;
+end;
+procedure __TCMChanged__Wrapper.setResult(const val : Longint);
+begin
+TCMChanged(GetRecordPtr^).Result := val;
+end;
+function __TCMChanged__Wrapper.getResult : Longint;
+begin
+result := TCMChanged(GetRecordPtr^).Result;
+end;
+function __TCMChildKey__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMChildKey__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMChildKey(GetRecordPtr^).Msg := val;
+end;
+function __TCMChildKey__Wrapper.getMsg : Cardinal;
+begin
+result := TCMChildKey(GetRecordPtr^).Msg;
+end;
+procedure __TCMChildKey__Wrapper.setCharCode(const val : Word);
+begin
+TCMChildKey(GetRecordPtr^).CharCode := val;
+end;
+function __TCMChildKey__Wrapper.getCharCode : Word;
+begin
+result := TCMChildKey(GetRecordPtr^).CharCode;
+end;
+procedure __TCMChildKey__Wrapper.setUnused(const val : Word);
+begin
+TCMChildKey(GetRecordPtr^).Unused := val;
+end;
+function __TCMChildKey__Wrapper.getUnused : Word;
+begin
+result := TCMChildKey(GetRecordPtr^).Unused;
+end;
+procedure __TCMChildKey__Wrapper.setSender(const val : TWinControl);
+begin
+TCMChildKey(GetRecordPtr^).Sender := val;
+end;
+function __TCMChildKey__Wrapper.getSender : TWinControl;
+begin
+result := TCMChildKey(GetRecordPtr^).Sender;
+end;
+procedure __TCMChildKey__Wrapper.setResult(const val : Longint);
+begin
+TCMChildKey(GetRecordPtr^).Result := val;
+end;
+function __TCMChildKey__Wrapper.getResult : Longint;
+begin
+result := TCMChildKey(GetRecordPtr^).Result;
+end;
+function __TCMControlChange__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMControlChange__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMControlChange(GetRecordPtr^).Msg := val;
+end;
+function __TCMControlChange__Wrapper.getMsg : Cardinal;
+begin
+result := TCMControlChange(GetRecordPtr^).Msg;
+end;
+procedure __TCMControlChange__Wrapper.setControl(const val : TControl);
+begin
+TCMControlChange(GetRecordPtr^).Control := val;
+end;
+function __TCMControlChange__Wrapper.getControl : TControl;
+begin
+result := TCMControlChange(GetRecordPtr^).Control;
+end;
+procedure __TCMControlChange__Wrapper.setInserting(const val : LongBool);
+begin
+TCMControlChange(GetRecordPtr^).Inserting := val;
+end;
+function __TCMControlChange__Wrapper.getInserting : LongBool;
+begin
+result := TCMControlChange(GetRecordPtr^).Inserting;
+end;
+procedure __TCMControlChange__Wrapper.setResult(const val : Longint);
+begin
+TCMControlChange(GetRecordPtr^).Result := val;
+end;
+function __TCMControlChange__Wrapper.getResult : Longint;
+begin
+result := TCMControlChange(GetRecordPtr^).Result;
+end;
+function __TCMControlListChange__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMControlListChange__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMControlListChange(GetRecordPtr^).Msg := val;
+end;
+function __TCMControlListChange__Wrapper.getMsg : Cardinal;
+begin
+result := TCMControlListChange(GetRecordPtr^).Msg;
+end;
+procedure __TCMControlListChange__Wrapper.setControl(const val : TControl);
+begin
+TCMControlListChange(GetRecordPtr^).Control := val;
+end;
+function __TCMControlListChange__Wrapper.getControl : TControl;
+begin
+result := TCMControlListChange(GetRecordPtr^).Control;
+end;
+procedure __TCMControlListChange__Wrapper.setInserting(const val : LongBool);
+begin
+TCMControlListChange(GetRecordPtr^).Inserting := val;
+end;
+function __TCMControlListChange__Wrapper.getInserting : LongBool;
+begin
+result := TCMControlListChange(GetRecordPtr^).Inserting;
+end;
+procedure __TCMControlListChange__Wrapper.setResult(const val : Longint);
+begin
+TCMControlListChange(GetRecordPtr^).Result := val;
+end;
+function __TCMControlListChange__Wrapper.getResult : Longint;
+begin
+result := TCMControlListChange(GetRecordPtr^).Result;
+end;
+function __TCMDeactivate__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDeactivate__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDeactivate(GetRecordPtr^).Msg := val;
+end;
+function __TCMDeactivate__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDeactivate(GetRecordPtr^).Msg;
+end;
+procedure __TCMDeactivate__Wrapper.setResult(const val : Longint);
+begin
+TCMDeactivate(GetRecordPtr^).Result := val;
+end;
+function __TCMDeactivate__Wrapper.getResult : Longint;
+begin
+result := TCMDeactivate(GetRecordPtr^).Result;
+end;
+function __TCMDesignHitTest__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDesignHitTest__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDesignHitTest(GetRecordPtr^).Msg := val;
+end;
+function __TCMDesignHitTest__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDesignHitTest(GetRecordPtr^).Msg;
+end;
+procedure __TCMDesignHitTest__Wrapper.setKeys(const val : Longint);
+begin
+TCMDesignHitTest(GetRecordPtr^).Keys := val;
+end;
+function __TCMDesignHitTest__Wrapper.getKeys : Longint;
+begin
+result := TCMDesignHitTest(GetRecordPtr^).Keys;
+end;
+procedure __TCMDesignHitTest__Wrapper.setXPos(const val : SmallInt);
+begin
+TCMDesignHitTest(GetRecordPtr^).XPos := val;
+end;
+function __TCMDesignHitTest__Wrapper.getXPos : SmallInt;
+begin
+result := TCMDesignHitTest(GetRecordPtr^).XPos;
+end;
+procedure __TCMDesignHitTest__Wrapper.setYPos(const val : SmallInt);
+begin
+TCMDesignHitTest(GetRecordPtr^).YPos := val;
+end;
+function __TCMDesignHitTest__Wrapper.getYPos : SmallInt;
+begin
+result := TCMDesignHitTest(GetRecordPtr^).YPos;
+end;
+procedure __TCMDesignHitTest__Wrapper.setResult(const val : Longint);
+begin
+TCMDesignHitTest(GetRecordPtr^).Result := val;
+end;
+function __TCMDesignHitTest__Wrapper.getResult : Longint;
+begin
+result := TCMDesignHitTest(GetRecordPtr^).Result;
+end;
+function __TCMDialogChar__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDialogChar__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDialogChar(GetRecordPtr^).Msg := val;
+end;
+function __TCMDialogChar__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDialogChar(GetRecordPtr^).Msg;
+end;
+procedure __TCMDialogChar__Wrapper.setCharCode(const val : Word);
+begin
+TCMDialogChar(GetRecordPtr^).CharCode := val;
+end;
+function __TCMDialogChar__Wrapper.getCharCode : Word;
+begin
+result := TCMDialogChar(GetRecordPtr^).CharCode;
+end;
+procedure __TCMDialogChar__Wrapper.setUnused(const val : Word);
+begin
+TCMDialogChar(GetRecordPtr^).Unused := val;
+end;
+function __TCMDialogChar__Wrapper.getUnused : Word;
+begin
+result := TCMDialogChar(GetRecordPtr^).Unused;
+end;
+procedure __TCMDialogChar__Wrapper.setKeyData(const val : Longint);
+begin
+TCMDialogChar(GetRecordPtr^).KeyData := val;
+end;
+function __TCMDialogChar__Wrapper.getKeyData : Longint;
+begin
+result := TCMDialogChar(GetRecordPtr^).KeyData;
+end;
+procedure __TCMDialogChar__Wrapper.setResult(const val : Longint);
+begin
+TCMDialogChar(GetRecordPtr^).Result := val;
+end;
+function __TCMDialogChar__Wrapper.getResult : Longint;
+begin
+result := TCMDialogChar(GetRecordPtr^).Result;
+end;
+function __TCMDialogKey__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDialogKey__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDialogKey(GetRecordPtr^).Msg := val;
+end;
+function __TCMDialogKey__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDialogKey(GetRecordPtr^).Msg;
+end;
+procedure __TCMDialogKey__Wrapper.setCharCode(const val : Word);
+begin
+TCMDialogKey(GetRecordPtr^).CharCode := val;
+end;
+function __TCMDialogKey__Wrapper.getCharCode : Word;
+begin
+result := TCMDialogKey(GetRecordPtr^).CharCode;
+end;
+procedure __TCMDialogKey__Wrapper.setUnused(const val : Word);
+begin
+TCMDialogKey(GetRecordPtr^).Unused := val;
+end;
+function __TCMDialogKey__Wrapper.getUnused : Word;
+begin
+result := TCMDialogKey(GetRecordPtr^).Unused;
+end;
+procedure __TCMDialogKey__Wrapper.setKeyData(const val : Longint);
+begin
+TCMDialogKey(GetRecordPtr^).KeyData := val;
+end;
+function __TCMDialogKey__Wrapper.getKeyData : Longint;
+begin
+result := TCMDialogKey(GetRecordPtr^).KeyData;
+end;
+procedure __TCMDialogKey__Wrapper.setResult(const val : Longint);
+begin
+TCMDialogKey(GetRecordPtr^).Result := val;
+end;
+function __TCMDialogKey__Wrapper.getResult : Longint;
+begin
+result := TCMDialogKey(GetRecordPtr^).Result;
+end;
+function __TCMDockClient__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDockClient__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDockClient(GetRecordPtr^).Msg := val;
+end;
+function __TCMDockClient__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDockClient(GetRecordPtr^).Msg;
+end;
+procedure __TCMDockClient__Wrapper.setDockSource(const val : TDragDockObject);
+begin
+TCMDockClient(GetRecordPtr^).DockSource := val;
+end;
+function __TCMDockClient__Wrapper.getDockSource : TDragDockObject;
+begin
+result := TCMDockClient(GetRecordPtr^).DockSource;
+end;
+procedure __TCMDockClient__Wrapper.setResult(const val : Integer);
+begin
+TCMDockClient(GetRecordPtr^).Result := val;
+end;
+function __TCMDockClient__Wrapper.getResult : Integer;
+begin
+result := TCMDockClient(GetRecordPtr^).Result;
+end;
+function __TCMDockNotification__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDockNotification__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDockNotification(GetRecordPtr^).Msg := val;
+end;
+function __TCMDockNotification__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDockNotification(GetRecordPtr^).Msg;
+end;
+procedure __TCMDockNotification__Wrapper.setClient(const val : TControl);
+begin
+TCMDockNotification(GetRecordPtr^).Client := val;
+end;
+function __TCMDockNotification__Wrapper.getClient : TControl;
+begin
+result := TCMDockNotification(GetRecordPtr^).Client;
+end;
+procedure __TCMDockNotification__Wrapper.setResult(const val : Integer);
+begin
+TCMDockNotification(GetRecordPtr^).Result := val;
+end;
+function __TCMDockNotification__Wrapper.getResult : Integer;
+begin
+result := TCMDockNotification(GetRecordPtr^).Result;
+end;
+function __TCMDrag__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMDrag__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMDrag(GetRecordPtr^).Msg := val;
+end;
+function __TCMDrag__Wrapper.getMsg : Cardinal;
+begin
+result := TCMDrag(GetRecordPtr^).Msg;
+end;
+procedure __TCMDrag__Wrapper.setDragMessage(const val : TDragMessage);
+begin
+TCMDrag(GetRecordPtr^).DragMessage := val;
+end;
+function __TCMDrag__Wrapper.getDragMessage : TDragMessage;
+begin
+result := TCMDrag(GetRecordPtr^).DragMessage;
+end;
+procedure __TCMDrag__Wrapper.setReserved1(const val : Byte);
+begin
+TCMDrag(GetRecordPtr^).Reserved1 := val;
+end;
+function __TCMDrag__Wrapper.getReserved1 : Byte;
+begin
+result := TCMDrag(GetRecordPtr^).Reserved1;
+end;
+procedure __TCMDrag__Wrapper.setReserved2(const val : Word);
+begin
+TCMDrag(GetRecordPtr^).Reserved2 := val;
+end;
+function __TCMDrag__Wrapper.getReserved2 : Word;
+begin
+result := TCMDrag(GetRecordPtr^).Reserved2;
+end;
+procedure __TCMDrag__Wrapper.setResult(const val : Longint);
+begin
+TCMDrag(GetRecordPtr^).Result := val;
+end;
+function __TCMDrag__Wrapper.getResult : Longint;
+begin
+result := TCMDrag(GetRecordPtr^).Result;
+end;
+function __TCMEnter__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMEnter__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMEnter(GetRecordPtr^).Msg := val;
+end;
+function __TCMEnter__Wrapper.getMsg : Cardinal;
+begin
+result := TCMEnter(GetRecordPtr^).Msg;
+end;
+procedure __TCMEnter__Wrapper.setResult(const val : Longint);
+begin
+TCMEnter(GetRecordPtr^).Result := val;
+end;
+function __TCMEnter__Wrapper.getResult : Longint;
+begin
+result := TCMEnter(GetRecordPtr^).Result;
+end;
+function __TCMExit__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMExit__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMExit(GetRecordPtr^).Msg := val;
+end;
+function __TCMExit__Wrapper.getMsg : Cardinal;
+begin
+result := TCMExit(GetRecordPtr^).Msg;
+end;
+procedure __TCMExit__Wrapper.setResult(const val : Longint);
+begin
+TCMExit(GetRecordPtr^).Result := val;
+end;
+function __TCMExit__Wrapper.getResult : Longint;
+begin
+result := TCMExit(GetRecordPtr^).Result;
+end;
+function __TCMFloat__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMFloat__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMFloat(GetRecordPtr^).Msg := val;
+end;
+function __TCMFloat__Wrapper.getMsg : Cardinal;
+begin
+result := TCMFloat(GetRecordPtr^).Msg;
+end;
+procedure __TCMFloat__Wrapper.setReserved(const val : Integer);
+begin
+TCMFloat(GetRecordPtr^).Reserved := val;
+end;
+function __TCMFloat__Wrapper.getReserved : Integer;
+begin
+result := TCMFloat(GetRecordPtr^).Reserved;
+end;
+procedure __TCMFloat__Wrapper.setDockSource(const val : TDragDockObject);
+begin
+TCMFloat(GetRecordPtr^).DockSource := val;
+end;
+function __TCMFloat__Wrapper.getDockSource : TDragDockObject;
+begin
+result := TCMFloat(GetRecordPtr^).DockSource;
+end;
+procedure __TCMFloat__Wrapper.setResult(const val : Integer);
+begin
+TCMFloat(GetRecordPtr^).Result := val;
+end;
+function __TCMFloat__Wrapper.getResult : Integer;
+begin
+result := TCMFloat(GetRecordPtr^).Result;
+end;
+function __TCMFocusChanged__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMFocusChanged__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMFocusChanged(GetRecordPtr^).Msg := val;
+end;
+function __TCMFocusChanged__Wrapper.getMsg : Cardinal;
+begin
+result := TCMFocusChanged(GetRecordPtr^).Msg;
+end;
+procedure __TCMFocusChanged__Wrapper.setUnused(const val : Integer);
+begin
+TCMFocusChanged(GetRecordPtr^).Unused := val;
+end;
+function __TCMFocusChanged__Wrapper.getUnused : Integer;
+begin
+result := TCMFocusChanged(GetRecordPtr^).Unused;
+end;
+procedure __TCMFocusChanged__Wrapper.setSender(const val : TWinControl);
+begin
+TCMFocusChanged(GetRecordPtr^).Sender := val;
+end;
+function __TCMFocusChanged__Wrapper.getSender : TWinControl;
+begin
+result := TCMFocusChanged(GetRecordPtr^).Sender;
+end;
+procedure __TCMFocusChanged__Wrapper.setResult(const val : Longint);
+begin
+TCMFocusChanged(GetRecordPtr^).Result := val;
+end;
+function __TCMFocusChanged__Wrapper.getResult : Longint;
+begin
+result := TCMFocusChanged(GetRecordPtr^).Result;
+end;
+function __TCMGotFocus__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMGotFocus__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMGotFocus(GetRecordPtr^).Msg := val;
+end;
+function __TCMGotFocus__Wrapper.getMsg : Cardinal;
+begin
+result := TCMGotFocus(GetRecordPtr^).Msg;
+end;
+procedure __TCMGotFocus__Wrapper.setResult(const val : Longint);
+begin
+TCMGotFocus(GetRecordPtr^).Result := val;
+end;
+function __TCMGotFocus__Wrapper.getResult : Longint;
+begin
+result := TCMGotFocus(GetRecordPtr^).Result;
+end;
+function __TCMHitTest__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMHitTest__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMHitTest(GetRecordPtr^).Msg := val;
+end;
+function __TCMHitTest__Wrapper.getMsg : Cardinal;
+begin
+result := TCMHitTest(GetRecordPtr^).Msg;
+end;
+procedure __TCMHitTest__Wrapper.setUnused(const val : Longint);
+begin
+TCMHitTest(GetRecordPtr^).Unused := val;
+end;
+function __TCMHitTest__Wrapper.getUnused : Longint;
+begin
+result := TCMHitTest(GetRecordPtr^).Unused;
+end;
+procedure __TCMHitTest__Wrapper.setXPos(const val : SmallInt);
+begin
+TCMHitTest(GetRecordPtr^).XPos := val;
+end;
+function __TCMHitTest__Wrapper.getXPos : SmallInt;
+begin
+result := TCMHitTest(GetRecordPtr^).XPos;
+end;
+procedure __TCMHitTest__Wrapper.setYPos(const val : SmallInt);
+begin
+TCMHitTest(GetRecordPtr^).YPos := val;
+end;
+function __TCMHitTest__Wrapper.getYPos : SmallInt;
+begin
+result := TCMHitTest(GetRecordPtr^).YPos;
+end;
+procedure __TCMHitTest__Wrapper.setResult(const val : Longint);
+begin
+TCMHitTest(GetRecordPtr^).Result := val;
+end;
+function __TCMHitTest__Wrapper.getResult : Longint;
+begin
+result := TCMHitTest(GetRecordPtr^).Result;
+end;
+function __TCMLostFocus__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMLostFocus__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMLostFocus(GetRecordPtr^).Msg := val;
+end;
+function __TCMLostFocus__Wrapper.getMsg : Cardinal;
+begin
+result := TCMLostFocus(GetRecordPtr^).Msg;
+end;
+procedure __TCMLostFocus__Wrapper.setResult(const val : Longint);
+begin
+TCMLostFocus(GetRecordPtr^).Result := val;
+end;
+function __TCMLostFocus__Wrapper.getResult : Longint;
+begin
+result := TCMLostFocus(GetRecordPtr^).Result;
+end;
+function __TCMMouseWheel__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMMouseWheel__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMMouseWheel(GetRecordPtr^).Msg := val;
+end;
+function __TCMMouseWheel__Wrapper.getMsg : Cardinal;
+begin
+result := TCMMouseWheel(GetRecordPtr^).Msg;
+end;
+procedure __TCMMouseWheel__Wrapper.setUnused(const val : Byte);
+begin
+TCMMouseWheel(GetRecordPtr^).Unused := val;
+end;
+function __TCMMouseWheel__Wrapper.getUnused : Byte;
+begin
+result := TCMMouseWheel(GetRecordPtr^).Unused;
+end;
+procedure __TCMMouseWheel__Wrapper.setWheelDelta(const val : SmallInt);
+begin
+TCMMouseWheel(GetRecordPtr^).WheelDelta := val;
+end;
+function __TCMMouseWheel__Wrapper.getWheelDelta : SmallInt;
+begin
+result := TCMMouseWheel(GetRecordPtr^).WheelDelta;
+end;
+procedure __TCMMouseWheel__Wrapper.setXPos(const val : SmallInt);
+begin
+TCMMouseWheel(GetRecordPtr^).XPos := val;
+end;
+function __TCMMouseWheel__Wrapper.getXPos : SmallInt;
+begin
+result := TCMMouseWheel(GetRecordPtr^).XPos;
+end;
+procedure __TCMMouseWheel__Wrapper.setYPos(const val : SmallInt);
+begin
+TCMMouseWheel(GetRecordPtr^).YPos := val;
+end;
+function __TCMMouseWheel__Wrapper.getYPos : SmallInt;
+begin
+result := TCMMouseWheel(GetRecordPtr^).YPos;
+end;
+procedure __TCMMouseWheel__Wrapper.setResult(const val : Longint);
+begin
+TCMMouseWheel(GetRecordPtr^).Result := val;
+end;
+function __TCMMouseWheel__Wrapper.getResult : Longint;
+begin
+result := TCMMouseWheel(GetRecordPtr^).Result;
+end;
+function __TCMUnDockClient__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMUnDockClient__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMUnDockClient(GetRecordPtr^).Msg := val;
+end;
+function __TCMUnDockClient__Wrapper.getMsg : Cardinal;
+begin
+result := TCMUnDockClient(GetRecordPtr^).Msg;
+end;
+procedure __TCMUnDockClient__Wrapper.setNewTarget(const val : TControl);
+begin
+TCMUnDockClient(GetRecordPtr^).NewTarget := val;
+end;
+function __TCMUnDockClient__Wrapper.getNewTarget : TControl;
+begin
+result := TCMUnDockClient(GetRecordPtr^).NewTarget;
+end;
+procedure __TCMUnDockClient__Wrapper.setClient(const val : TControl);
+begin
+TCMUnDockClient(GetRecordPtr^).Client := val;
+end;
+function __TCMUnDockClient__Wrapper.getClient : TControl;
+begin
+result := TCMUnDockClient(GetRecordPtr^).Client;
+end;
+procedure __TCMUnDockClient__Wrapper.setResult(const val : Integer);
+begin
+TCMUnDockClient(GetRecordPtr^).Result := val;
+end;
+function __TCMUnDockClient__Wrapper.getResult : Integer;
+begin
+result := TCMUnDockClient(GetRecordPtr^).Result;
+end;
+function __TCMWantSpecialKey__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCMWantSpecialKey__Wrapper.setMsg(const val : Cardinal);
+begin
+TCMWantSpecialKey(GetRecordPtr^).Msg := val;
+end;
+function __TCMWantSpecialKey__Wrapper.getMsg : Cardinal;
+begin
+result := TCMWantSpecialKey(GetRecordPtr^).Msg;
+end;
+procedure __TCMWantSpecialKey__Wrapper.setCharCode(const val : Word);
+begin
+TCMWantSpecialKey(GetRecordPtr^).CharCode := val;
+end;
+function __TCMWantSpecialKey__Wrapper.getCharCode : Word;
+begin
+result := TCMWantSpecialKey(GetRecordPtr^).CharCode;
+end;
+procedure __TCMWantSpecialKey__Wrapper.setUnused(const val : Word);
+begin
+TCMWantSpecialKey(GetRecordPtr^).Unused := val;
+end;
+function __TCMWantSpecialKey__Wrapper.getUnused : Word;
+begin
+result := TCMWantSpecialKey(GetRecordPtr^).Unused;
+end;
+procedure __TCMWantSpecialKey__Wrapper.setKeyData(const val : Longint);
+begin
+TCMWantSpecialKey(GetRecordPtr^).KeyData := val;
+end;
+function __TCMWantSpecialKey__Wrapper.getKeyData : Longint;
+begin
+result := TCMWantSpecialKey(GetRecordPtr^).KeyData;
+end;
+procedure __TCMWantSpecialKey__Wrapper.setResult(const val : Longint);
+begin
+TCMWantSpecialKey(GetRecordPtr^).Result := val;
+end;
+function __TCMWantSpecialKey__Wrapper.getResult : Longint;
+begin
+result := TCMWantSpecialKey(GetRecordPtr^).Result;
+end;
+function __TCreateParams__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TCreateParams__Wrapper.setStyle(const val : DWORD);
+begin
+TCreateParams(GetRecordPtr^).Style := val;
+end;
+function __TCreateParams__Wrapper.getStyle : DWORD;
+begin
+result := TCreateParams(GetRecordPtr^).Style;
+end;
+procedure __TCreateParams__Wrapper.setExStyle(const val : DWORD);
+begin
+TCreateParams(GetRecordPtr^).ExStyle := val;
+end;
+function __TCreateParams__Wrapper.getExStyle : DWORD;
+begin
+result := TCreateParams(GetRecordPtr^).ExStyle;
+end;
+procedure __TCreateParams__Wrapper.setX(const val : Integer);
+begin
+TCreateParams(GetRecordPtr^).X := val;
+end;
+function __TCreateParams__Wrapper.getX : Integer;
+begin
+result := TCreateParams(GetRecordPtr^).X;
+end;
+procedure __TCreateParams__Wrapper.setY(const val : Integer);
+begin
+TCreateParams(GetRecordPtr^).Y := val;
+end;
+function __TCreateParams__Wrapper.getY : Integer;
+begin
+result := TCreateParams(GetRecordPtr^).Y;
+end;
+procedure __TCreateParams__Wrapper.setWidth(const val : Integer);
+begin
+TCreateParams(GetRecordPtr^).Width := val;
+end;
+function __TCreateParams__Wrapper.getWidth : Integer;
+begin
+result := TCreateParams(GetRecordPtr^).Width;
+end;
+procedure __TCreateParams__Wrapper.setHeight(const val : Integer);
+begin
+TCreateParams(GetRecordPtr^).Height := val;
+end;
+function __TCreateParams__Wrapper.getHeight : Integer;
+begin
+result := TCreateParams(GetRecordPtr^).Height;
+end;
+function __TDockNotifyRec__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TDockNotifyRec__Wrapper.setClientMsg(const val : Cardinal);
+begin
+TDockNotifyRec(GetRecordPtr^).ClientMsg := val;
+end;
+function __TDockNotifyRec__Wrapper.getClientMsg : Cardinal;
+begin
+result := TDockNotifyRec(GetRecordPtr^).ClientMsg;
+end;
+procedure __TDockNotifyRec__Wrapper.setMsgWParam(const val : Integer);
+begin
+TDockNotifyRec(GetRecordPtr^).MsgWParam := val;
+end;
+function __TDockNotifyRec__Wrapper.getMsgWParam : Integer;
+begin
+result := TDockNotifyRec(GetRecordPtr^).MsgWParam;
+end;
+procedure __TDockNotifyRec__Wrapper.setMsgLParam(const val : Integer);
+begin
+TDockNotifyRec(GetRecordPtr^).MsgLParam := val;
+end;
+function __TDockNotifyRec__Wrapper.getMsgLParam : Integer;
+begin
+result := TDockNotifyRec(GetRecordPtr^).MsgLParam;
+end;
+function __TDragRec__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TDragRec__Wrapper.setSource(const val : TDragObject);
+begin
+TDragRec(GetRecordPtr^).Source := val;
+end;
+function __TDragRec__Wrapper.getSource : TDragObject;
+begin
+result := TDragRec(GetRecordPtr^).Source;
+end;
+procedure __TDragRec__Wrapper.setDocking(const val : Boolean);
+begin
+TDragRec(GetRecordPtr^).Docking := val;
+end;
+function __TDragRec__Wrapper.getDocking : Boolean;
+begin
+result := TDragRec(GetRecordPtr^).Docking;
+end;
+function _TCMActivate_ : IDispatch;
+begin
+  result := __TCMActivate__Wrapper.Create;
+end;
+function _TCMCancelMode_ : IDispatch;
+begin
+  result := __TCMCancelMode__Wrapper.Create;
+end;
+function _TCMChanged_ : IDispatch;
+begin
+  result := __TCMChanged__Wrapper.Create;
+end;
+function _TCMChildKey_ : IDispatch;
+begin
+  result := __TCMChildKey__Wrapper.Create;
+end;
+function _TCMControlChange_ : IDispatch;
+begin
+  result := __TCMControlChange__Wrapper.Create;
+end;
+function _TCMControlListChange_ : IDispatch;
+begin
+  result := __TCMControlListChange__Wrapper.Create;
+end;
+function _TCMDeactivate_ : IDispatch;
+begin
+  result := __TCMDeactivate__Wrapper.Create;
+end;
+function _TCMDesignHitTest_ : IDispatch;
+begin
+  result := __TCMDesignHitTest__Wrapper.Create;
+end;
+function _TCMDialogChar_ : IDispatch;
+begin
+  result := __TCMDialogChar__Wrapper.Create;
+end;
+function _TCMDialogKey_ : IDispatch;
+begin
+  result := __TCMDialogKey__Wrapper.Create;
+end;
+function _TCMDockClient_ : IDispatch;
+begin
+  result := __TCMDockClient__Wrapper.Create;
+end;
+function _TCMDockNotification_ : IDispatch;
+begin
+  result := __TCMDockNotification__Wrapper.Create;
+end;
+function _TCMDrag_ : IDispatch;
+begin
+  result := __TCMDrag__Wrapper.Create;
+end;
+function _TCMEnter_ : IDispatch;
+begin
+  result := __TCMEnter__Wrapper.Create;
+end;
+function _TCMExit_ : IDispatch;
+begin
+  result := __TCMExit__Wrapper.Create;
+end;
+function _TCMFloat_ : IDispatch;
+begin
+  result := __TCMFloat__Wrapper.Create;
+end;
+function _TCMFocusChanged_ : IDispatch;
+begin
+  result := __TCMFocusChanged__Wrapper.Create;
+end;
+function _TCMGotFocus_ : IDispatch;
+begin
+  result := __TCMGotFocus__Wrapper.Create;
+end;
+function _TCMHitTest_ : IDispatch;
+begin
+  result := __TCMHitTest__Wrapper.Create;
+end;
+function _TCMLostFocus_ : IDispatch;
+begin
+  result := __TCMLostFocus__Wrapper.Create;
+end;
+function _TCMMouseWheel_ : IDispatch;
+begin
+  result := __TCMMouseWheel__Wrapper.Create;
+end;
+function _TCMUnDockClient_ : IDispatch;
+begin
+  result := __TCMUnDockClient__Wrapper.Create;
+end;
+function _TCMWantSpecialKey_ : IDispatch;
+begin
+  result := __TCMWantSpecialKey__Wrapper.Create;
+end;
+function _TCreateParams_ : IDispatch;
+begin
+  result := __TCreateParams__Wrapper.Create;
+end;
+function _TDockNotifyRec_ : IDispatch;
+begin
+  result := __TDockNotifyRec__Wrapper.Create;
+end;
+function _TDragRec_ : IDispatch;
+begin
+  result := __TDragRec__Wrapper.Create;
+end;
+function __TMessage__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TMessage__Wrapper.setMsg(const val : Cardinal);
+begin
+TMessage(GetRecordPtr^).Msg := val;
+end;
+function __TMessage__Wrapper.getMsg : Cardinal;
+begin
+result := TMessage(GetRecordPtr^).Msg;
+end;
+procedure __TMessage__Wrapper.setWParam(const val : Longint);
+begin
+TMessage(GetRecordPtr^).WParam := val;
+end;
+function __TMessage__Wrapper.getWParam : Longint;
+begin
+result := TMessage(GetRecordPtr^).WParam;
+end;
+procedure __TMessage__Wrapper.setLParam(const val : Longint);
+begin
+TMessage(GetRecordPtr^).LParam := val;
+end;
+function __TMessage__Wrapper.getLParam : Longint;
+begin
+result := TMessage(GetRecordPtr^).LParam;
+end;
+procedure __TMessage__Wrapper.setResult(const val : Longint);
+begin
+TMessage(GetRecordPtr^).Result := val;
+end;
+function __TMessage__Wrapper.getResult : Longint;
+begin
+result := TMessage(GetRecordPtr^).Result;
+end;
+procedure __TMessage__Wrapper.setWParamLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).WParamLo := val;
+end;
+function __TMessage__Wrapper.getWParamLo : Word;
+begin
+result := TMessage(GetRecordPtr^).WParamLo;
+end;
+procedure __TMessage__Wrapper.setWParamHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).WParamHi := val;
+end;
+function __TMessage__Wrapper.getWParamHi : Word;
+begin
+result := TMessage(GetRecordPtr^).WParamHi;
+end;
+procedure __TMessage__Wrapper.setLParamLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).LParamLo := val;
+end;
+function __TMessage__Wrapper.getLParamLo : Word;
+begin
+result := TMessage(GetRecordPtr^).LParamLo;
+end;
+procedure __TMessage__Wrapper.setLParamHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).LParamHi := val;
+end;
+function __TMessage__Wrapper.getLParamHi : Word;
+begin
+result := TMessage(GetRecordPtr^).LParamHi;
+end;
+procedure __TMessage__Wrapper.setResultLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).ResultLo := val;
+end;
+function __TMessage__Wrapper.getResultLo : Word;
+begin
+result := TMessage(GetRecordPtr^).ResultLo;
+end;
+procedure __TMessage__Wrapper.setResultHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).ResultHi := val;
+end;
+function __TMessage__Wrapper.getResultHi : Word;
+begin
+result := TMessage(GetRecordPtr^).ResultHi;
+end;
+function __TMsg__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TMsg__Wrapper.setmessage(const val : UINT);
+begin
+TMsg(GetRecordPtr^).message := val;
+end;
+function __TMsg__Wrapper.getmessage : UINT;
+begin
+result := TMsg(GetRecordPtr^).message;
+end;
+procedure __TMsg__Wrapper.setWPARAM(const val : WPARAM);
+begin
+TMsg(GetRecordPtr^).WPARAM := val;
+end;
+function __TMsg__Wrapper.getWPARAM : WPARAM;
+begin
+result := TMsg(GetRecordPtr^).WPARAM;
+end;
+procedure __TMsg__Wrapper.setLPARAM(const val : LPARAM);
+begin
+TMsg(GetRecordPtr^).LPARAM := val;
+end;
+function __TMsg__Wrapper.getLPARAM : LPARAM;
+begin
+result := TMsg(GetRecordPtr^).LPARAM;
+end;
+procedure __TMsg__Wrapper.settime(const val : DWORD);
+begin
+TMsg(GetRecordPtr^).time := val;
+end;
+function __TMsg__Wrapper.gettime : DWORD;
+begin
+result := TMsg(GetRecordPtr^).time;
+end;
+function ____FindVCLWindow__Wrapper(const p0 : IDispatch): TWinControl;
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := FindVCLWindow(__p0^);
+end;
+
+function ____FindDragTarget__Wrapper(const p0 : IDispatch;
+p1 : Boolean): TControl;
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := FindDragTarget(__p0^,p1);
+end;
+
+procedure __TControl__DoContextPopup__Wrapper(__Instance : TControl;
+const p0 : IDispatch;
+var p1 : Boolean);
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TControl__(__Instance).DoContextPopup(__p0^,p1);
+end;
+
+procedure __TControl__DoDock__Wrapper(__Instance : TControl;
+p0 : TWinControl;
+const p1 : IDispatch);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+__TControl__(__Instance).DoDock(p0,__p1^);
+end;
+
+function __TControl__GetClientOrigin__Wrapper(__Instance : TControl): IDispatch;
+var
+__result : TPoint;
+__wrapper : __TPoint__Wrapper;
+begin
+__result := __TControl__(__Instance).GetClientOrigin;
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+function __TControl__GetClientRect__Wrapper(__Instance : TControl): IDispatch;
+var
+__result : TRect;
+__wrapper : __TRect__Wrapper;
+begin
+__result := __TControl__(__Instance).GetClientRect;
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+function __TControl__GetDockEdge__Wrapper(__Instance : TControl;
+const p0 : IDispatch): TAlign;
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := __TControl__(__Instance).GetDockEdge(__p0^);
+end;
+
+procedure __TControl__WndProc__Wrapper(__Instance : TControl;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TControl__(__Instance).WndProc(__p0^);
+end;
+
+procedure __TControl__BeginDrag__Wrapper(__Instance : TObject; cArgs : integer; pArgs : PArgList);
+begin
+case cArgs of
+1:
+begin
+TControl(__Instance).BeginDrag(OleVariant(pargs^[0]));
+end;
+2:
+begin
+TControl(__Instance).BeginDrag(OleVariant(pargs^[1]),OleVariant(pargs^[0]));
+end;
+end
+end;
+
+function __TControl__ClientToScreen__Wrapper(__Instance : TControl;
+const p0 : IDispatch): IDispatch;
+var
+__result : TPoint;
+__wrapper : __TPoint__Wrapper;
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__result := TControl(__Instance).ClientToScreen(__p0^);
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+procedure __TControl__Dock__Wrapper(__Instance : TControl;
+p0 : TWinControl;
+const p1 : IDispatch);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+TControl(__Instance).Dock(p0,__p1^);
+end;
+
+function __TControl__ManualDock__Wrapper(__Instance : TObject; cArgs : integer; pArgs : PArgList) : OleVariant;
+begin
+case cArgs of
+1:
+begin
+result := TControl(__Instance).ManualDock(TWinControl(VarToObject(OleVariant(pargs^[0]))));
+end;
+2:
+begin
+result := TControl(__Instance).ManualDock(TWinControl(VarToObject(OleVariant(pargs^[1]))),TControl(VarToObject(OleVariant(pargs^[0]))));
+end;
+3:
+begin
+result := TControl(__Instance).ManualDock(TWinControl(VarToObject(OleVariant(pargs^[2]))),TControl(VarToObject(OleVariant(pargs^[1]))),OleVariant(pargs^[0]));
+end;
+end
+end;
+
+function __TControl__ManualFloat__Wrapper(__Instance : TControl;
+const p0 : IDispatch): Boolean;
+var
+__p0 : ^TRect;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := TControl(__Instance).ManualFloat(__p0^);
+end;
+
+function __TControl__ScreenToClient__Wrapper(__Instance : TControl;
+const p0 : IDispatch): IDispatch;
+var
+__result : TPoint;
+__wrapper : __TPoint__Wrapper;
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__result := TControl(__Instance).ScreenToClient(__p0^);
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+procedure __TDockTree__AdjustDockRect__Wrapper(__Instance : TDockTree;
+p0 : TControl;
+const p1 : IDispatch);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+__TDockTree__(__Instance).AdjustDockRect(p0,__p1^);
+end;
+
+function __TDockTree__HitTest__Wrapper(__Instance : TDockTree;
+const p0 : IDispatch;
+out p1 : Integer): TControl;
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := __TDockTree__(__Instance).HitTest(__p0^,p1);
+end;
+
+procedure __TDockTree__PaintDockFrame__Wrapper(__Instance : TDockTree;
+p0 : TCanvas;
+p1 : TControl;
+const p2 : IDispatch);
+var
+__p2 : ^TRect;
+__i2 : IDispatch;
+begin
+if p2 = nil then exit;
+__p2 := (p2 as IDCRecordWrapper).GetRecordPtr;
+__TDockTree__(__Instance).PaintDockFrame(p0,p1,__p2^);
+end;
+
+procedure __TDockTree__PositionDockRect__Wrapper(__Instance : TDockTree;
+p0 : TControl;
+p1 : TControl;
+p2 : TAlign;
+const p3 : IDispatch);
+var
+__p3 : ^TRect;
+__i3 : IDispatch;
+begin
+if p3 = nil then exit;
+__p3 := (p3 as IDCRecordWrapper).GetRecordPtr;
+__TDockTree__(__Instance).PositionDockRect(p0,p1,p2,__p3^);
+end;
+
+procedure __TDragDockObject__AdjustDockRect__Wrapper(__Instance : TDragDockObject;
+const p0 : IDispatch);
+var
+__p0 : ^TRect;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TDragDockObject__(__Instance).AdjustDockRect(__p0^);
+end;
+
+procedure __THintWindow__ActivateHint__Wrapper(__Instance : THintWindow;
+const p0 : IDispatch;
+const p1 : string);
+var
+__p0 : ^TRect;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+THintWindow(__Instance).ActivateHint(__p0^,p1);
+end;
+
+procedure __THintWindow__ActivateHintData__Wrapper(__Instance : THintWindow;
+const p0 : IDispatch;
+const p1 : string;
+p2 : Pointer);
+var
+__p0 : ^TRect;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+THintWindow(__Instance).ActivateHintData(__p0^,p1,p2);
+end;
+
+function __THintWindow__CalcHintRect__Wrapper(__Instance : THintWindow;
+p0 : Integer;
+const p1 : string;
+p2 : Pointer): IDispatch;
+var
+__result : TRect;
+__wrapper : __TRect__Wrapper;
+begin
+__result := THintWindow(__Instance).CalcHintRect(p0,p1,p2);
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+function __THintWindow__IsHintMsg__Wrapper(__Instance : THintWindow;
+const p0 : IDispatch): Boolean;
+var
+__p0 : ^TMsg;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+result := THintWindow(__Instance).IsHintMsg(__p0^);
+end;
+
+procedure __TWinControl__AdjustClientRect__Wrapper(__Instance : TWinControl;
+const p0 : IDispatch);
+var
+__p0 : ^TRect;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).AdjustClientRect(__p0^);
+end;
+
+procedure __TWinControl__AlignControls__Wrapper(__Instance : TWinControl;
+p0 : TControl;
+const p1 : IDispatch);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).AlignControls(p0,__p1^);
+end;
+
+procedure __TWinControl__CreateParams__Wrapper(__Instance : TWinControl;
+const p0 : IDispatch);
+var
+__p0 : ^TCreateParams;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).CreateParams(__p0^);
+end;
+
+procedure __TWinControl__CreateWindowHandle__Wrapper(__Instance : TWinControl;
+const p0 : IDispatch);
+var
+__p0 : ^TCreateParams;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).CreateWindowHandle(__p0^);
+end;
+
+procedure __TWinControl__DoAddDockClient__Wrapper(__Instance : TWinControl;
+p0 : TControl;
+const p1 : IDispatch);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).DoAddDockClient(p0,__p1^);
+end;
+
+function __TWinControl__DoMouseWheel__Wrapper(__Instance : TWinControl;
+p0 : TShiftState;
+p1 : Integer;
+const p2 : IDispatch): Boolean;
+var
+__p2 : ^TPoint;
+__i2 : IDispatch;
+begin
+if p2 = nil then exit;
+__p2 := (p2 as IDCRecordWrapper).GetRecordPtr;
+result := __TWinControl__(__Instance).DoMouseWheel(p0,p1,__p2^);
+end;
+
+function __TWinControl__DoMouseWheelDown__Wrapper(__Instance : TWinControl;
+p0 : TShiftState;
+const p1 : IDispatch): Boolean;
+var
+__p1 : ^TPoint;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+result := __TWinControl__(__Instance).DoMouseWheelDown(p0,__p1^);
+end;
+
+function __TWinControl__DoMouseWheelUp__Wrapper(__Instance : TWinControl;
+p0 : TShiftState;
+const p1 : IDispatch): Boolean;
+var
+__p1 : ^TPoint;
+__i1 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+result := __TWinControl__(__Instance).DoMouseWheelUp(p0,__p1^);
+end;
+
+function __TWinControl__GetControlExtents__Wrapper(__Instance : TWinControl): IDispatch;
+var
+__result : TRect;
+__wrapper : __TRect__Wrapper;
+begin
+__result := __TWinControl__(__Instance).GetControlExtents;
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := __result;
+result := IDispatch(__wrapper);
+end;
+
+procedure __TWinControl__GetSiteInfo__Wrapper(__Instance : TWinControl;
+p0 : TControl;
+const p1 : IDispatch;
+const p2 : IDispatch;
+var p3 : Boolean);
+var
+__p1 : ^TRect;
+__i1 : IDispatch;
+__p2 : ^TPoint;
+__i2 : IDispatch;
+begin
+if p1 = nil then exit;
+__p1 := (p1 as IDCRecordWrapper).GetRecordPtr;
+if p2 = nil then exit;
+__p2 := (p2 as IDCRecordWrapper).GetRecordPtr;
+__TWinControl__(__Instance).GetSiteInfo(p0,__p1^,__p2^,p3);
+end;
+
+function __TWinControl__ControlAtPos__Wrapper(__Instance : TObject; cArgs : integer; pArgs : PArgList) : OleVariant;
+var
+__p0 : ^TPoint;
+__i0 : IDispatch;
+begin
+__i0 := VarToInterface(OleVariant(pargs^[0]));
+if __i0 = nil then exit;
+__p0 := (__i0 as IDCRecordWrapper).GetRecordPtr;
+case cArgs of
+2:
+begin
+result := VarFromObject(TWinControl(__Instance).ControlAtPos(__p0^,OleVariant(pargs^[0])));
+end;
+3:
+begin
+result := VarFromObject(TWinControl(__Instance).ControlAtPos(__p0^,OleVariant(pargs^[1]),OleVariant(pargs^[0])));
+end;
+end
+end;
+
+procedure __TWinControl__MouseWheelHandler__Wrapper(__Instance : TWinControl;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+TWinControl(__Instance).MouseWheelHandler(__p0^);
+end;
+
+
+type __TCMActivate__Wrapper__ = class(__TCMActivate__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMActivate__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMActivateToVariant(var R : TCMActivate) : OleVariant;
+var
+__rw : __TCMActivate__Wrapper__;
+begin
+__rw := __TCMActivate__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMActivate(const V : OleVariant) : TCMActivate;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMActivate((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMCancelMode__Wrapper__ = class(__TCMCancelMode__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMCancelMode__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMCancelModeToVariant(var R : TCMCancelMode) : OleVariant;
+var
+__rw : __TCMCancelMode__Wrapper__;
+begin
+__rw := __TCMCancelMode__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMCancelMode(const V : OleVariant) : TCMCancelMode;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMCancelMode((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMChanged__Wrapper__ = class(__TCMChanged__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMChanged__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMChangedToVariant(var R : TCMChanged) : OleVariant;
+var
+__rw : __TCMChanged__Wrapper__;
+begin
+__rw := __TCMChanged__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMChanged(const V : OleVariant) : TCMChanged;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMChanged((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMChildKey__Wrapper__ = class(__TCMChildKey__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMChildKey__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMChildKeyToVariant(var R : TCMChildKey) : OleVariant;
+var
+__rw : __TCMChildKey__Wrapper__;
+begin
+__rw := __TCMChildKey__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMChildKey(const V : OleVariant) : TCMChildKey;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMChildKey((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMControlChange__Wrapper__ = class(__TCMControlChange__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMControlChange__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMControlChangeToVariant(var R : TCMControlChange) : OleVariant;
+var
+__rw : __TCMControlChange__Wrapper__;
+begin
+__rw := __TCMControlChange__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMControlChange(const V : OleVariant) : TCMControlChange;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMControlChange((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMControlListChange__Wrapper__ = class(__TCMControlListChange__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMControlListChange__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMControlListChangeToVariant(var R : TCMControlListChange) : OleVariant;
+var
+__rw : __TCMControlListChange__Wrapper__;
+begin
+__rw := __TCMControlListChange__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMControlListChange(const V : OleVariant) : TCMControlListChange;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMControlListChange((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDeactivate__Wrapper__ = class(__TCMDeactivate__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDeactivate__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDeactivateToVariant(var R : TCMDeactivate) : OleVariant;
+var
+__rw : __TCMDeactivate__Wrapper__;
+begin
+__rw := __TCMDeactivate__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDeactivate(const V : OleVariant) : TCMDeactivate;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDeactivate((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDesignHitTest__Wrapper__ = class(__TCMDesignHitTest__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDesignHitTest__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDesignHitTestToVariant(var R : TCMDesignHitTest) : OleVariant;
+var
+__rw : __TCMDesignHitTest__Wrapper__;
+begin
+__rw := __TCMDesignHitTest__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDesignHitTest(const V : OleVariant) : TCMDesignHitTest;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDesignHitTest((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDialogChar__Wrapper__ = class(__TCMDialogChar__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDialogChar__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDialogCharToVariant(var R : TCMDialogChar) : OleVariant;
+var
+__rw : __TCMDialogChar__Wrapper__;
+begin
+__rw := __TCMDialogChar__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDialogChar(const V : OleVariant) : TCMDialogChar;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDialogChar((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDialogKey__Wrapper__ = class(__TCMDialogKey__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDialogKey__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDialogKeyToVariant(var R : TCMDialogKey) : OleVariant;
+var
+__rw : __TCMDialogKey__Wrapper__;
+begin
+__rw := __TCMDialogKey__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDialogKey(const V : OleVariant) : TCMDialogKey;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDialogKey((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDockClient__Wrapper__ = class(__TCMDockClient__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDockClient__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDockClientToVariant(var R : TCMDockClient) : OleVariant;
+var
+__rw : __TCMDockClient__Wrapper__;
+begin
+__rw := __TCMDockClient__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDockClient(const V : OleVariant) : TCMDockClient;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDockClient((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDockNotification__Wrapper__ = class(__TCMDockNotification__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDockNotification__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDockNotificationToVariant(var R : TCMDockNotification) : OleVariant;
+var
+__rw : __TCMDockNotification__Wrapper__;
+begin
+__rw := __TCMDockNotification__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDockNotification(const V : OleVariant) : TCMDockNotification;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDockNotification((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMDrag__Wrapper__ = class(__TCMDrag__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMDrag__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMDragToVariant(var R : TCMDrag) : OleVariant;
+var
+__rw : __TCMDrag__Wrapper__;
+begin
+__rw := __TCMDrag__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMDrag(const V : OleVariant) : TCMDrag;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMDrag((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMEnter__Wrapper__ = class(__TCMEnter__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMEnter__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMEnterToVariant(var R : TCMEnter) : OleVariant;
+var
+__rw : __TCMEnter__Wrapper__;
+begin
+__rw := __TCMEnter__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMEnter(const V : OleVariant) : TCMEnter;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMEnter((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMExit__Wrapper__ = class(__TCMExit__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMExit__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMExitToVariant(var R : TCMExit) : OleVariant;
+var
+__rw : __TCMExit__Wrapper__;
+begin
+__rw := __TCMExit__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMExit(const V : OleVariant) : TCMExit;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMExit((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMFloat__Wrapper__ = class(__TCMFloat__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMFloat__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMFloatToVariant(var R : TCMFloat) : OleVariant;
+var
+__rw : __TCMFloat__Wrapper__;
+begin
+__rw := __TCMFloat__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMFloat(const V : OleVariant) : TCMFloat;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMFloat((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMFocusChanged__Wrapper__ = class(__TCMFocusChanged__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMFocusChanged__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMFocusChangedToVariant(var R : TCMFocusChanged) : OleVariant;
+var
+__rw : __TCMFocusChanged__Wrapper__;
+begin
+__rw := __TCMFocusChanged__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMFocusChanged(const V : OleVariant) : TCMFocusChanged;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMFocusChanged((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMGotFocus__Wrapper__ = class(__TCMGotFocus__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMGotFocus__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMGotFocusToVariant(var R : TCMGotFocus) : OleVariant;
+var
+__rw : __TCMGotFocus__Wrapper__;
+begin
+__rw := __TCMGotFocus__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMGotFocus(const V : OleVariant) : TCMGotFocus;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMGotFocus((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMHitTest__Wrapper__ = class(__TCMHitTest__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMHitTest__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMHitTestToVariant(var R : TCMHitTest) : OleVariant;
+var
+__rw : __TCMHitTest__Wrapper__;
+begin
+__rw := __TCMHitTest__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMHitTest(const V : OleVariant) : TCMHitTest;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMHitTest((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMLostFocus__Wrapper__ = class(__TCMLostFocus__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMLostFocus__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMLostFocusToVariant(var R : TCMLostFocus) : OleVariant;
+var
+__rw : __TCMLostFocus__Wrapper__;
+begin
+__rw := __TCMLostFocus__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMLostFocus(const V : OleVariant) : TCMLostFocus;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMLostFocus((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMMouseWheel__Wrapper__ = class(__TCMMouseWheel__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMMouseWheel__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMMouseWheelToVariant(var R : TCMMouseWheel) : OleVariant;
+var
+__rw : __TCMMouseWheel__Wrapper__;
+begin
+__rw := __TCMMouseWheel__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMMouseWheel(const V : OleVariant) : TCMMouseWheel;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMMouseWheel((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMUnDockClient__Wrapper__ = class(__TCMUnDockClient__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMUnDockClient__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMUnDockClientToVariant(var R : TCMUnDockClient) : OleVariant;
+var
+__rw : __TCMUnDockClient__Wrapper__;
+begin
+__rw := __TCMUnDockClient__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMUnDockClient(const V : OleVariant) : TCMUnDockClient;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMUnDockClient((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCMWantSpecialKey__Wrapper__ = class(__TCMWantSpecialKey__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCMWantSpecialKey__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCMWantSpecialKeyToVariant(var R : TCMWantSpecialKey) : OleVariant;
+var
+__rw : __TCMWantSpecialKey__Wrapper__;
+begin
+__rw := __TCMWantSpecialKey__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCMWantSpecialKey(const V : OleVariant) : TCMWantSpecialKey;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCMWantSpecialKey((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TCreateParams__Wrapper__ = class(__TCreateParams__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TCreateParams__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTCreateParamsToVariant(var R : TCreateParams) : OleVariant;
+var
+__rw : __TCreateParams__Wrapper__;
+begin
+__rw := __TCreateParams__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTCreateParams(const V : OleVariant) : TCreateParams;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TCreateParams((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TDockNotifyRec__Wrapper__ = class(__TDockNotifyRec__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TDockNotifyRec__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTDockNotifyRecToVariant(var R : TDockNotifyRec) : OleVariant;
+var
+__rw : __TDockNotifyRec__Wrapper__;
+begin
+__rw := __TDockNotifyRec__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTDockNotifyRec(const V : OleVariant) : TDockNotifyRec;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TDockNotifyRec((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TDragRec__Wrapper__ = class(__TDragRec__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TDragRec__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTDragRecToVariant(var R : TDragRec) : OleVariant;
+var
+__rw : __TDragRec__Wrapper__;
+begin
+__rw := __TDragRec__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTDragRec(const V : OleVariant) : TDragRec;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TDragRec((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TMessage__Wrapper__ = class(__TMessage__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TMessage__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTMessageToVariant(var R : TMessage) : OleVariant;
+var
+__rw : __TMessage__Wrapper__;
+begin
+__rw := __TMessage__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTMessage(const V : OleVariant) : TMessage;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TMessage((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TMsg__Wrapper__ = class(__TMsg__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TMsg__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTMsgToVariant(var R : TMsg) : OleVariant;
+var
+__rw : __TMsg__Wrapper__;
+begin
+__rw := __TMsg__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTMsg(const V : OleVariant) : TMsg;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TMsg((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TPoint__Wrapper__ = class(__TPoint__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TPoint__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTPointToVariant(var R : TPoint) : OleVariant;
+var
+__rw : __TPoint__Wrapper__;
+begin
+__rw := __TPoint__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTPoint(const V : OleVariant) : TPoint;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TPoint((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TRect__Wrapper__ = class(__TRect__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TRect__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTRectToVariant(var R : TRect) : OleVariant;
+var
+__rw : __TRect__Wrapper__;
+begin
+__rw := __TRect__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTRect(const V : OleVariant) : TRect;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TRect((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+function __DC__GetTBaseDragControlObject__Control(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TBaseDragControlObject(Instance).Control);
+end;
+
+procedure __DC__SetTBaseDragControlObject__Control(Instance : TObject; Params : PVariantArgList);
+begin
+TBaseDragControlObject(Instance).Control:=TControl(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTControl__Enabled(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).Enabled;
+end;
+
+procedure __DC__SetTControl__Enabled(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Enabled:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Action(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TControl(Instance).Action);
+end;
+
+procedure __DC__SetTControl__Action(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Action:=TBasicAction(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTControl__Align(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).Align;
+end;
+
+procedure __DC__SetTControl__Align(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Align:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Anchors(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+  tmp : TAnchors;
+begin
+tmp := TControl(Instance).Anchors;
+result := VarFromSet(tmp, sizeof(tmp));
+end;
+
+procedure __DC__SetTControl__Anchors(Instance : TObject; Params : PVariantArgList);
+var
+  tmp : TAnchors;
+begin
+VarToSet(tmp, sizeof(tmp), Variant(Params^[0]));
+TControl(Instance).Anchors:=tmp;
+end;
+
+function __DC__GetTControl__BiDiMode(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).BiDiMode;
+end;
+
+procedure __DC__SetTControl__BiDiMode(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).BiDiMode:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__BoundsRect(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TRect__Wrapper;
+begin
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := TControl(Instance).BoundsRect;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+procedure __DC__SetTControl__BoundsRect(Instance : TObject; Params : PVariantArgList);
+var
+__idisp:IDispatch;
+__iwrapper:IDCRecordWrapper;
+begin
+__idisp:=DCVarToInterface(OleVariant(Params^[0]));
+if __idisp=nil then exit;
+__idisp.QueryInterface(IDCRecordWrapper, __iwrapper);
+TControl(Instance).BoundsRect:=TRect(__iwrapper.GetRecordPtr^);
+end;
+
+function __DC__GetTControl__ClientHeight(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).ClientHeight;
+end;
+
+procedure __DC__SetTControl__ClientHeight(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).ClientHeight:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__ClientOrigin(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TPoint__Wrapper;
+begin
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := TControl(Instance).ClientOrigin;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+function __DC__GetTControl__ClientRect(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TRect__Wrapper;
+begin
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := TControl(Instance).ClientRect;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+function __DC__GetTControl__ClientWidth(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).ClientWidth;
+end;
+
+procedure __DC__SetTControl__ClientWidth(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).ClientWidth:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Constraints(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TControl(Instance).Constraints);
+end;
+
+procedure __DC__SetTControl__Constraints(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Constraints:=TSizeConstraints(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTControl__ControlState(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+  tmp : TControlState;
+begin
+tmp := TControl(Instance).ControlState;
+result := VarFromSet(tmp, sizeof(tmp));
+end;
+
+procedure __DC__SetTControl__ControlState(Instance : TObject; Params : PVariantArgList);
+var
+  tmp : TControlState;
+begin
+VarToSet(tmp, sizeof(tmp), Variant(Params^[0]));
+TControl(Instance).ControlState:=tmp;
+end;
+
+function __DC__GetTControl__ControlStyle(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+  tmp : TControlStyle;
+begin
+tmp := TControl(Instance).ControlStyle;
+result := VarFromSet(tmp, sizeof(tmp));
+end;
+
+procedure __DC__SetTControl__ControlStyle(Instance : TObject; Params : PVariantArgList);
+var
+  tmp : TControlStyle;
+begin
+VarToSet(tmp, sizeof(tmp), Variant(Params^[0]));
+TControl(Instance).ControlStyle:=tmp;
+end;
+
+function __DC__GetTControl__DockOrientation(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).DockOrientation;
+end;
+
+procedure __DC__SetTControl__DockOrientation(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).DockOrientation:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Floating(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).Floating;
+end;
+
+function __DC__GetTControl__HostDockSite(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TControl(Instance).HostDockSite);
+end;
+
+procedure __DC__SetTControl__HostDockSite(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).HostDockSite:=TWinControl(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTControl__LRDockWidth(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).LRDockWidth;
+end;
+
+procedure __DC__SetTControl__LRDockWidth(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).LRDockWidth:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Parent(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TControl(Instance).Parent);
+end;
+
+procedure __DC__SetTControl__Parent(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Parent:=TWinControl(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTControl__ShowHint(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).ShowHint;
+end;
+
+procedure __DC__SetTControl__ShowHint(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).ShowHint:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__TBDockHeight(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).TBDockHeight;
+end;
+
+procedure __DC__SetTControl__TBDockHeight(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).TBDockHeight:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__UndockHeight(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).UndockHeight;
+end;
+
+procedure __DC__SetTControl__UndockHeight(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).UndockHeight:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__UndockWidth(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).UndockWidth;
+end;
+
+procedure __DC__SetTControl__UndockWidth(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).UndockWidth:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControl__Visible(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TControl(Instance).Visible;
+end;
+
+procedure __DC__SetTControl__Visible(Instance : TObject; Params : PVariantArgList);
+begin
+TControl(Instance).Visible:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTControlCanvas__Control(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TControlCanvas(Instance).Control);
+end;
+
+procedure __DC__SetTControlCanvas__Control(Instance : TObject; Params : PVariantArgList);
+begin
+TControlCanvas(Instance).Control:=TControl(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTDockZone__ChildCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDockZone(Instance).ChildCount;
+end;
+
+function __DC__GetTDockZone__LimitBegin(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDockZone(Instance).LimitBegin;
+end;
+
+function __DC__GetTDockZone__LimitSize(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDockZone(Instance).LimitSize;
+end;
+
+function __DC__GetTDragDockObject__Brush(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TDragDockObject(Instance).Brush);
+end;
+
+procedure __DC__SetTDragDockObject__Brush(Instance : TObject; Params : PVariantArgList);
+begin
+TDragDockObject(Instance).Brush:=TBrush(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTDragDockObject__DockRect(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TRect__Wrapper;
+begin
+__wrapper := __TRect__Wrapper.Create;
+__wrapper.fR := TDragDockObject(Instance).DockRect;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+procedure __DC__SetTDragDockObject__DockRect(Instance : TObject; Params : PVariantArgList);
+var
+__idisp:IDispatch;
+__iwrapper:IDCRecordWrapper;
+begin
+__idisp:=DCVarToInterface(OleVariant(Params^[0]));
+if __idisp=nil then exit;
+__idisp.QueryInterface(IDCRecordWrapper, __iwrapper);
+TDragDockObject(Instance).DockRect:=TRect(__iwrapper.GetRecordPtr^);
+end;
+
+function __DC__GetTDragDockObject__DropAlign(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragDockObject(Instance).DropAlign;
+end;
+
+function __DC__GetTDragDockObject__DropOnControl(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TDragDockObject(Instance).DropOnControl);
+end;
+
+function __DC__GetTDragDockObject__Floating(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragDockObject(Instance).Floating;
+end;
+
+procedure __DC__SetTDragDockObject__Floating(Instance : TObject; Params : PVariantArgList);
+begin
+TDragDockObject(Instance).Floating:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTDragDockObject__FrameWidth(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragDockObject(Instance).FrameWidth;
+end;
+
+function __DC__GetTDragImageList__DragCursor(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragImageList(Instance).DragCursor;
+end;
+
+procedure __DC__SetTDragImageList__DragCursor(Instance : TObject; Params : PVariantArgList);
+begin
+TDragImageList(Instance).DragCursor:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTDragImageList__Dragging(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragImageList(Instance).Dragging;
+end;
+
+function __DC__GetTDragObject__Cancelling(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragObject(Instance).Cancelling;
+end;
+
+procedure __DC__SetTDragObject__Cancelling(Instance : TObject; Params : PVariantArgList);
+begin
+TDragObject(Instance).Cancelling:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTDragObject__DragHandle(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragObject(Instance).DragHandle;
+end;
+
+procedure __DC__SetTDragObject__DragHandle(Instance : TObject; Params : PVariantArgList);
+begin
+TDragObject(Instance).DragHandle:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTDragObject__DragPos(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TPoint__Wrapper;
+begin
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := TDragObject(Instance).DragPos;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+procedure __DC__SetTDragObject__DragPos(Instance : TObject; Params : PVariantArgList);
+var
+__idisp:IDispatch;
+__iwrapper:IDCRecordWrapper;
+begin
+__idisp:=DCVarToInterface(OleVariant(Params^[0]));
+if __idisp=nil then exit;
+__idisp.QueryInterface(IDCRecordWrapper, __iwrapper);
+TDragObject(Instance).DragPos:=TPoint(__iwrapper.GetRecordPtr^);
+end;
+
+function __DC__GetTDragObject__DragTargetPos(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TPoint__Wrapper;
+begin
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := TDragObject(Instance).DragTargetPos;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+procedure __DC__SetTDragObject__DragTargetPos(Instance : TObject; Params : PVariantArgList);
+var
+__idisp:IDispatch;
+__iwrapper:IDCRecordWrapper;
+begin
+__idisp:=DCVarToInterface(OleVariant(Params^[0]));
+if __idisp=nil then exit;
+__idisp.QueryInterface(IDCRecordWrapper, __iwrapper);
+TDragObject(Instance).DragTargetPos:=TPoint(__iwrapper.GetRecordPtr^);
+end;
+
+function __DC__GetTDragObject__DragTarget(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := PointerToVariant(TDragObject(Instance).DragTarget);
+end;
+
+procedure __DC__SetTDragObject__DragTarget(Instance : TObject; Params : PVariantArgList);
+begin
+TDragObject(Instance).DragTarget:=VarToPointer(OleVariant(Params^[0]));
+end;
+
+function __DC__GetTDragObject__MouseDeltaX(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragObject(Instance).MouseDeltaX;
+end;
+
+function __DC__GetTDragObject__MouseDeltaY(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TDragObject(Instance).MouseDeltaY;
+end;
+
+function __DC__GetTHintWindow__BiDiMode(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := THintWindow(Instance).BiDiMode;
+end;
+
+procedure __DC__SetTHintWindow__BiDiMode(Instance : TObject; Params : PVariantArgList);
+begin
+THintWindow(Instance).BiDiMode:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTHintWindow__Caption(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := THintWindow(Instance).Caption;
+end;
+
+procedure __DC__SetTHintWindow__Caption(Instance : TObject; Params : PVariantArgList);
+begin
+THintWindow(Instance).Caption:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTHintWindow__Color(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := THintWindow(Instance).Color;
+end;
+
+procedure __DC__SetTHintWindow__Color(Instance : TObject; Params : PVariantArgList);
+begin
+THintWindow(Instance).Color:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTHintWindow__Canvas(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(THintWindow(Instance).Canvas);
+end;
+
+function __DC__GetTHintWindow__Font(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(THintWindow(Instance).Font);
+end;
+
+procedure __DC__SetTHintWindow__Font(Instance : TObject; Params : PVariantArgList);
+begin
+THintWindow(Instance).Font:=TFont(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTMouse__Capture(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).Capture;
+end;
+
+procedure __DC__SetTMouse__Capture(Instance : TObject; Params : PVariantArgList);
+begin
+TMouse(Instance).Capture:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTMouse__CursorPos(Instance : TObject; Params : PVariantArgList) : OleVariant;
+var
+__wrapper : __TPoint__Wrapper;
+begin
+__wrapper := __TPoint__Wrapper.Create;
+__wrapper.fR := TMouse(Instance).CursorPos;
+result := IUnknown(__wrapper) as IDispatch;
+end;
+
+procedure __DC__SetTMouse__CursorPos(Instance : TObject; Params : PVariantArgList);
+var
+__idisp:IDispatch;
+__iwrapper:IDCRecordWrapper;
+begin
+__idisp:=DCVarToInterface(OleVariant(Params^[0]));
+if __idisp=nil then exit;
+__idisp.QueryInterface(IDCRecordWrapper, __iwrapper);
+TMouse(Instance).CursorPos:=TPoint(__iwrapper.GetRecordPtr^);
+end;
+
+function __DC__GetTMouse__DragImmediate(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).DragImmediate;
+end;
+
+procedure __DC__SetTMouse__DragImmediate(Instance : TObject; Params : PVariantArgList);
+begin
+TMouse(Instance).DragImmediate:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTMouse__DragThreshold(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).DragThreshold;
+end;
+
+procedure __DC__SetTMouse__DragThreshold(Instance : TObject; Params : PVariantArgList);
+begin
+TMouse(Instance).DragThreshold:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTMouse__MousePresent(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).MousePresent;
+end;
+
+function __DC__GetTMouse__RegWheelMessage(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).RegWheelMessage;
+end;
+
+function __DC__GetTMouse__WheelPresent(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).WheelPresent;
+end;
+
+function __DC__GetTMouse__WheelScrollLines(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TMouse(Instance).WheelScrollLines;
+end;
+
+function __DC__GetTWinControl__DockClientCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).DockClientCount;
+end;
+
+function __DC__GetTWinControl__DockClients(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TWinControl(Instance).DockClients[OleVariant(Params^[0])]);
+end;
+
+function __DC__GetTWinControl__DoubleBuffered(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).DoubleBuffered;
+end;
+
+procedure __DC__SetTWinControl__DoubleBuffered(Instance : TObject; Params : PVariantArgList);
+begin
+TWinControl(Instance).DoubleBuffered:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTWinControl__VisibleDockClientCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).VisibleDockClientCount;
+end;
+
+function __DC__GetTWinControl__Brush(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TWinControl(Instance).Brush);
+end;
+
+function __DC__GetTWinControl__Controls(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TWinControl(Instance).Controls[OleVariant(Params^[0])]);
+end;
+
+function __DC__GetTWinControl__ControlCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).ControlCount;
+end;
+
+function __DC__GetTWinControl__Handle(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).Handle;
+end;
+
+function __DC__GetTWinControl__ParentWindow(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).ParentWindow;
+end;
+
+procedure __DC__SetTWinControl__ParentWindow(Instance : TObject; Params : PVariantArgList);
+begin
+TWinControl(Instance).ParentWindow:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTWinControl__Showing(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).Showing;
+end;
+
+function __DC__GetTWinControl__TabOrder(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).TabOrder;
+end;
+
+procedure __DC__SetTWinControl__TabOrder(Instance : TObject; Params : PVariantArgList);
+begin
+TWinControl(Instance).TabOrder:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTWinControl__TabStop(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TWinControl(Instance).TabStop;
+end;
+
+procedure __DC__SetTWinControl__TabStop(Instance : TObject; Params : PVariantArgList);
+begin
+TWinControl(Instance).TabStop:=OleVariant(Params^[0]);
+end;
+
+procedure __RegisterProps;
+begin
+RegisterProperty(TBaseDragControlObject,'Control',__DC__GetTBaseDragControlObject__Control,__DC__SetTBaseDragControlObject__Control);
+RegisterProperty(TControl,'Enabled',__DC__GetTControl__Enabled,__DC__SetTControl__Enabled);
+RegisterProperty(TControl,'Action',__DC__GetTControl__Action,__DC__SetTControl__Action);
+RegisterProperty(TControl,'Align',__DC__GetTControl__Align,__DC__SetTControl__Align);
+RegisterProperty(TControl,'Anchors',__DC__GetTControl__Anchors,__DC__SetTControl__Anchors);
+RegisterProperty(TControl,'BiDiMode',__DC__GetTControl__BiDiMode,__DC__SetTControl__BiDiMode);
+RegisterProperty(TControl,'BoundsRect',__DC__GetTControl__BoundsRect,__DC__SetTControl__BoundsRect);
+RegisterProperty(TControl,'ClientHeight',__DC__GetTControl__ClientHeight,__DC__SetTControl__ClientHeight);
+RegisterProperty(TControl,'ClientOrigin',__DC__GetTControl__ClientOrigin,nil);
+RegisterProperty(TControl,'ClientRect',__DC__GetTControl__ClientRect,nil);
+RegisterProperty(TControl,'ClientWidth',__DC__GetTControl__ClientWidth,__DC__SetTControl__ClientWidth);
+RegisterProperty(TControl,'Constraints',__DC__GetTControl__Constraints,__DC__SetTControl__Constraints);
+RegisterProperty(TControl,'ControlState',__DC__GetTControl__ControlState,__DC__SetTControl__ControlState);
+RegisterProperty(TControl,'ControlStyle',__DC__GetTControl__ControlStyle,__DC__SetTControl__ControlStyle);
+RegisterProperty(TControl,'DockOrientation',__DC__GetTControl__DockOrientation,__DC__SetTControl__DockOrientation);
+RegisterProperty(TControl,'Floating',__DC__GetTControl__Floating,nil);
+RegisterProperty(TControl,'HostDockSite',__DC__GetTControl__HostDockSite,__DC__SetTControl__HostDockSite);
+RegisterProperty(TControl,'LRDockWidth',__DC__GetTControl__LRDockWidth,__DC__SetTControl__LRDockWidth);
+RegisterProperty(TControl,'Parent',__DC__GetTControl__Parent,__DC__SetTControl__Parent);
+RegisterProperty(TControl,'ShowHint',__DC__GetTControl__ShowHint,__DC__SetTControl__ShowHint);
+RegisterProperty(TControl,'TBDockHeight',__DC__GetTControl__TBDockHeight,__DC__SetTControl__TBDockHeight);
+RegisterProperty(TControl,'UndockHeight',__DC__GetTControl__UndockHeight,__DC__SetTControl__UndockHeight);
+RegisterProperty(TControl,'UndockWidth',__DC__GetTControl__UndockWidth,__DC__SetTControl__UndockWidth);
+RegisterProperty(TControl,'Visible',__DC__GetTControl__Visible,__DC__SetTControl__Visible);
+RegisterProperty(TControlCanvas,'Control',__DC__GetTControlCanvas__Control,__DC__SetTControlCanvas__Control);
+RegisterProperty(TDockZone,'ChildCount',__DC__GetTDockZone__ChildCount,nil);
+RegisterProperty(TDockZone,'LimitBegin',__DC__GetTDockZone__LimitBegin,nil);
+RegisterProperty(TDockZone,'LimitSize',__DC__GetTDockZone__LimitSize,nil);
+RegisterProperty(TDragDockObject,'Brush',__DC__GetTDragDockObject__Brush,__DC__SetTDragDockObject__Brush);
+RegisterProperty(TDragDockObject,'DockRect',__DC__GetTDragDockObject__DockRect,__DC__SetTDragDockObject__DockRect);
+RegisterProperty(TDragDockObject,'DropAlign',__DC__GetTDragDockObject__DropAlign,nil);
+RegisterProperty(TDragDockObject,'DropOnControl',__DC__GetTDragDockObject__DropOnControl,nil);
+RegisterProperty(TDragDockObject,'Floating',__DC__GetTDragDockObject__Floating,__DC__SetTDragDockObject__Floating);
+RegisterProperty(TDragDockObject,'FrameWidth',__DC__GetTDragDockObject__FrameWidth,nil);
+RegisterProperty(TDragImageList,'DragCursor',__DC__GetTDragImageList__DragCursor,__DC__SetTDragImageList__DragCursor);
+RegisterProperty(TDragImageList,'Dragging',__DC__GetTDragImageList__Dragging,nil);
+RegisterProperty(TDragObject,'Cancelling',__DC__GetTDragObject__Cancelling,__DC__SetTDragObject__Cancelling);
+RegisterProperty(TDragObject,'DragHandle',__DC__GetTDragObject__DragHandle,__DC__SetTDragObject__DragHandle);
+RegisterProperty(TDragObject,'DragPos',__DC__GetTDragObject__DragPos,__DC__SetTDragObject__DragPos);
+RegisterProperty(TDragObject,'DragTargetPos',__DC__GetTDragObject__DragTargetPos,__DC__SetTDragObject__DragTargetPos);
+RegisterProperty(TDragObject,'DragTarget',__DC__GetTDragObject__DragTarget,__DC__SetTDragObject__DragTarget);
+RegisterProperty(TDragObject,'MouseDeltaX',__DC__GetTDragObject__MouseDeltaX,nil);
+RegisterProperty(TDragObject,'MouseDeltaY',__DC__GetTDragObject__MouseDeltaY,nil);
+RegisterProperty(THintWindow,'BiDiMode',__DC__GetTHintWindow__BiDiMode,__DC__SetTHintWindow__BiDiMode);
+RegisterProperty(THintWindow,'Caption',__DC__GetTHintWindow__Caption,__DC__SetTHintWindow__Caption);
+RegisterProperty(THintWindow,'Color',__DC__GetTHintWindow__Color,__DC__SetTHintWindow__Color);
+RegisterProperty(THintWindow,'Canvas',__DC__GetTHintWindow__Canvas,nil);
+RegisterProperty(THintWindow,'Font',__DC__GetTHintWindow__Font,__DC__SetTHintWindow__Font);
+RegisterProperty(TMouse,'Capture',__DC__GetTMouse__Capture,__DC__SetTMouse__Capture);
+RegisterProperty(TMouse,'CursorPos',__DC__GetTMouse__CursorPos,__DC__SetTMouse__CursorPos);
+RegisterProperty(TMouse,'DragImmediate',__DC__GetTMouse__DragImmediate,__DC__SetTMouse__DragImmediate);
+RegisterProperty(TMouse,'DragThreshold',__DC__GetTMouse__DragThreshold,__DC__SetTMouse__DragThreshold);
+RegisterProperty(TMouse,'MousePresent',__DC__GetTMouse__MousePresent,nil);
+RegisterProperty(TMouse,'RegWheelMessage',__DC__GetTMouse__RegWheelMessage,nil);
+RegisterProperty(TMouse,'WheelPresent',__DC__GetTMouse__WheelPresent,nil);
+RegisterProperty(TMouse,'WheelScrollLines',__DC__GetTMouse__WheelScrollLines,nil);
+RegisterProperty(TWinControl,'DockClientCount',__DC__GetTWinControl__DockClientCount,nil);
+RegisterIndexedProperty(TWinControl,'DockClients',1,False,__DC__GetTWinControl__DockClients,nil);
+RegisterProperty(TWinControl,'DoubleBuffered',__DC__GetTWinControl__DoubleBuffered,__DC__SetTWinControl__DoubleBuffered);
+RegisterProperty(TWinControl,'VisibleDockClientCount',__DC__GetTWinControl__VisibleDockClientCount,nil);
+RegisterProperty(TWinControl,'Brush',__DC__GetTWinControl__Brush,nil);
+RegisterIndexedProperty(TWinControl,'Controls',1,False,__DC__GetTWinControl__Controls,nil);
+RegisterProperty(TWinControl,'ControlCount',__DC__GetTWinControl__ControlCount,nil);
+RegisterProperty(TWinControl,'Handle',__DC__GetTWinControl__Handle,nil);
+RegisterProperty(TWinControl,'ParentWindow',__DC__GetTWinControl__ParentWindow,__DC__SetTWinControl__ParentWindow);
+RegisterProperty(TWinControl,'Showing',__DC__GetTWinControl__Showing,nil);
+RegisterProperty(TWinControl,'TabOrder',__DC__GetTWinControl__TabOrder,__DC__SetTWinControl__TabOrder);
+RegisterProperty(TWinControl,'TabStop',__DC__GetTWinControl__TabStop,__DC__SetTWinControl__TabStop);
+end;
+
+function __DC__GetControls__Mouse(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(Controls.Mouse);
+end;
+
+procedure __DC__SetControls__Mouse(Instance : TObject; Params : PVariantArgList);
+begin
+TObject(Controls.Mouse):=(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetControls__CreationControl(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(Controls.CreationControl);
+end;
+
+procedure __DC__SetControls__CreationControl(Instance : TObject; Params : PVariantArgList);
+begin
+TObject(Controls.CreationControl):=(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetControls__NewStyleControls(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := Controls.NewStyleControls;
+end;
+
+procedure __DC__SetControls__NewStyleControls(Instance : TObject; Params : PVariantArgList);
+begin
+Controls.NewStyleControls:=OleVariant(Params^[0]);
+end;
+
+var __RegisteredVars : TList;
+procedure __RegisterVars;
+begin
+__RegisteredVars := TList.Create;
+__RegisteredVars.Add(RegisterVar('Mouse',__DC__GetControls__Mouse,__DC__SetControls__Mouse));
+__RegisteredVars.Add(RegisterVar('CreationControl',__DC__GetControls__CreationControl,__DC__SetControls__CreationControl));
+__RegisteredVars.Add(RegisterVar('NewStyleControls',__DC__GetControls__NewStyleControls,__DC__SetControls__NewStyleControls));
+end;
+
+procedure __UnregisterVars;
+begin
+__RegisteredVars.Free;
+end;
+
+const __ConstNames0 : array[0..213] of string = (
+'CM_BASE'
+,'CM_ACTIVATE'
+,'CM_DEACTIVATE'
+,'CM_GOTFOCUS'
+,'CM_LOSTFOCUS'
+,'CM_CANCELMODE'
+,'CM_DIALOGKEY'
+,'CM_DIALOGCHAR'
+,'CM_FOCUSCHANGED'
+,'CM_PARENTFONTCHANGED'
+,'CM_PARENTCOLORCHANGED'
+,'CM_HITTEST'
+,'CM_VISIBLECHANGED'
+,'CM_ENABLEDCHANGED'
+,'CM_COLORCHANGED'
+,'CM_FONTCHANGED'
+,'CM_CURSORCHANGED'
+,'CM_CTL3DCHANGED'
+,'CM_PARENTCTL3DCHANGED'
+,'CM_TEXTCHANGED'
+,'CM_MOUSEENTER'
+,'CM_MOUSELEAVE'
+,'CM_MENUCHANGED'
+,'CM_APPKEYDOWN'
+,'CM_APPSYSCOMMAND'
+,'CM_BUTTONPRESSED'
+,'CM_SHOWINGCHANGED'
+,'CM_ENTER'
+,'CM_EXIT'
+,'CM_DESIGNHITTEST'
+,'CM_ICONCHANGED'
+,'CM_WANTSPECIALKEY'
+,'CM_INVOKEHELP'
+,'CM_WINDOWHOOK'
+,'CM_RELEASE'
+,'CM_SHOWHINTCHANGED'
+,'CM_PARENTSHOWHINTCHANGED'
+,'CM_SYSCOLORCHANGE'
+,'CM_WININICHANGE'
+,'CM_FONTCHANGE'
+,'CM_TIMECHANGE'
+,'CM_TABSTOPCHANGED'
+,'CM_UIACTIVATE'
+,'CM_UIDEACTIVATE'
+,'CM_DOCWINDOWACTIVATE'
+,'CM_CONTROLLISTCHANGE'
+,'CM_GETDATALINK'
+,'CM_CHILDKEY'
+,'CM_DRAG'
+,'CM_HINTSHOW'
+,'CM_DIALOGHANDLE'
+,'CM_ISTOOLCONTROL'
+,'CM_RECREATEWND'
+,'CM_INVALIDATE'
+,'CM_SYSFONTCHANGED'
+,'CM_CONTROLCHANGE'
+,'CM_CHANGED'
+,'CM_DOCKCLIENT'
+,'CM_UNDOCKCLIENT'
+,'CM_FLOAT'
+,'CM_BORDERCHANGED'
+,'CM_BIDIMODECHANGED'
+,'CM_PARENTBIDIMODECHANGED'
+,'CM_ALLCHILDRENFLIPPED'
+,'CM_ACTIONUPDATE'
+,'CM_ACTIONEXECUTE'
+,'CM_HINTSHOWPAUSE'
+,'CM_DOCKNOTIFICATION'
+,'CM_MOUSEWHEEL'
+,'CN_BASE'
+,'CN_CHARTOITEM'
+,'CN_COMMAND'
+,'CN_COMPAREITEM'
+,'CN_CTLCOLORBTN'
+,'CN_CTLCOLORDLG'
+,'CN_CTLCOLOREDIT'
+,'CN_CTLCOLORLISTBOX'
+,'CN_CTLCOLORMSGBOX'
+,'CN_CTLCOLORSCROLLBAR'
+,'CN_CTLCOLORSTATIC'
+,'CN_DELETEITEM'
+,'CN_DRAWITEM'
+,'CN_HSCROLL'
+,'CN_MEASUREITEM'
+,'CN_PARENTNOTIFY'
+,'CN_VKEYTOITEM'
+,'CN_VSCROLL'
+,'CN_KEYDOWN'
+,'CN_KEYUP'
+,'CN_CHAR'
+,'CN_SYSKEYDOWN'
+,'CN_SYSCHAR'
+,'CN_NOTIFY'
+,'mrNone'
+,'mrOk'
+,'mrCancel'
+,'mrAbort'
+,'mrRetry'
+,'mrIgnore'
+,'mrYes'
+,'mrNo'
+,'mrAll'
+,'mrNoToAll'
+,'mrYesToAll'
+,'crDefault'
+,'crNone'
+,'crArrow'
+,'crCross'
+,'crIBeam'
+,'crSize'
+,'crSizeNESW'
+,'crSizeNS'
+,'crSizeNWSE'
+,'crSizeWE'
+,'crUpArrow'
+,'crHourGlass'
+,'crDrag'
+,'crNoDrop'
+,'crHSplit'
+,'crVSplit'
+,'crMultiDrag'
+,'crSQLWait'
+,'crNo'
+,'crAppStart'
+,'crHelp'
+,'crHandPoint'
+,'crSizeAll'
+,'dmDragEnter'
+,'dmDragLeave'
+,'dmDragMove'
+,'dmDragDrop'
+,'dmDragCancel'
+,'dmFindTarget'
+,'alNone'
+,'alTop'
+,'alBottom'
+,'alLeft'
+,'alRight'
+,'alClient'
+,'csLButtonDown'
+,'csClicked'
+,'csPalette'
+,'csReadingState'
+,'csAlignmentNeeded'
+,'csFocusing'
+,'csCreating'
+,'csPaintCopy'
+,'csCustomPaint'
+,'csDestroyingHandle'
+,'csDocking'
+,'csAcceptsControls'
+,'csCaptureMouse'
+,'csDesignInteractive'
+,'csClickEvents'
+,'csFramed'
+,'csSetCaption'
+,'csOpaque'
+,'csDoubleClicks'
+,'csFixedWidth'
+,'csFixedHeight'
+,'csNoDesignVisible'
+,'csReplicatable'
+,'csNoStdEvents'
+,'csDisplayDragImage'
+,'csReflector'
+,'csActionClient'
+,'csMenuEvents'
+,'mbLeft'
+,'mbRight'
+,'mbMiddle'
+,'dmManual'
+,'dmAutomatic'
+,'dsDragEnter'
+,'dsDragLeave'
+,'dsDragMove'
+,'dkDrag'
+,'dkDock'
+,'sfLeft'
+,'sfTop'
+,'sfWidth'
+,'sfHeight'
+,'sfFont'
+,'akLeft'
+,'akTop'
+,'akRight'
+,'akBottom'
+,'doNoOrient'
+,'doHorizontal'
+,'doVertical'
+,'imDisable'
+,'imClose'
+,'imOpen'
+,'imDontCare'
+,'imSAlpha'
+,'imAlpha'
+,'imHira'
+,'imSKata'
+,'imKata'
+,'imChinese'
+,'imSHanguel'
+,'imHanguel'
+,'bvNone'
+,'bvLowered'
+,'bvRaised'
+,'bvSpace'
+,'beLeft'
+,'beTop'
+,'beRight'
+,'beBottom'
+,'bkNone'
+,'bkTile'
+,'bkSoft'
+,'bkFlat'
+,'CTL3D_ALL'
+);
+var __RegisteredConstsList0 : TList;
+procedure __RegisterConsts0;
+begin
+__RegisteredConstsList0 := TList.Create;
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[0] ,CM_BASE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[1] ,CM_ACTIVATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[2] ,CM_DEACTIVATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[3] ,CM_GOTFOCUS));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[4] ,CM_LOSTFOCUS));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[5] ,CM_CANCELMODE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[6] ,CM_DIALOGKEY));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[7] ,CM_DIALOGCHAR));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[8] ,CM_FOCUSCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[9] ,CM_PARENTFONTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[10] ,CM_PARENTCOLORCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[11] ,CM_HITTEST));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[12] ,CM_VISIBLECHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[13] ,CM_ENABLEDCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[14] ,CM_COLORCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[15] ,CM_FONTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[16] ,CM_CURSORCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[17] ,CM_CTL3DCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[18] ,CM_PARENTCTL3DCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[19] ,CM_TEXTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[20] ,CM_MOUSEENTER));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[21] ,CM_MOUSELEAVE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[22] ,CM_MENUCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[23] ,CM_APPKEYDOWN));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[24] ,CM_APPSYSCOMMAND));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[25] ,CM_BUTTONPRESSED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[26] ,CM_SHOWINGCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[27] ,CM_ENTER));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[28] ,CM_EXIT));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[29] ,CM_DESIGNHITTEST));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[30] ,CM_ICONCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[31] ,CM_WANTSPECIALKEY));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[32] ,CM_INVOKEHELP));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[33] ,CM_WINDOWHOOK));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[34] ,CM_RELEASE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[35] ,CM_SHOWHINTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[36] ,CM_PARENTSHOWHINTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[37] ,CM_SYSCOLORCHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[38] ,CM_WININICHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[39] ,CM_FONTCHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[40] ,CM_TIMECHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[41] ,CM_TABSTOPCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[42] ,CM_UIACTIVATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[43] ,CM_UIDEACTIVATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[44] ,CM_DOCWINDOWACTIVATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[45] ,CM_CONTROLLISTCHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[46] ,CM_GETDATALINK));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[47] ,CM_CHILDKEY));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[48] ,CM_DRAG));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[49] ,CM_HINTSHOW));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[50] ,CM_DIALOGHANDLE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[51] ,CM_ISTOOLCONTROL));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[52] ,CM_RECREATEWND));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[53] ,CM_INVALIDATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[54] ,CM_SYSFONTCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[55] ,CM_CONTROLCHANGE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[56] ,CM_CHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[57] ,CM_DOCKCLIENT));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[58] ,CM_UNDOCKCLIENT));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[59] ,CM_FLOAT));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[60] ,CM_BORDERCHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[61] ,CM_BIDIMODECHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[62] ,CM_PARENTBIDIMODECHANGED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[63] ,CM_ALLCHILDRENFLIPPED));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[64] ,CM_ACTIONUPDATE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[65] ,CM_ACTIONEXECUTE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[66] ,CM_HINTSHOWPAUSE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[67] ,CM_DOCKNOTIFICATION));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[68] ,CM_MOUSEWHEEL));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[69] ,CN_BASE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[70] ,CN_CHARTOITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[71] ,CN_COMMAND));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[72] ,CN_COMPAREITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[73] ,CN_CTLCOLORBTN));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[74] ,CN_CTLCOLORDLG));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[75] ,CN_CTLCOLOREDIT));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[76] ,CN_CTLCOLORLISTBOX));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[77] ,CN_CTLCOLORMSGBOX));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[78] ,CN_CTLCOLORSCROLLBAR));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[79] ,CN_CTLCOLORSTATIC));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[80] ,CN_DELETEITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[81] ,CN_DRAWITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[82] ,CN_HSCROLL));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[83] ,CN_MEASUREITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[84] ,CN_PARENTNOTIFY));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[85] ,CN_VKEYTOITEM));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[86] ,CN_VSCROLL));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[87] ,CN_KEYDOWN));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[88] ,CN_KEYUP));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[89] ,CN_CHAR));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[90] ,CN_SYSKEYDOWN));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[91] ,CN_SYSCHAR));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[92] ,CN_NOTIFY));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[93] ,mrNone));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[94] ,mrOk));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[95] ,mrCancel));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[96] ,mrAbort));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[97] ,mrRetry));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[98] ,mrIgnore));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[99] ,mrYes));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[100] ,mrNo));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[101] ,mrAll));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[102] ,mrNoToAll));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[103] ,mrYesToAll));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[104] ,crDefault));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[105] ,crNone));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[106] ,crArrow));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[107] ,crCross));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[108] ,crIBeam));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[109] ,crSize));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[110] ,crSizeNESW));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[111] ,crSizeNS));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[112] ,crSizeNWSE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[113] ,crSizeWE));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[114] ,crUpArrow));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[115] ,crHourGlass));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[116] ,crDrag));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[117] ,crNoDrop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[118] ,crHSplit));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[119] ,crVSplit));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[120] ,crMultiDrag));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[121] ,crSQLWait));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[122] ,crNo));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[123] ,crAppStart));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[124] ,crHelp));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[125] ,crHandPoint));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[126] ,crSizeAll));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[127] ,dmDragEnter));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[128] ,dmDragLeave));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[129] ,dmDragMove));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[130] ,dmDragDrop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[131] ,dmDragCancel));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[132] ,dmFindTarget));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[133] ,alNone));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[134] ,alTop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[135] ,alBottom));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[136] ,alLeft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[137] ,alRight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[138] ,alClient));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[139] ,csLButtonDown));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[140] ,csClicked));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[141] ,csPalette));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[142] ,csReadingState));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[143] ,csAlignmentNeeded));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[144] ,csFocusing));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[145] ,csCreating));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[146] ,csPaintCopy));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[147] ,csCustomPaint));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[148] ,csDestroyingHandle));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[149] ,csDocking));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[150] ,csAcceptsControls));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[151] ,csCaptureMouse));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[152] ,csDesignInteractive));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[153] ,csClickEvents));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[154] ,csFramed));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[155] ,csSetCaption));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[156] ,csOpaque));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[157] ,csDoubleClicks));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[158] ,csFixedWidth));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[159] ,csFixedHeight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[160] ,csNoDesignVisible));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[161] ,csReplicatable));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[162] ,csNoStdEvents));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[163] ,csDisplayDragImage));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[164] ,csReflector));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[165] ,csActionClient));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[166] ,csMenuEvents));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[167] ,mbLeft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[168] ,mbRight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[169] ,mbMiddle));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[170] ,dmManual));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[171] ,dmAutomatic));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[172] ,dsDragEnter));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[173] ,dsDragLeave));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[174] ,dsDragMove));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[175] ,dkDrag));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[176] ,dkDock));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[177] ,sfLeft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[178] ,sfTop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[179] ,sfWidth));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[180] ,sfHeight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[181] ,sfFont));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[182] ,akLeft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[183] ,akTop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[184] ,akRight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[185] ,akBottom));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[186] ,doNoOrient));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[187] ,doHorizontal));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[188] ,doVertical));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[189] ,imDisable));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[190] ,imClose));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[191] ,imOpen));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[192] ,imDontCare));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[193] ,imSAlpha));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[194] ,imAlpha));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[195] ,imHira));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[196] ,imSKata));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[197] ,imKata));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[198] ,imChinese));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[199] ,imSHanguel));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[200] ,imHanguel));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[201] ,bvNone));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[202] ,bvLowered));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[203] ,bvRaised));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[204] ,bvSpace));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[205] ,beLeft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[206] ,beTop));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[207] ,beRight));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[208] ,beBottom));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[209] ,bkNone));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[210] ,bkTile));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[211] ,bkSoft));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[212] ,bkFlat));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[213] ,CTL3D_ALL));
+end;
+
+procedure __UnregisterConsts0;
+var i : integer;
+begin
+__RegisteredConstsList0.Free
+end;
+
+const ClassList : array[0..17] of TClass = (
+TBaseDragControlObject,
+TControl,
+TControlActionLink,
+TControlCanvas,
+TCustomControl,
+TDockTree,
+TDockZone,
+TDragControlObject,
+TDragDockObject,
+TDragImageList,
+TDragObject,
+TGraphicControl,
+THintWindow,
+TImageList,
+TMouse,
+TSizeConstraints,
+TWinControl,
+TWinControlActionLink
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+const MethodNames : array[0..53] of string = (
+'TCMActivate'
+,'TCMCancelMode'
+,'TCMChanged'
+,'TCMChildKey'
+,'TCMControlChange'
+,'TCMControlListChange'
+,'TCMDeactivate'
+,'TCMDesignHitTest'
+,'TCMDialogChar'
+,'TCMDialogKey'
+,'TCMDockClient'
+,'TCMDockNotification'
+,'TCMDrag'
+,'TCMEnter'
+,'TCMExit'
+,'TCMFloat'
+,'TCMFocusChanged'
+,'TCMGotFocus'
+,'TCMHitTest'
+,'TCMLostFocus'
+,'TCMMouseWheel'
+,'TCMUnDockClient'
+,'TCMWantSpecialKey'
+,'TCreateParams'
+,'TDockNotifyRec'
+,'TDragRec'
+,'IsDragObject'
+,'FindControl'
+,'FindVCLWindow'
+,'FindDragTarget'
+,'GetCaptureControl'
+,'SetCaptureControl'
+,'CancelDrag'
+,'CursorToString'
+,'StringToCursor'
+,'CursorToIdent'
+,'IdentToCursor'
+,'GetShortHint'
+,'GetLongHint'
+,'InitWndProc'
+,'ChangeBiDiModeAlignment'
+,'SendAppMessage'
+,'MoveWindowOrg'
+,'SetImeMode'
+,'SetImeName'
+,'Win32NLSEnableIME'
+,'Imm32GetContext'
+,'Imm32ReleaseContext'
+,'Imm32GetConversionStatus'
+,'Imm32SetConversionStatus'
+,'Imm32SetOpenStatus'
+,'Imm32GetCompositionString'
+,'Imm32IsIME'
+,'Imm32NotifyIME'
+);
+
+procedure __UnregisterProcs;
+var i : integer;
+begin
+__RegisteredMethods.Free;
+end;
+
+procedure _mreg_0;
+begin
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[0],Addr(_TCMActivate_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[1],Addr(_TCMCancelMode_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[2],Addr(_TCMChanged_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[3],Addr(_TCMChildKey_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[4],Addr(_TCMControlChange_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[5],Addr(_TCMControlListChange_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[6],Addr(_TCMDeactivate_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[7],Addr(_TCMDesignHitTest_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[8],Addr(_TCMDialogChar_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[9],Addr(_TCMDialogKey_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[10],Addr(_TCMDockClient_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[11],Addr(_TCMDockNotification_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[12],Addr(_TCMDrag_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[13],Addr(_TCMEnter_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[14],Addr(_TCMExit_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[15],Addr(_TCMFloat_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[16],Addr(_TCMFocusChanged_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[17],Addr(_TCMGotFocus_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[18],Addr(_TCMHitTest_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[19],Addr(_TCMLostFocus_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[20],Addr(_TCMMouseWheel_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[21],Addr(_TCMUnDockClient_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[22],Addr(_TCMWantSpecialKey_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[23],Addr(_TCreateParams_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[24],Addr(_TDockNotifyRec_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[25],Addr(_TDragRec_)));
+RegisterProc(nil,MethodNames[26],mtProc,TypeInfo(_T0),[
+TypeInfo(TObject),TypeInfo(Boolean)],Addr(IsDragObject),cRegister);
+
+RegisterProc(nil,MethodNames[27],mtProc,TypeInfo(_T1),[
+TypeInfo(HWND),TypeInfo(TWinControl)],Addr(FindControl),cRegister);
+
+RegisterProc(nil,MethodNames[28],mtProc,TypeInfo(_T2),[
+TypeInfo(IDispatch),TypeInfo(TWinControl)],Addr(____FindVCLWindow__Wrapper),cRegister);
+
+RegisterProc(nil,MethodNames[29],mtProc,TypeInfo(_T3),[
+TypeInfo(IDispatch),
+TypeInfo(Boolean),TypeInfo(TControl)],Addr(____FindDragTarget__Wrapper),cRegister);
+
+RegisterProc(nil,MethodNames[30],mtProc,TypeInfo(_T4),[TypeInfo(TControl)],Addr(GetCaptureControl),cRegister);
+
+RegisterProc(nil,MethodNames[31],mtProc,TypeInfo(_T5),[
+TypeInfo(TControl)],Addr(SetCaptureControl),cRegister);
+
+RegisterProc(nil,MethodNames[32],mtProc,TypeInfo(_T6),NoParams,Addr(CancelDrag),cRegister);
+
+RegisterProc(nil,MethodNames[33],mtProc,TypeInfo(_T7),[
+TypeInfo(TCursor),TypeInfo(string)],Addr(CursorToString),cRegister);
+
+RegisterProc(nil,MethodNames[34],mtProc,TypeInfo(_T8),[
+TypeInfo(string),TypeInfo(TCursor)],Addr(StringToCursor),cRegister);
+
+RegisterProc(nil,MethodNames[35],mtProc,TypeInfo(_T10),[
+TypeInfo(Longint),
+TypeInfo(string),TypeInfo(Boolean)],Addr(CursorToIdent),cRegister);
+
+RegisterProc(nil,MethodNames[36],mtProc,TypeInfo(_T11),[
+TypeInfo(string),
+TypeInfo(Longint),TypeInfo(Boolean)],Addr(IdentToCursor),cRegister);
+
+RegisterProc(nil,MethodNames[37],mtProc,TypeInfo(_T12),[
+TypeInfo(string),TypeInfo(string)],Addr(GetShortHint),cRegister);
+
+RegisterProc(nil,MethodNames[38],mtProc,TypeInfo(_T13),[
+TypeInfo(string),TypeInfo(string)],Addr(GetLongHint),cRegister);
+
+RegisterProc(nil,MethodNames[39],mtProc,TypeInfo(_T14),[
+TypeInfo(HWND),
+TypeInfo(Longint),
+TypeInfo(Longint),
+TypeInfo(Longint),TypeInfo(Longint)],Addr(InitWndProc),cStdCall);
+
+RegisterProc(nil,MethodNames[40],mtProc,TypeInfo(_T15),[
+TypeInfo(TAlignment)],Addr(ChangeBiDiModeAlignment),cRegister);
+
+RegisterProc(nil,MethodNames[41],mtProc,TypeInfo(_T16),[
+TypeInfo(Cardinal),
+TypeInfo(Longint),
+TypeInfo(Longint),TypeInfo(Longint)],Addr(SendAppMessage),cRegister);
+
+RegisterProc(nil,MethodNames[42],mtProc,TypeInfo(_T17),[
+TypeInfo(HDC),
+TypeInfo(Integer),
+TypeInfo(Integer)],Addr(MoveWindowOrg),cRegister);
+
+RegisterProc(nil,MethodNames[43],mtProc,TypeInfo(_T18),[
+TypeInfo(HWND),
+TypeInfo(TImeMode)],Addr(SetImeMode),cRegister);
+
+RegisterProc(nil,MethodNames[44],mtProc,TypeInfo(_T19),[
+TypeInfo(TImeName)],Addr(SetImeName),cRegister);
+
+RegisterProc(nil,MethodNames[45],mtProc,TypeInfo(_T20),[
+TypeInfo(HWND),
+TypeInfo(Boolean),TypeInfo(Boolean)],Addr(Win32NLSEnableIME),cRegister);
+
+RegisterProc(nil,MethodNames[46],mtProc,TypeInfo(_T21),[
+TypeInfo(HWND),TypeInfo(HIMC)],Addr(Imm32GetContext),cRegister);
+
+RegisterProc(nil,MethodNames[47],mtProc,TypeInfo(_T22),[
+TypeInfo(HWND),
+TypeInfo(HIMC),TypeInfo(Boolean)],Addr(Imm32ReleaseContext),cRegister);
+
+RegisterProc(nil,MethodNames[48],mtProc,TypeInfo(_T23),[
+TypeInfo(HIMC),
+TypeInfo(DWORD),
+TypeInfo(DWORD),TypeInfo(Boolean)],Addr(Imm32GetConversionStatus),cRegister);
+
+RegisterProc(nil,MethodNames[49],mtProc,TypeInfo(_T24),[
+TypeInfo(HIMC),
+TypeInfo(DWORD),
+TypeInfo(DWORD),TypeInfo(Boolean)],Addr(Imm32SetConversionStatus),cRegister);
+
+RegisterProc(nil,MethodNames[50],mtProc,TypeInfo(_T25),[
+TypeInfo(HIMC),
+TypeInfo(Boolean),TypeInfo(Boolean)],Addr(Imm32SetOpenStatus),cRegister);
+
+RegisterProc(nil,MethodNames[51],mtProc,TypeInfo(_T28),[
+TypeInfo(HIMC),
+TypeInfo(DWORD),
+TypeInfoPointer,
+TypeInfo(DWORD),TypeInfo(Longint)],Addr(Imm32GetCompositionString),cRegister);
+
+RegisterProc(nil,MethodNames[52],mtProc,TypeInfo(_T29),[
+TypeInfo(hKl),TypeInfo(Boolean)],Addr(Imm32IsIME),cRegister);
+
+RegisterProc(nil,MethodNames[53],mtProc,TypeInfo(_T30),[
+TypeInfo(HIMC),
+TypeInfo(DWORD),
+TypeInfo(DWORD),
+TypeInfo(DWORD),TypeInfo(Boolean)],Addr(Imm32NotifyIME),cRegister);
+
+RegRegisterMethod(TBaseDragControlObject,'EndDrag',TypeInfo(_T31),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(32));
+
+RegisterProc(TBaseDragControlObject,'Create',mtConstructor,TypeInfo(_T32),[
+TypeInfo(TControl)], pointer(36),cRegister);
+
+RegRegisterMethod(TControl,'ActionChange',TypeInfo(_T33),[
+TypeInfo(TObject),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 15));
+
+RegRegisterMethod(TControl,'AdjustSize',TypeInfo(_T34),NoParams, pointer(MinVMTOffset - 16));
+
+RegRegisterMethod(TControl,'BeginAutoDrag',TypeInfo(_T35),NoParams, pointer(MinVMTOffset - 17));
+
+RegRegisterMethod(TControl,'CanResize',TypeInfo(_T36),[
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)], pointer(48));
+
+RegRegisterMethod(TControl,'CanAutoSize',TypeInfo(_T37),[
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)], pointer(52));
+
+RegRegisterMethod(TControl,'ChangeScale',TypeInfo(_T38),[
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 18));
+
+RegRegisterMethod(TControl,'Click',TypeInfo(_T39),NoParams, pointer(MinVMTOffset - 19));
+
+RegRegisterMethod(TControl,'ConstrainedResize',TypeInfo(_T40),[
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(56));
+
+RegRegisterMethod(TControl,'DblClick',TypeInfo(_T41),NoParams, pointer(MinVMTOffset - 20));
+
+RegRegisterMethod(TControl,'DefaultDockImage',TypeInfo(_T42),[
+TypeInfo(TDragDockObject),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 21));
+
+RegRegisterMethod(TControl,'DockTrackNoTarget',TypeInfo(_T43),[
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 22));
+
+RegRegisterMethod(TControl,'DoContextPopup',TypeInfo(_T44),[
+TypeInfo(IDispatch),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 23));
+
+RegRegisterMethod(TControl,'DoEndDock',TypeInfo(_T45),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 24));
+
+RegRegisterMethod(TControl,'DoDock',TypeInfo(_T46),[
+TypeInfo(TWinControl),
+TypeInfo(IDispatch)], pointer(MinVMTOffset - 25));
+
+RegRegisterMethod(TControl,'DoStartDock',TypeInfo(_T47),[
+TypeInfo(TDragObject)], pointer(MinVMTOffset - 26));
+
+RegRegisterMethod(TControl,'DragCanceled',TypeInfo(_T48),NoParams, pointer(MinVMTOffset - 27));
+
+RegRegisterMethod(TControl,'DragOver',TypeInfo(_T49),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(TDragState),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 28));
+
+RegRegisterMethod(TControl,'DoEndDrag',TypeInfo(_T50),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 29));
+
+RegRegisterMethod(TControl,'DoStartDrag',TypeInfo(_T51),[
+TypeInfo(TDragObject)], pointer(MinVMTOffset - 30));
+
+RegRegisterMethod(TControl,'DrawDragDockImage',TypeInfo(_T52),[
+TypeInfo(TDragDockObject)], pointer(MinVMTOffset - 31));
+
+RegRegisterMethod(TControl,'EraseDragDockImage',TypeInfo(_T53),[
+TypeInfo(TDragDockObject)], pointer(MinVMTOffset - 32));
+
+RegRegisterMethod(TControl,'GetClientOrigin',TypeInfo(_T55),[TypeInfo(IDispatch)], pointer(60));
+
+RegRegisterMethod(TControl,'GetClientRect',TypeInfo(_T56),[TypeInfo(IDispatch)], pointer(64));
+
+RegRegisterMethod(TControl,'GetDeviceContext',TypeInfo(_T57),[
+TypeInfo(HWND),TypeInfo(HDC)], pointer(68));
+
+RegRegisterMethod(TControl,'GetDockEdge',TypeInfo(_T58),[
+TypeInfo(IDispatch),TypeInfo(TAlign)], pointer(MinVMTOffset - 34));
+
+RegRegisterMethod(TControl,'GetDragImages',TypeInfo(_T59),[TypeInfo(TDragImageList)], pointer(72));
+
+RegRegisterMethod(TControl,'GetEnabled',TypeInfo(_T60),[TypeInfo(Boolean)], pointer(76));
+
+RegRegisterMethod(TControl,'GetFloating',TypeInfo(_T61),[TypeInfo(Boolean)], pointer(80));
+
+RegRegisterMethod(TControl,'GetPalette',TypeInfo(_T63),[TypeInfo(HPALETTE)], pointer(MinVMTOffset - 35));
+
+RegRegisterMethod(TControl,'GetPopupMenu',TypeInfo(_T64),[TypeInfo(TPopupMenu)], pointer(MinVMTOffset - 36));
+
+RegRegisterMethod(TControl,'MouseDown',TypeInfo(_T65),[
+TypeInfo(TMouseButton),
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 37));
+
+RegRegisterMethod(TControl,'MouseMove',TypeInfo(_T66),[
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 38));
+
+RegRegisterMethod(TControl,'MouseUp',TypeInfo(_T67),[
+TypeInfo(TMouseButton),
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 39));
+
+RegRegisterMethod(TControl,'PositionDockRect',TypeInfo(_T68),[
+TypeInfo(TDragDockObject)], pointer(MinVMTOffset - 40));
+
+RegRegisterMethod(TControl,'PaletteChanged',TypeInfo(_T69),[
+TypeInfo(Boolean),TypeInfo(Boolean)], pointer(MinVMTOffset - 41));
+
+RegRegisterMethod(TControl,'RequestAlign',TypeInfo(_T70),NoParams, pointer(MinVMTOffset - 42));
+
+RegRegisterMethod(TControl,'Resize',TypeInfo(_T71),NoParams, pointer(MinVMTOffset - 43));
+
+RegRegisterMethod(TControl,'SetDragMode',TypeInfo(_T72),[
+TypeInfo(TDragMode)], pointer(88));
+
+RegRegisterMethod(TControl,'SetEnabled',TypeInfo(_T73),[
+TypeInfo(Boolean)], pointer(92));
+
+RegRegisterMethod(TControl,'SetParent',TypeInfo(_T74),[
+TypeInfo(TWinControl)], pointer(96));
+
+RegRegisterMethod(TControl,'SetParentBiDiMode',TypeInfo(_T75),[
+TypeInfo(Boolean)], pointer(100));
+
+RegRegisterMethod(TControl,'SetBiDiMode',TypeInfo(_T76),[
+TypeInfo(TBiDiMode)], pointer(104));
+
+RegRegisterMethod(TControl,'SetZOrder',TypeInfo(_T77),[
+TypeInfo(Boolean)], pointer(MinVMTOffset - 44));
+
+RegRegisterMethod(TControl,'VisibleChanging',TypeInfo(_T78),NoParams, pointer(MinVMTOffset - 45));
+
+RegRegisterMethod(TControl,'WndProc',TypeInfo(_T79),[
+TypeInfo(IDispatch)], pointer(108));
+
+RegisterProc(TControl,'BeginDrag',mtScriptMethod,TypeInfo(_T80),[
+TypeInfo(Boolean),
+TypeInfo(Integer)],Addr(__TControl__BeginDrag__Wrapper),cRegister);
+
+RegRegisterMethod(TControl,'BringToFront',TypeInfo(_T81),NoParams,Addr(TControl.BringToFront));
+
+RegRegisterMethod(TControl,'ClientToScreen',TypeInfo(_T82),[
+TypeInfo(IDispatch),TypeInfo(IDispatch)],Addr(__TControl__ClientToScreen__Wrapper));
+
+RegRegisterMethod(TControl,'Dock',TypeInfo(_T83),[
+TypeInfo(TWinControl),
+TypeInfo(IDispatch)], pointer(MinVMTOffset - 46));
+
+RegRegisterMethod(TControl,'Dragging',TypeInfo(_T84),[TypeInfo(Boolean)],Addr(TControl.Dragging));
+
+RegRegisterMethod(TControl,'DragDrop',TypeInfo(_T85),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 47));
+
+RegRegisterMethod(TControl,'DrawTextBiDiModeFlags',TypeInfo(_T86),[
+TypeInfo(Longint),TypeInfo(Longint)],Addr(TControl.DrawTextBiDiModeFlags));
+
+RegRegisterMethod(TControl,'DrawTextBiDiModeFlagsReadingOnly',TypeInfo(_T87),[TypeInfo(Longint)],Addr(TControl.DrawTextBiDiModeFlagsReadingOnly));
+
+RegRegisterMethod(TControl,'EndDrag',TypeInfo(_T88),[
+TypeInfo(Boolean)],Addr(TControl.EndDrag));
+
+RegRegisterMethod(TControl,'GetControlsAlignment',TypeInfo(_T89),[TypeInfo(TAlignment)], pointer(MinVMTOffset - 48));
+
+RegRegisterMethod(TControl,'GetTextLen',TypeInfo(_T91),[TypeInfo(Integer)],Addr(TControl.GetTextLen));
+
+RegRegisterMethod(TControl,'Hide',TypeInfo(_T92),NoParams,Addr(TControl.Hide));
+
+RegRegisterMethod(TControl,'InitiateAction',TypeInfo(_T93),NoParams, pointer(112));
+
+RegRegisterMethod(TControl,'Invalidate',TypeInfo(_T94),NoParams, pointer(116));
+
+RegRegisterMethod(TControl,'IsRightToLeft',TypeInfo(_T95),[TypeInfo(Boolean)],Addr(TControl.IsRightToLeft));
+
+RegisterProc(TControl,'ManualDock',mtScriptMethod,TypeInfo(_T96),[
+TypeInfo(TWinControl),
+TypeInfo(TControl),
+TypeInfo(TAlign),TypeInfo(Boolean)],Addr(__TControl__ManualDock__Wrapper),cRegister);
+
+RegRegisterMethod(TControl,'ManualFloat',TypeInfo(_T97),[
+TypeInfo(IDispatch),TypeInfo(Boolean)],Addr(__TControl__ManualFloat__Wrapper));
+
+RegRegisterMethod(TControl,'Perform',TypeInfo(_T98),[
+TypeInfo(Cardinal),
+TypeInfo(Longint),
+TypeInfo(Longint),TypeInfo(Longint)],Addr(TControl.Perform));
+
+RegRegisterMethod(TControl,'Refresh',TypeInfo(_T99),NoParams,Addr(TControl.Refresh));
+
+RegRegisterMethod(TControl,'Repaint',TypeInfo(_T100),NoParams, pointer(120));
+
+RegRegisterMethod(TControl,'ReplaceDockedControl',TypeInfo(_T101),[
+TypeInfo(TControl),
+TypeInfo(TWinControl),
+TypeInfo(TControl),
+TypeInfo(TAlign),TypeInfo(Boolean)],Addr(TControl.ReplaceDockedControl));
+
+RegRegisterMethod(TControl,'ScreenToClient',TypeInfo(_T102),[
+TypeInfo(IDispatch),TypeInfo(IDispatch)],Addr(__TControl__ScreenToClient__Wrapper));
+
+RegRegisterMethod(TControl,'SendToBack',TypeInfo(_T103),NoParams,Addr(TControl.SendToBack));
+
+RegRegisterMethod(TControl,'SetBounds',TypeInfo(_T104),[
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(124));
+
+RegRegisterMethod(TControl,'Show',TypeInfo(_T106),NoParams,Addr(TControl.Show));
+
+RegRegisterMethod(TControl,'Update',TypeInfo(_T107),NoParams, pointer(128));
+
+RegRegisterMethod(TControl,'UseRightToLeftAlignment',TypeInfo(_T108),[TypeInfo(Boolean)], pointer(MinVMTOffset - 49));
+
+RegRegisterMethod(TControl,'UseRightToLeftReading',TypeInfo(_T109),[TypeInfo(Boolean)],Addr(TControl.UseRightToLeftReading));
+
+RegRegisterMethod(TControl,'UseRightToLeftScrollBar',TypeInfo(_T110),[TypeInfo(Boolean)],Addr(TControl.UseRightToLeftScrollBar));
+
+RegRegisterMethod(TControlActionLink,'DoShowHint',TypeInfo(_T111),[
+TypeInfo(string),TypeInfo(Boolean)], pointer(96));
+
+RegRegisterMethod(TControlCanvas,'FreeHandle',TypeInfo(_T112),NoParams,Addr(TControlCanvas.FreeHandle));
+
+RegRegisterMethod(TControlCanvas,'UpdateTextFlags',TypeInfo(_T113),NoParams,Addr(TControlCanvas.UpdateTextFlags));
+
+RegRegisterMethod(TCustomControl,'Paint',TypeInfo(_T114),NoParams, pointer(180));
+
+RegRegisterMethod(TDockTree,'AdjustDockRect',TypeInfo(_T115),[
+TypeInfo(TControl),
+TypeInfo(IDispatch)], pointer(0));
+
+RegRegisterMethod(TDockTree,'HitTest',TypeInfo(_T116),[
+TypeInfo(IDispatch),
+TypeInfo(Integer),TypeInfo(TControl)], pointer(4));
+
+RegRegisterMethod(TDockTree,'InsertControl',TypeInfo(_T117),[
+TypeInfo(TControl),
+TypeInfo(TAlign),
+TypeInfo(TControl)], pointer(8));
+
+RegRegisterMethod(TDockTree,'LoadFromStream',TypeInfo(_T118),[
+TypeInfo(TStream)], pointer(12));
+
+RegRegisterMethod(TDockTree,'PaintDockFrame',TypeInfo(_T119),[
+TypeInfo(TCanvas),
+TypeInfo(TControl),
+TypeInfo(IDispatch)], pointer(16));
+
+RegRegisterMethod(TDockTree,'PositionDockRect',TypeInfo(_T120),[
+TypeInfo(TControl),
+TypeInfo(TControl),
+TypeInfo(TAlign),
+TypeInfo(IDispatch)], pointer(20));
+
+RegRegisterMethod(TDockTree,'RemoveControl',TypeInfo(_T121),[
+TypeInfo(TControl)], pointer(24));
+
+RegRegisterMethod(TDockTree,'SaveToStream',TypeInfo(_T122),[
+TypeInfo(TStream)], pointer(28));
+
+RegRegisterMethod(TDockTree,'ResetBounds',TypeInfo(_T123),[
+TypeInfo(Boolean)], pointer(32));
+
+RegisterProc(TDockTree,'Create',mtConstructor,TypeInfo(_T124),[
+TypeInfo(TWinControl)], pointer(36),cRegister);
+
+RegRegisterMethod(TDockTree,'PaintSite',TypeInfo(_T125),[
+TypeInfo(HDC)], pointer(40));
+
+RegisterProc(TDockZone,'Create',mtConstructor,TypeInfo(_T126),[
+TypeInfo(TDockTree)],Addr(TDockZone.Create),cRegister);
+
+RegRegisterMethod(TDockZone,'ResetChildren',TypeInfo(_T127),NoParams,Addr(TDockZone.ResetChildren));
+
+RegRegisterMethod(TDockZone,'Update',TypeInfo(_T128),NoParams,Addr(TDockZone.Update));
+
+RegRegisterMethod(TDragDockObject,'AdjustDockRect',TypeInfo(_T129),[
+TypeInfo(IDispatch)], pointer(40));
+
+RegRegisterMethod(TDragDockObject,'DrawDragDockImage',TypeInfo(_T130),NoParams, pointer(44));
+
+RegRegisterMethod(TDragDockObject,'EraseDragDockImage',TypeInfo(_T131),NoParams, pointer(48));
+
+RegRegisterMethod(TDragDockObject,'GetFrameWidth',TypeInfo(_T132),[TypeInfo(Integer)], pointer(52));
+
+RegRegisterMethod(TDragImageList,'BeginDrag',TypeInfo(_T133),[
+TypeInfo(HWND),
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)],Addr(TDragImageList.BeginDrag));
+
+RegRegisterMethod(TDragImageList,'DragLock',TypeInfo(_T134),[
+TypeInfo(HWND),
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)],Addr(TDragImageList.DragLock));
+
+RegRegisterMethod(TDragImageList,'DragMove',TypeInfo(_T135),[
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)],Addr(TDragImageList.DragMove));
+
+RegRegisterMethod(TDragImageList,'DragUnlock',TypeInfo(_T136),NoParams,Addr(TDragImageList.DragUnlock));
+
+RegRegisterMethod(TDragImageList,'EndDrag',TypeInfo(_T137),[TypeInfo(Boolean)],Addr(TDragImageList.EndDrag));
+
+RegRegisterMethod(TDragImageList,'HideDragImage',TypeInfo(_T138),NoParams,Addr(TDragImageList.HideDragImage));
+
+RegRegisterMethod(TDragImageList,'SetDragImage',TypeInfo(_T139),[
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(Boolean)],Addr(TDragImageList.SetDragImage));
+
+RegRegisterMethod(TDragImageList,'ShowDragImage',TypeInfo(_T140),NoParams,Addr(TDragImageList.ShowDragImage));
+
+RegRegisterMethod(TDragObject,'Finished',TypeInfo(_T141),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Boolean)], pointer(0));
+
+RegRegisterMethod(TDragObject,'GetDragCursor',TypeInfo(_T142),[
+TypeInfo(Boolean),
+TypeInfo(Integer),
+TypeInfo(Integer),TypeInfo(TCursor)], pointer(4));
+
+RegRegisterMethod(TDragObject,'GetDragImages',TypeInfo(_T143),[TypeInfo(TDragImageList)], pointer(8));
+
+RegRegisterMethod(TDragObject,'Assign',TypeInfo(_T144),[
+TypeInfo(TDragObject)], pointer(12));
+
+RegRegisterMethod(TDragObject,'GetName',TypeInfo(_T145),[TypeInfo(string)], pointer(16));
+
+RegRegisterMethod(TDragObject,'HideDragImage',TypeInfo(_T146),NoParams, pointer(20));
+
+RegRegisterMethod(TDragObject,'Instance',TypeInfo(_T147),[TypeInfo(THandle)], pointer(24));
+
+RegRegisterMethod(TDragObject,'ShowDragImage',TypeInfo(_T148),NoParams, pointer(28));
+
+RegRegisterMethod(TGraphicControl,'Paint',TypeInfo(_T149),NoParams, pointer(132));
+
+RegRegisterMethod(THintWindow,'ActivateHint',TypeInfo(_T150),[
+TypeInfo(IDispatch),
+TypeInfo(string)], pointer(184));
+
+RegRegisterMethod(THintWindow,'ActivateHintData',TypeInfo(_T151),[
+TypeInfo(IDispatch),
+TypeInfo(string),
+TypeInfoPointer], pointer(188));
+
+RegRegisterMethod(THintWindow,'CalcHintRect',TypeInfo(_T152),[
+TypeInfo(Integer),
+TypeInfo(string),
+TypeInfoPointer,TypeInfo(IDispatch)], pointer(192));
+
+RegRegisterMethod(THintWindow,'IsHintMsg',TypeInfo(_T153),[
+TypeInfo(IDispatch),TypeInfo(Boolean)], pointer(196));
+
+RegRegisterMethod(THintWindow,'ReleaseHandle',TypeInfo(_T154),NoParams,Addr(THintWindow.ReleaseHandle));
+
+RegisterProc(TMouse,'Create',mtConstructor,TypeInfo(_T155),NoParams,Addr(TMouse.Create),cRegister);
+
+RegRegisterMethod(TMouse,'SettingChanged',TypeInfo(_T156),[
+TypeInfo(Integer)],Addr(TMouse.SettingChanged));
+
+RegRegisterMethod(TSizeConstraints,'Change',TypeInfo(_T157),NoParams, pointer(MinVMTOffset - 2));
+
+RegisterProc(TSizeConstraints,'Create',mtConstructor,TypeInfo(_T158),[
+TypeInfo(TControl)], pointer(12),cRegister);
+
+RegRegisterMethod(TWinControl,'AdjustClientRect',TypeInfo(_T159),[
+TypeInfo(IDispatch)], pointer(132));
+
+RegRegisterMethod(TWinControl,'AlignControls',TypeInfo(_T160),[
+TypeInfo(TControl),
+TypeInfo(IDispatch)], pointer(136));
+
+RegRegisterMethod(TWinControl,'CreateHandle',TypeInfo(_T162),NoParams, pointer(140));
+
+RegRegisterMethod(TWinControl,'CreateParams',TypeInfo(_T163),[
+TypeInfo(IDispatch)], pointer(144));
+
+RegRegisterMethod(TWinControl,'CreateWindowHandle',TypeInfo(_T164),[
+TypeInfo(IDispatch)], pointer(148));
+
+RegRegisterMethod(TWinControl,'CreateWnd',TypeInfo(_T165),NoParams, pointer(152));
+
+RegRegisterMethod(TWinControl,'DestroyWindowHandle',TypeInfo(_T166),NoParams, pointer(156));
+
+RegRegisterMethod(TWinControl,'DestroyWnd',TypeInfo(_T167),NoParams, pointer(160));
+
+RegRegisterMethod(TWinControl,'DoAddDockClient',TypeInfo(_T168),[
+TypeInfo(TControl),
+TypeInfo(IDispatch)], pointer(MinVMTOffset - 51));
+
+RegRegisterMethod(TWinControl,'DockOver',TypeInfo(_T169),[
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(TDragState),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 52));
+
+RegRegisterMethod(TWinControl,'DoDockOver',TypeInfo(_T170),[
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(TDragState),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 53));
+
+RegRegisterMethod(TWinControl,'DoEnter',TypeInfo(_T171),NoParams, pointer(MinVMTOffset - 54));
+
+RegRegisterMethod(TWinControl,'DoExit',TypeInfo(_T172),NoParams, pointer(MinVMTOffset - 55));
+
+RegRegisterMethod(TWinControl,'DoFlipChildren',TypeInfo(_T173),NoParams, pointer(MinVMTOffset - 56));
+
+RegRegisterMethod(TWinControl,'DoMouseWheel',TypeInfo(_T174),[
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(IDispatch),TypeInfo(Boolean)], pointer(MinVMTOffset - 57));
+
+RegRegisterMethod(TWinControl,'DoMouseWheelDown',TypeInfo(_T175),[
+TypeInfo(TShiftState),
+TypeInfo(IDispatch),TypeInfo(Boolean)], pointer(MinVMTOffset - 58));
+
+RegRegisterMethod(TWinControl,'DoMouseWheelUp',TypeInfo(_T176),[
+TypeInfo(TShiftState),
+TypeInfo(IDispatch),TypeInfo(Boolean)], pointer(MinVMTOffset - 59));
+
+RegRegisterMethod(TWinControl,'DoRemoveDockClient',TypeInfo(_T177),[
+TypeInfo(TControl)], pointer(MinVMTOffset - 60));
+
+RegRegisterMethod(TWinControl,'DoUnDock',TypeInfo(_T178),[
+TypeInfo(TWinControl),
+TypeInfo(TControl),TypeInfo(Boolean)], pointer(MinVMTOffset - 61));
+
+RegRegisterMethod(TWinControl,'GetControlExtents',TypeInfo(_T179),[TypeInfo(IDispatch)], pointer(164));
+
+RegRegisterMethod(TWinControl,'GetSiteInfo',TypeInfo(_T180),[
+TypeInfo(TControl),
+TypeInfo(IDispatch),
+TypeInfo(IDispatch),
+TypeInfo(Boolean)], pointer(MinVMTOffset - 62));
+
+RegRegisterMethod(TWinControl,'KeyDown',TypeInfo(_T181),[
+TypeInfo(Word),
+TypeInfo(TShiftState)], pointer(MinVMTOffset - 63));
+
+RegRegisterMethod(TWinControl,'KeyUp',TypeInfo(_T182),[
+TypeInfo(Word),
+TypeInfo(TShiftState)], pointer(MinVMTOffset - 64));
+
+RegRegisterMethod(TWinControl,'KeyPress',TypeInfo(_T183),[
+TypeInfo(Char)], pointer(MinVMTOffset - 65));
+
+RegRegisterMethod(TWinControl,'PaintWindow',TypeInfo(_T184),[
+TypeInfo(HDC)], pointer(168));
+
+RegRegisterMethod(TWinControl,'ReloadDockedControl',TypeInfo(_T185),[
+TypeInfo(string),
+TypeInfo(TControl)], pointer(MinVMTOffset - 66));
+
+RegRegisterMethod(TWinControl,'ShowControl',TypeInfo(_T186),[
+TypeInfo(TControl)], pointer(172));
+
+RegisterProc(TWinControl,'CreateParented',mtConstructor,TypeInfo(_T187),[
+TypeInfo(HWND)],Addr(TWinControl.CreateParented),cRegister);
+
+RegisterProc(TWinControl,'CreateParentedControl',mtClassMethod,TypeInfo(_T188),[
+TypeInfo(HWND),TypeInfo(TWinControl)],Addr(TWinControl.CreateParentedControl),cRegister);
+
+RegRegisterMethod(TWinControl,'Broadcast',TypeInfo(_T189),[
+TypeInfoUntyped],Addr(TWinControl.Broadcast));
+
+RegRegisterMethod(TWinControl,'CanFocus',TypeInfo(_T190),[TypeInfo(Boolean)], pointer(MinVMTOffset - 67));
+
+RegRegisterMethod(TWinControl,'ContainsControl',TypeInfo(_T191),[
+TypeInfo(TControl),TypeInfo(Boolean)],Addr(TWinControl.ContainsControl));
+
+RegisterProc(TWinControl,'ControlAtPos',mtScriptMethod,TypeInfo(_T192),[
+TypeInfo(IDispatch),
+TypeInfo(Boolean),
+TypeInfo(Boolean),TypeInfo(TControl)],Addr(__TWinControl__ControlAtPos__Wrapper),cRegister);
+
+RegRegisterMethod(TWinControl,'DisableAlign',TypeInfo(_T193),NoParams,Addr(TWinControl.DisableAlign));
+
+RegRegisterMethod(TWinControl,'DockDrop',TypeInfo(_T194),[
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer)], pointer(MinVMTOffset - 68));
+
+RegRegisterMethod(TWinControl,'EnableAlign',TypeInfo(_T195),NoParams,Addr(TWinControl.EnableAlign));
+
+RegRegisterMethod(TWinControl,'FindChildControl',TypeInfo(_T196),[
+TypeInfo(string),TypeInfo(TControl)],Addr(TWinControl.FindChildControl));
+
+RegRegisterMethod(TWinControl,'FlipChildren',TypeInfo(_T197),[
+TypeInfo(Boolean)], pointer(MinVMTOffset - 69));
+
+RegRegisterMethod(TWinControl,'Focused',TypeInfo(_T198),[TypeInfo(Boolean)], pointer(MinVMTOffset - 70));
+
+RegRegisterMethod(TWinControl,'GetTabOrderList',TypeInfo(_T199),[
+TypeInfo(TList)], pointer(MinVMTOffset - 71));
+
+RegRegisterMethod(TWinControl,'HandleAllocated',TypeInfo(_T200),[TypeInfo(Boolean)],Addr(TWinControl.HandleAllocated));
+
+RegRegisterMethod(TWinControl,'HandleNeeded',TypeInfo(_T201),NoParams,Addr(TWinControl.HandleNeeded));
+
+RegRegisterMethod(TWinControl,'InsertControl',TypeInfo(_T202),[
+TypeInfo(TControl)],Addr(TWinControl.InsertControl));
+
+RegRegisterMethod(TWinControl,'MouseWheelHandler',TypeInfo(_T203),[
+TypeInfo(IDispatch)], pointer(MinVMTOffset - 72));
+
+RegRegisterMethod(TWinControl,'PaintTo',TypeInfo(_T204),[
+TypeInfo(HDC),
+TypeInfo(Integer),
+TypeInfo(Integer)],Addr(TWinControl.PaintTo));
+
+RegRegisterMethod(TWinControl,'RemoveControl',TypeInfo(_T205),[
+TypeInfo(TControl)],Addr(TWinControl.RemoveControl));
+
+RegRegisterMethod(TWinControl,'Realign',TypeInfo(_T206),NoParams,Addr(TWinControl.Realign));
+
+RegRegisterMethod(TWinControl,'ScaleBy',TypeInfo(_T207),[
+TypeInfo(Integer),
+TypeInfo(Integer)],Addr(TWinControl.ScaleBy));
+
+RegRegisterMethod(TWinControl,'ScrollBy',TypeInfo(_T208),[
+TypeInfo(Integer),
+TypeInfo(Integer)],Addr(TWinControl.ScrollBy));
+
+RegRegisterMethod(TWinControl,'SetFocus',TypeInfo(_T209),NoParams, pointer(176));
+
+RegRegisterMethod(TWinControl,'UpdateControlState',TypeInfo(_T210),NoParams,Addr(TWinControl.UpdateControlState));
+
+end;
+initialization
+__RegisteredMethods := TList.Create;
+_mreg_0;
+{RegisterProc(nil,'GetCursorValues',mtProc,TypeInfo(_T9),[
+TypeInfo(TGetStrProc)],Addr(GetCursorValues),cRegister)}
+
+{RegisterProc(nil,'Imm32SetCompositionWindow',mtProc,TypeInfo(_T26),[
+TypeInfo(HIMC),
+TypeInfoPointer,TypeInfo(Boolean)],Addr(Imm32SetCompositionWindow),cRegister)}
+
+{RegisterProc(nil,'Imm32SetCompositionFont',mtProc,TypeInfo(_T27),[
+TypeInfo(HIMC),
+TypeInfoPointer,TypeInfo(Boolean)],Addr(Imm32SetCompositionFont),cRegister)}
+
+{RegRegisterMethod(TControl,'GetActionLinkClass',TypeInfo(_T54),[TypeInfo(TControlActionLinkClass)], pointer(MinVMTOffset - 33))}
+
+{RegRegisterMethod(TControl,'GetFloatingDockSiteClass',TypeInfo(_T62),[TypeInfo(TWinControlClass)], pointer(84))}
+
+{RegRegisterMethod(TControl,'GetTextBuf',TypeInfo(_T90),[
+TypeInfoPChar,
+TypeInfo(Integer),TypeInfo(Integer)],Addr(TControl.GetTextBuf))}
+
+{RegRegisterMethod(TControl,'SetTextBuf',TypeInfo(_T105),[
+TypeInfoPChar],Addr(TControl.SetTextBuf))}
+
+{RegRegisterMethod(TWinControl,'CreateDockManager',TypeInfo(_T161),[TypeInfo(IDockManager)], pointer(MinVMTOffset - 50))}
+
+RegisterEvent(TypeInfo(TCanResizeEvent),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Boolean)]);
+
+RegisterEvent(TypeInfo(TConstrainedResizeEvent),[
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+{RegisterEvent(TypeInfo(TContextPopupEvent),[
+TypeInfo(TObject),
+TypeInfo(IDispatch),
+TypeInfo(Boolean)]);}
+
+RegisterEvent(TypeInfo(TDockDropEvent),[
+TypeInfo(TObject),
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+RegisterEvent(TypeInfo(TDockOverEvent),[
+TypeInfo(TObject),
+TypeInfo(TDragDockObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(TDragState),
+TypeInfo(Boolean)]);
+
+RegisterEvent(TypeInfo(TDragDropEvent),[
+TypeInfo(TObject),
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+RegisterEvent(TypeInfo(TDragOverEvent),[
+TypeInfo(TObject),
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(TDragState),
+TypeInfo(Boolean)]);
+
+RegisterEvent(TypeInfo(TEndDragEvent),[
+TypeInfo(TObject),
+TypeInfo(TObject),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+RegisterEvent(TypeInfo(TForEachZoneProc),[
+TypeInfo(TDockZone)]);
+
+{RegisterEvent(TypeInfo(TGetSiteInfoEvent),[
+TypeInfo(TObject),
+TypeInfo(TControl),
+TypeInfo(IDispatch),
+TypeInfo(IDispatch),
+TypeInfo(Boolean)]);}
+
+RegisterEvent(TypeInfo(TKeyEvent),[
+TypeInfo(TObject),
+TypeInfo(Word),
+TypeInfo(TShiftState)]);
+
+RegisterEvent(TypeInfo(TKeyPressEvent),[
+TypeInfo(TObject),
+TypeInfo(Char)]);
+
+RegisterEvent(TypeInfo(TMouseEvent),[
+TypeInfo(TObject),
+TypeInfo(TMouseButton),
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+RegisterEvent(TypeInfo(TMouseMoveEvent),[
+TypeInfo(TObject),
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(Integer)]);
+
+{RegisterEvent(TypeInfo(TMouseWheelEvent),[
+TypeInfo(TObject),
+TypeInfo(TShiftState),
+TypeInfo(Integer),
+TypeInfo(IDispatch),
+TypeInfo(Boolean)]);}
+
+{RegisterEvent(TypeInfo(TMouseWheelUpDownEvent),[
+TypeInfo(TObject),
+TypeInfo(TShiftState),
+TypeInfo(IDispatch),
+TypeInfo(Boolean)]);}
+
+RegisterEvent(TypeInfo(TStartDockEvent),[
+TypeInfo(TObject),
+TypeInfo(TDragDockObject)]);
+
+RegisterEvent(TypeInfo(TStartDragEvent),[
+TypeInfo(TObject),
+TypeInfo(TDragObject)]);
+
+RegisterEvent(TypeInfo(TUnDockEvent),[
+TypeInfo(TObject),
+TypeInfo(TControl),
+TypeInfo(TWinControl),
+TypeInfo(Boolean)]);
+
+{RegisterEvent(TypeInfo(TWndMethod),[
+TypeInfo(IDispatch)]);}
+
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+__RegisterVars;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+__UnRegisterVars;
+__UnregisterProcs;
+end.

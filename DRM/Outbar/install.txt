@@ -1,0 +1,124 @@
+If you find any problems during installation write us to:
+ support@dream-com.com
+
+The latest version of Dream Controls can be downloaded from our web site:
+ http://www.dream-com.com
+
+Registration process is described in order.txt
+
+Help file and manual can be downloaded with one of the Dream OutBar trials
+
+If you have any previous version of Dream Outbar uninstall it.
+
+
+Installation in Delphi 6
+==============================================================
+
+1. Run Delphi 6.
+
+2. Select the File->Open menu option and open 
+   the file \UNITS\dcoutbar_d6.dpk
+
+3. Click Install.
+
+
+Installation in Delphi 5
+==============================================================
+
+1. Run Delphi 5.
+
+2. Select the File->Open menu option and open 
+   the file \UNITS\dcoutbar_d5.dpk
+
+3. Click Install.
+
+
+Installation in Delphi 4
+==============================================================
+
+1. Run Delphi 4.
+
+2. Select the File->Open menu option and open 
+   the file \UNITS\dcoutbar_d4.dpk
+
+3. Click Install.
+
+
+Installation in Delphi 3
+==============================================================
+
+1. Run Delphi 3.
+
+2. Select the File->Open menu option and open 
+   the file \UNITS\dcoutbar_d3.dpk
+
+3. Click Install.
+
+
+Installation in Delphi 2 
+==============================================================
+
+1. Run Delphi 2 and select COMPONENT|INSTALL menu item.
+
+2. Click on the ADD button and add unit \UNITS\dcoutreg.pas
+   to the components library.
+
+3. Click OK in the Install Components dialog box. Library will be 
+   recompiled and our components will appear on palette.
+
+
+Installation in C++Builder 1.0
+==============================================================
+
+1. Download and install all patches for CPB1 from Inprise
+   You can get them at 
+    http://www.inprise.com/devsupport/bcppbuilder/patches.html
+
+2. Run C++Builder 1 and select COMPONENT|INSTALL menu item.
+
+3. Click on the ADD button and add unit \UNITS\dcoutreg.pas
+   to the components library.
+
+4. Click OK in the Install Components dialog box. Library will be 
+   recompiled and our components will appear on palette.
+
+
+Installation in C++ Builder 5
+==============================================================
+
+1. Run C++ Builder 5.
+
+2. Select the File->Open menu option and open
+   the file \UNITS\dcoutbar_c5.bpk
+
+3. Click Install.
+
+
+Installation in C++ Builder 4
+==============================================================
+
+1. Run C++ Builder 4.
+
+2. Select the File->Open menu option and open
+   the file \UNITS\dcoutbar_c4.bpk
+
+3. Click Install.
+
+
+Installation in C++ Builder 3
+==============================================================
+
+1. Download and install all patches for CPB3 from Inprise
+   You can get them at 
+    http://www.inprise.com/devsupport/bcppbuilder/patches.html
+
+2. Run C++Builder.
+
+3. Select the File->Open menu option and open 
+   the file \UNITS\dcoutbar_c3.bpk
+
+   Make the package. 
+
+4. Choose Component|Install Packages. Press Add button. 
+   Select  \UNITS\dcoutbar_c3.bpl.
+

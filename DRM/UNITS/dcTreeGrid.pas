@@ -1,0 +1,4758 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+unit dcTreeGrid;
+
+interface
+{$I dc.inc}
+Uses Messages,Windows,SysUtils,Classes,Controls,Graphics,Forms,{$IFDEF D4}ImgList,{$ENDIF}
+     dcnTree,CommCtrl;
+
+Type
+  TDCGridHitTest=(ghtOnHeader,ghtOnHeaderArea,ghtOnCells,ghtOnCellsArea,ghtOnSizer,ghtMultiple);
+  TDCGridHitTests=Set Of TDCGridHitTest;
+
+  TDCTreeColumn = class;
+  TDCTreeColumns=Class;
+  TDCCustomTreeGrid=Class;
+
+  TDCColumnOption=(coAutoFitCaption,coDisableSizing,coDisableSorting,coDisableEditing,
+                   coDisableMoving,coUseCaptionEllipsis,coUseEllipsis);
+
+  TDCColumnOptions=Set of TDCColumnOption;
+
+  TEditorProps = class(TPersistent)
+  protected
+    FColumn: TDCTreeColumn;
+    procedure UpdateColumn;
+  public
+    constructor Create(AColumn: TDCTreeColumn); virtual;
+    procedure Assign(Source: TPersistent); override;
+  end;
+
+  TEditorPropsClass = class of TEditorProps;
+
+  { TDCTreeColumn }
+
+  TDCTreeColumn=Class(TCollectionItem)
+  Private
+    FAlign:TAlignment;
+    FCaption:String;
+    FCaptionAlign:TAlignment;
+    FCaptionColor:TColor;
+    FCaptionFont:TFont;
+    FColor:TColor;
+    FCreateIndex:Integer;
+    FDisableAutoFitCaption:Boolean;
+    FFont:TFont;
+    FMaxWidth:Integer;
+    FMinWidth:Integer;
+    FImageIndex:Integer;
+    FOptions:TDCColumnOptions;
+    FParentCaptionColor:Boolean;
+    FParentCaptionFont:Boolean;
+    FParentColor:Boolean;
+    FParentFont:Boolean;
+    FVisible:Boolean;
+    FWidth:Integer;
+    FWidthCoef:Double;
+    FWordWrap:Boolean;
+
+    procedure SetEditorProps(Value: TEditorProps);
+    procedure SetEditorClass(const Value: string);
+    procedure EditorPropsChanged(Sender: TObject);
+
+    Procedure AutoFitCaption;
+    Function GetCorrectedWidth(Value:Integer):Integer;
+    Function GetLeft:Integer;
+    Function GetNextVisibleByIndex(Index:Integer):TDCTreeColumn;
+    Function GetPrevVisibleByIndex(Index:Integer):TDCTreeColumn;
+    Function GetTreeColumns:TDCTreeColumns;
+    Function GetTreeView:TDCCustomTreeGrid;
+    Function IsAutoFitCaption:Boolean;
+    Function IsStoreCaptionColor:Boolean;
+    Function IsStoreCaptionFont:Boolean;
+    Function IsStoreColor:Boolean;
+    Function IsStoreFont:Boolean;
+    Function IsStoreWidth:Boolean;
+    Procedure OnCaptionFontChanged(Sender:TObject);
+    Procedure OnFontChanged(Sender:TObject);
+    Procedure ReadCreateIndex(Reader:TReader);
+    Procedure SetAlign(Value:TAlignment);
+    Procedure SetCaption(Const Value:String);
+    Procedure SetCaptionAlign(Value:TAlignment);
+    Procedure SetCaptionColor(Value:TColor);
+    Procedure SetCaptionFont(Value:TFont);
+    Procedure SetColor(Value:TColor);
+    Procedure SetFont(Value:TFont);
+    Procedure SetImageIndex(Value:Integer);
+    Procedure SetMaxWidth(Value:Integer);
+    Procedure SetMinWidth(Value:Integer);
+    Procedure SetOptions(Value:TDCColumnOptions);
+    Procedure SetParentCaptionColor(Value:Boolean);
+    Procedure SetParentCaptionFont(Value:Boolean);
+    Procedure SetParentColor(Value:Boolean);
+    Procedure SetParentFont(Value:Boolean);
+    Procedure SetVisible(Value:Boolean);
+    Procedure SetWidth(Value:Integer);
+    Function SetWidthInternal(Var Value:Integer):Integer;
+    Procedure SetWordWrap(Value:Boolean);
+    Procedure WriteCreateIndex(Writer:TWriter);
+
+    Property Left:Integer read GetLeft;
+    Property TreeColumns:TDCTreeColumns read GetTreeColumns;
+  Protected
+    FEditorClass: string;
+    FEditorProps: TEditorProps;
+
+    Function GetDisplayName:String;override;
+    Procedure InvalidateFrom(AInvalidateFrom:Integer);
+    Procedure OnParentColorChanged(AColor:TColor);
+    Procedure OnParentHeaderColorChanged(AColor:TColor);
+    Procedure OnParentFontChanged(AFont:TFont);
+    Procedure SetWidthSoft(Value:Integer);
+
+    procedure ReCreateEditorProps; virtual;
+
+    Property TreeView:TDCCustomTreeGrid read GetTreeView;
+    Property WidthCoef:Double read FWidthCoef write FWidthCoef;
+  Public
+    Constructor Create(Collection:TCollection);override;
+    Destructor Destroy;override;
+
+    Procedure Assign(Source:TPersistent);override;
+    Procedure DefineProperties(Filer:TFiler);override;
+    Function GetNext:TDCTreeColumn;
+    Function GetNextCycle:TDCTreeColumn;
+    Function GetPrev:TDCTreeColumn;
+    Function GetPrevCycle:TDCTreeColumn;
+
+    Property CreateIndex:Integer read FCreateIndex;
+  Published
+    Property Align:TAlignment read FAlign write SetAlign default taLeftJustify;
+    Property Caption:String read FCaption write SetCaption;
+    Property CaptionAlign:TAlignment read FCaptionAlign write SetCaptionAlign default taLeftJustify;
+    Property CaptionColor:TColor read FCaptionColor write SetCaptionColor stored IsStoreCaptionColor;
+    Property CaptionFont:TFont read FCaptionFont write SetCaptionFont stored IsStoreCaptionFont;
+    Property Color:TColor read FColor write SetColor stored IsStoreColor;
+    Property Font:TFont read FFont write SetFont Stored IsStoreFont;
+    Property ImageIndex:Integer read FImageIndex write SetImageIndex default -1;
+    Property MaxWidth:Integer read FMaxWidth write SetMaxWidth default 0;
+    Property MinWidth:Integer read FMinWidth write SetMinWidth default 0;
+    Property Options:TDCColumnOptions read FOptions write SetOptions default [coUseCaptionEllipsis];
+    Property ParentCaptionColor:Boolean read FParentCaptionColor write SetParentCaptionColor default True;
+    Property ParentCaptionFont:Boolean read FParentCaptionFont write SetParentCaptionFont default True;
+    Property ParentColor:Boolean read FParentColor write SetParentColor default True;
+    Property ParentFont:Boolean read FParentFont write SetParentFont default True;
+    Property Visible:Boolean read FVisible write SetVisible default True;
+    Property Width:Integer read FWidth write SetWidth stored IsStoreWidth;
+    Property WordWrap:Boolean read FWordWrap write SetWordWrap default False;
+
+    property EditorClass : string read FEditorClass write SetEditorClass;
+    property EditorProps : TEditorProps read FEditorProps write SetEditorProps;
+  End;
+
+  TDCTreeColumnClass = class of TDCTreeColumn;
+  { TDCTreeColumns }
+
+  TDCLockedAction=(laCaptionFontChanged,laFontChanged,laWidthChanged);
+
+  TDCLockedActions=Set Of TDCLockedAction;
+
+  TDCTreeColumns=Class(TCollection)
+  Private
+    FHeaderHeight:Integer;
+    FLockedActions:TDCLockedActions;
+    FLockCount:Integer;
+    FOwner:TPersistent;
+    fSelfUpdateCount : integer;
+    fUpdatedByUser : boolean;
+
+    Function GetCreateItems(Index:Integer):TDCTreeColumn;
+    Function GetItems(Index:Integer):TDCTreeColumn;
+    Function GetTreeView:TDCCustomTreeGrid;
+    Function GetWidth:Integer;
+    Function GetWidthFrom(Column:TDCTreeColumn):Integer;
+    Function GetWidthTo(Column:TDCTreeColumn):Integer;
+    Procedure OnColumnCaptionFontChanged(Column:TDCTreeColumn);
+    Procedure OnColumnFontChanged(Column:TDCTreeColumn);
+    Procedure OnColumnWidthChanged(Column:TDCTreeColumn;InvalidateFrom:Integer);
+
+    Property TreeView:TDCCustomTreeGrid read GetTreeView;
+  Protected
+    Procedure ColumnCaptionFontChanged(Column:TDCTreeColumn);
+    Procedure ColumnFontChanged(Column:TDCTreeColumn);
+    Procedure ColumnWidthChanged(Column:TDCTreeColumn;InvalidateFrom:Integer);
+    Function GetOwner:TPersistent;override;
+    Procedure OnParentColorChanged(AColor:TColor);
+    Procedure OnParentFontChanged(AFont:TFont);
+    Procedure OnParentHeaderColorChanged(AColor:TColor);
+
+    procedure BeginSelfUpdates;
+    procedure EndSelfUpdates;
+    procedure Update(Item : TCollectionItem); override;
+
+    Property Width:Integer read GetWidth;
+    Property WidthFrom[Column:TDCTreeColumn]:Integer read GetWidthFrom;
+    Property WidthTo[Column:TDCTreeColumn]:Integer read GetWidthTo;
+    property UpdatedByUser : boolean read fUpdatedByUser;
+  Public
+    Constructor Create(AOwner:TPersistent;ItemClass:TCollectionItemClass);
+
+    Procedure AutoFitCaptions;
+    Function GetFirstVisible:TDCTreeColumn;
+    Procedure Lock;
+    Function Locked:Boolean;
+    Procedure RecalcHeaderHeight;
+    Procedure UnLock;
+
+    Property CreateItems[Index:Integer]:TDCTreeColumn read GetCreateItems;
+    Property HeaderHeight:Integer read FHeaderHeight;
+    Property Items[Index:Integer]:TDCTreeColumn read GetItems;default;
+  End;
+
+  { TDCSortedColumn }
+
+  TDCSortedColumn=Class(TCollectionItem)
+  Private
+    FColumn:TDCTreeColumn;
+    FDescending:Boolean;
+    Function GetTreeView:TDCCustomTreeGrid;
+    Procedure ReadColumn(Reader:TReader);
+    Procedure ReadDescending(Reader:TReader);
+    Procedure SetColumn(Value:TDCTreeColumn);
+    Procedure SetDescending(Value:Boolean);
+    Procedure WriteColumn(Writer:TWriter);
+    Procedure WriteDescending(Writer:TWriter);
+
+    Property TreeView:TDCCustomTreeGrid read GetTreeView;
+  Protected  
+    Procedure DefineProperties(Filer:TFiler);override;
+  Public
+    Destructor Destroy;override;
+
+    Procedure Assign(Source:TPersistent);override;
+
+    Property Column:TDCTreeColumn read FColumn write SetColumn;
+    Property Descending:Boolean read FDescending write SetDescending;
+  End;
+
+  { TDCSortedColumns }
+
+  TDCSortedColumns=Class(TCollection)
+  Private
+    FOwner:TPersistent;
+    Function GetItems(Index:Integer):TDCSortedColumn;
+  Protected
+    Function GetOwner:TPersistent;override;
+  Public
+    Constructor Create(AOwner:TPersistent;ItemClass:TCollectionItemClass);
+
+    Procedure Assign(Source:TPersistent);override;
+    Procedure ClearAll(Exclude:TDCTreeColumn);
+    Function Find(AColumn:TDCTreeColumn):TDCSortedColumn;
+    Function IndexOf(AColumn:TDCTreeColumn):Integer;
+
+    Property Items[Index:Integer]:TDCSortedColumn read GetItems;default;
+  End;
+
+  { TDCTreeGridNode }
+
+  TDCTreeGridNode=Class(TDCTreeNode)
+  Private
+    FColumns:TStrings;
+    Procedure CheckIndex(Index:Integer);
+    Procedure DeleteColumn(Index:Integer);
+    Function GetColumns(Index:Integer):String;
+    Procedure SetColumnCount(Count:Integer);
+    Procedure SetColumns(Index:Integer;Const Value:String);
+    Procedure SetColumnsInternal(Index:Integer;Const Value:String);
+  Protected
+    Function GetIndentInternal:Integer;override;
+    Function GetText:String;override;
+    Procedure ReadCustomData(Stream:TStream);override;
+    Procedure SetTextInternal(Const Value:String);override;
+    Procedure WriteCustomData(Stream:TStream);override;
+  Public
+    Constructor Create(AOwner:TDCTreeNodes);override;
+    Destructor Destroy;override;
+
+    Procedure Assign(Source:TPersistent);override;
+    Function DisplayRect(TextOnly:Boolean):TRect;override;
+
+    Property Columns[Index:Integer]:String read GetColumns write SetColumns;
+  End;
+
+  TDCTreeGridPosInfo=Record
+    Column:TDCTreeColumn;
+    SizeColumn:TDCTreeColumn;
+    HitTests:TDCGridHitTests;
+    PosInfo:TDCPosInfo;
+  End;
+  PDCTreeGridPosInfo=^TDCTreeGridPosInfo;
+
+  TDCTreeGridOption=(tgoAlwaysEdit,tgoAutoFit,tgoFlat,tgoHideHeader,tgoHorzLines,tgoVertLines);
+  TDCTreeGridOptions=Set Of TDCTreeGridOption;
+
+  TDCGridMouseOperation=(gmoNone,gmoSizing,gmoSorting,gmoMoving);
+
+  { TDCCustomTreeGrid }
+
+  TDTGColumnEvent=Procedure(Sender:TObject;Column:TDCTreeColumn) Of Object;
+
+  TDTGChangingEvent=Procedure(Sender:TObject;Column:TDCTreeColumn;
+                              Var AllowChange:Boolean) Of Object;
+
+  TDCCustomTreeGrid=Class(TDCCustomTreeView)
+  Private
+    FArrowDown:TBitmap;
+    FArrowUp:TBitmap;
+    FColumns:TDCTreeColumns;
+    FColumnImages:TCustomImageList;
+    FColumnImagesLink:TChangeLink;
+    FCurrentColumn:TDCTreeColumn;
+    FDrawColumn:TDCTreeColumn;
+    FHeaderColor:TColor;
+    FHotSpot:TPoint;
+    FInAutoFit:Boolean;
+    FMovingColumnIndex:Integer;
+    FMouseClickColumn:TDCTreeColumn;
+    FMouseColumn:TDCTreeColumn;
+    FMouseColumnDown:Boolean;
+    FMouseOperation:TDCGridMouseOperation;
+    FOnCurrentColumnChanged:TDTGColumnEvent;
+    FOnCurrentColumnChanging:TDTGChangingEvent;
+    FOptions:TDCTreeGridOptions;
+    FSizeDelta:Integer;
+    FSizeOldWidth:Integer;
+    FSizeX:Integer;
+    FSortedColumns:TDCSortedColumns;
+    FSortLock:Integer;
+    FTreeColumnIndex:Integer;
+    FVisibleColumnCount:Integer;
+    Function AlwaysEdit:Boolean;
+    Procedure CancelSizing;
+    Procedure CancelSortingMoving;
+    Procedure ColumnImagesChange(Sender:TObject);
+    Function DrawHorzLines:Boolean;
+    Procedure DrawMovingTriangle(X,Y:Integer;Down:Boolean);
+    Procedure DrawTriangle(Const Pt:TPoint;PointSize:Integer;IsAsc:Boolean;BkColor:TColor);
+    Function DrawVertLines:Boolean;
+    Procedure EndSizing;
+    Procedure EndSortingMoving(AddToSortList:Boolean);
+    Function GetBevelHeight:Integer;
+    Function GetBevelWidth:Integer;
+    Function GetColumnRectIn(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+    Function GetColumnRectOut(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+    Function GetCreateColumn(Index:Integer):TDCTreeColumn;
+    Function GetCurrentColumn:TDCTreeColumn;
+    Function GetCurrentColumnText:String;
+    Function GetDrawColor(Node:TDCTreeNode;ActiveColor,InactiveColor,DefaultColor:TColor):TColor;
+    Function GetInvertCoef(StartIndex,StopIndex:Integer):Double;
+    Function GetListInvertCoef(AColumns:TList):Double;
+    Function GetMaxWidthDelta(Column:TDCTreeColumn):Integer;
+    Function GetMinWidthDelta(Column:TDCTreeColumn):Integer;
+    Function GetMovingColumnIndex(X,Y:Integer):Integer;
+    Function GetTreeColumn:TDCTreeColumn;
+    Function GetTreeColumnLeft:Integer;
+    Function GetTreeColumnRight:Integer;
+    Function InflateByLines(Const ARect:TRect):TRect;
+    Procedure InvalidateColumn(Column:TDCTreeColumn);
+    Procedure InvalidateHeader;
+    Procedure InvalidateHeaderColumn(Column:TDCTreeColumn);
+    Procedure InvalidateHorzLines(Node:TDCTreeNode);
+    Procedure InvalidateNodeColumn(Node:TDCTreeGridNode;AColumn:TDCTreeColumn);
+    Procedure InvalidateToRight(ALeft:Integer);
+    Function IsDrawColumnImage(Column:TDCTreeColumn):Boolean;
+    Function IsEditorAlwaysEdit:Boolean;
+    Function IsGridRowSelect:Boolean;
+    Function IsTreeViewColumn(Column:TDCTreeColumn):Boolean;
+    Procedure MovingProcess(X,Y:Integer);
+    Procedure MovingStart(X,Y:Integer);
+    Function OnSizer(PosInfo:TDCTreeGridPosInfo):Boolean;
+    Procedure RecalcTreeColumnIndex;
+    Procedure SetColumns(Value:TDCTreeColumns);
+    Procedure SetColumnImages(Value:TCustomImageList);
+    Procedure SetCurrentColumn(Value:TDCTreeColumn);
+    Procedure SetCurrentColumnText(Const Value:String);
+    Procedure SetHeaderColor(Value:TColor);
+    Procedure SetMovingColumnIndex(Value:Integer);
+    Procedure SetMouseColumnDown(Value:Boolean);
+    Procedure SetOptions(Value:TDCTreeGridOptions);
+    Procedure SetSortedColumns(Value:TDCSortedColumns);
+    Procedure SetWidthCoefs;
+    Procedure ShrinkCoef(StartIndex,StopIndex:Integer;Coef:Double);
+    Procedure UpdateDragCursor(X,Y:Integer);
+
+    Property MovingColumnIndex:Integer read FMovingColumnIndex write SetMovingColumnIndex;
+    Property MouseColumnDown:Boolean read FMouseColumnDown write SetMouseColumnDown;
+  Protected
+    Procedure AfterScrollUpdate;override;
+    Function AllowDrawFocusRect(Node:TDCTreeNode):Boolean;override;
+    Function AllowDrawText(Node:TDCTreeNode):Boolean;override;
+    Function AllowShowToolTip:Boolean;override;
+    Procedure BeforeScrollUpdate;override;
+    Function CanEdit(Node:TDCTreeNode):Boolean;override;
+    Procedure ColumnAfterHide(Column:TDCTreeColumn);
+    Procedure ColumnAfterShow(Column:TDCTreeColumn);
+    Procedure ColumnBeforeDeleted(Column:TDCTreeColumn);
+    Procedure ColumnBeforeHide(Column:TDCTreeColumn);
+    Procedure ColumnBeforeShow(Column:TDCTreeColumn);
+    Procedure ColumnCreated(Column:TDCTreeColumn); virtual;
+    Procedure ColumnDeleted(Column:TDCTreeColumn); virtual;
+    Function CompareNodes(Node1,Node2:TDCTreeGridNode;ColumnIndex:Integer):Integer;virtual;
+    Procedure CurrentColumnChanged(Column:TDCTreeColumn);virtual;
+    Function CurrentColumnChanging(Column:TDCTreeColumn):Boolean;virtual;
+    Procedure DoAutoFit(AWidth:Integer;AColumn:TDCTreeColumn);
+    Procedure DoCancelMode;override;
+    Function DoCompare(Node1,Node2:TDCTreeNode):Integer;override;
+    Procedure DoCollapsed(Node:TDCTreeNode);override;
+    Procedure DoExpanded(Node:TDCTreeNode);override;
+    Procedure DrawColumn(AColumn:TDCTreeColumn;Const ARect:TRect;Node:TDCTreeGridNode);
+    Procedure DrawColumns(Const ARect:TRect;Node:TDCTreeNode);
+    Procedure DrawHeader(Const ARect:TRect);virtual;
+    Procedure DrawHeaderColumn(Column:TDCTreeColumn;Const ARect:TRect);virtual;
+    Procedure DrawHeaderColumnEx(Column:TDCTreeColumn;Const ARect:TRect;DrawDown:Boolean);
+    Procedure DrawNode(Node:TDCTreeNode;const ARect:TRect);override;
+    Procedure DrawNodeButton(Node:TDCTreeNode;Const ARect:TRect);override;
+    Procedure DrawNodeLineSection(Node,SourceNode:TDCTreeNode;const ARect:TRect);override;
+    Procedure DrawTreeView(Const ARect:TRect);override;
+    Procedure Edit(Node:TDCTreeNode;Var NewText:String);override;
+    Function GetAnotherHitTest(Pt:TPoint;Const DispInfo:TDCNodeDispInfo):TDCHitTests;override;
+    Function GetCurrentColumnCreateIndex:Integer;
+    Function GetCurrentColumnIndex:Integer;
+    Function GetDefaultNodeBrushColor(Node:TDCTreeNode):TColor;override;
+    Function GetDrawRect:TRect;override;
+    Function GetEditorClass(Node:TDCTreeNode;AColumn:Integer):TControlClass;override;
+    procedure SetEditorData(AData : TPersistent);
+    Function GetHeaderColumnRect(Column:TDCTreeColumn):TRect;
+    Function GetHeaderColumnVisibleRect(Column:TDCTreeColumn):TRect;
+    Function GetHeaderHeight:Integer;virtual;
+    Function GetHitTestRect:TRect;override;
+    Function GetLineColor:TColor;virtual;
+    Function GetLineHeight:Integer;virtual;
+    Function GetLineWidth:Integer;virtual;
+    Function GetMaxWidth:Integer;override;
+    Function GetNodeBackgroundColor(Node:TDCTreeNode):TColor;override;
+    Function GetNodeBrushColor(Node:TDCTreeNode;Default:TColor):TColor;override;
+    Function GetNodeColumnBrush(Node:TDCTreeNode;Column:TDCTreeColumn):TColor;
+    Function GetNodeColumnFont(Node:TDCTreeNode;Column:TDCTreeColumn):TFont;
+    Function GetNodeColumnHeight(Node:TDCTreeNode;Column:TDCTreeColumn):Integer;
+    Function GetNodeEditor(Node:TDCTreeNode):TControl;override;
+    Function GetNodeFontColor(Node:TDCTreeNode;Default:TColor):TColor;override;
+    Function GetNodeFocusRect(Node:TDCTreeNode):TRect;override;
+    Function GetNodeWordWrapRect(Node:TDCTreeNode;AColumn:Integer):TWordWrapSize;override;
+    Function GetPageSize:TSize;override;
+    Function GetPrintWidth:Integer;override;
+    Function GetScrollRect(DeltaX,DeltaY:Integer):TRect;override;
+    Function GetTextForEditor(Node:TDCTreeNode):String;override;
+    Procedure KeyDown(Var Key:Word;Shift:TShiftState);override;
+    Procedure InternalDrawNode(Node:TDCTreeNode;Const DispInfo:TDCNodeDispInfo;
+                               Const ARect:TRect);override;
+    Function IsColumnWordWrap(AColumn:Integer):Boolean;override;
+    Function IsGridMode:Boolean;
+    Function IsOnItem(X,Y:Integer):Boolean;override;
+    Function IsDownAndUpEquAL(X,Y:Integer):Boolean;override;
+    Function IsRowSelect:Boolean;override;
+    Function IsSameAsPrev:Boolean;override;
+    Function IsSortLocked:Boolean;
+    Procedure MakeEditNodeVisible(Node:TDCTreeNode);override;
+    Procedure MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:Integer);override;
+    Procedure MouseMove(Shift:TShiftState;X,Y:Integer);override;
+    Procedure MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:Integer);override;
+    Procedure MultiSelectChanged;override;
+    Function NodeHeight(Node:TDCTreeNode; AColumn : integer):Integer;override;
+    Procedure NodeSelectionChanged(Node:TDCTreeNode);override;
+    Procedure Notification(Component:TComponent;Operation:TOperation);override;
+    Procedure OnColorChanged;override;
+    Procedure OnEscapeKey;override;
+    Procedure OnFontChanged;override;
+    Procedure ProcessScrollTimer;override;
+    Procedure SetEditorRectAndText(Node:TDCTreeNode);override;
+    Procedure TryEditNode;override;
+    Function UpdateCursorAt(X,Y:Integer):Boolean;override;
+    Procedure WMChar(Var Message:TWMChar);message WM_CHAR;
+    Procedure WMKillFocus(Var Message:TMessage);message WM_KILLFOCUS;
+    Procedure WMLButtonDblClk(Var Message:TMessage);message WM_LBUTTONDBLCLK;
+    Procedure WMLButtonDown(Var Message:TWMLButtonDown);message WM_LBUTTONDOWN;
+    Procedure WMSetFocus(Var Message:TMessage);message WM_SETFOCUS;
+    Procedure WMWindowPosChanged(Var Message:TWMWindowPosMsg);message WM_WINDOWPOSCHANGED;
+    function GetTreeColumnClass: TDCTreeColumnClass; virtual;
+
+    Property Columns:TDCTreeColumns read FColumns write SetColumns;
+    Property ColumnImages:TCustomImageList read FColumnImages write SetColumnImages;
+    Property CreateColumn[Index:Integer]:TDCTreeColumn read GetCreateColumn;
+    Property CurrentColumn:TDCTreeColumn read GetCurrentColumn write SetCurrentColumn;
+    Property CurrentColumnCreateIndex:Integer read GetCurrentColumnCreateIndex;
+    Property CurrentColumnIndex:Integer read GetCurrentColumnIndex;
+    Property CurrentColumnText:String read GetCurrentColumnText write SetCurrentColumnText;
+    Property HeaderColor:TColor read FHeaderColor write SetHeaderColor default clBtnFace;
+    Property OnCurrentColumnChanged:TDTGColumnEvent read FOnCurrentColumnChanged write FOnCurrentColumnChanged;
+    Property OnCurrentColumnChanging:TDTGChangingEvent read FOnCurrentColumnChanging write FOnCurrentColumnChanging;
+    Property Options:TDCTreeGridOptions read FOptions write SetOptions default [];
+    Property SortedColumns:TDCSortedColumns read FSortedColumns write SetSortedColumns;
+
+  Public
+    Constructor Create(AOwner:TComponent);override;
+    Destructor Destroy;override;
+
+    Function GetColumnTextRect(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+    Function GetGridHitTest(X,Y:Integer):TDCTreeGridPosInfo;
+    Function IsSorted:Boolean;override;
+    Procedure LockSort;
+    Procedure MakeColumnVisible(Column:TDCTreeColumn;PartialOk:Boolean);
+    Procedure UnLockSort;
+
+    property CurrentDrawColumn : TDCTreeColumn read fDrawColumn;
+  End;
+
+  TDCTreeGrid=Class(TDCCustomTreeGrid)
+  Public
+    Property CurrentColumn;
+    Property CurrentColumnCreateIndex;
+    Property CurrentColumnText;
+    Property DefaultNodeClass;
+    Property TopItem;
+  Published
+    Property ActiveSelectedColor;
+    Property ActiveSelectedFontColor;
+    Property AllowMultiDrag;
+    Property AutoCheck;
+    Property AutoExpand;
+    Property AutoScroll;
+    Property BorderStyle;
+    Property ChangeDelay;
+    Property CheckBoxesType;
+    Property Columns;
+    Property ColumnImages;
+    Property DragButtons;
+    Property DragExpandDelay;
+    Property DropTargetKind;
+    Property ExpandOnDrag;
+    Property FlatBorder;
+    Property FlatChecks;
+    Property HideSelection;
+    Property HeaderColor;
+    Property HotTrack;
+    Property InactiveSelectedColor;
+    Property InactiveSelectedFontColor;
+    Property Indent;
+    Property Items;
+    Property Images;
+    Property LinesColor;
+    Property MultiLineNodes;
+    Property MultiSelect;
+    Property OnChanging;
+    Property OnChange;
+    Property OnCheckClick;
+    Property OnCollapsing;
+    Property OnCollapsed;
+    Property OnCompare;
+    Property OnCurrentColumnChanged;
+    Property OnCurrentColumnChanging;
+    Property OnDeletion;
+    Property OnEditing;
+    Property OnEdited;
+    Property OnExpanding;
+    Property OnExpanded;
+    Property OnGetEditorClass;
+    Property OnGetImageIndex;
+    Property OnGetSelectedIndex;
+    Property OnGetToolTipInfo;
+    Property OnRightClickNode;
+    Property OnStateChanged;
+    Property OnStateChanging;
+    Property OnSelectionChanged;
+    Property Options;
+    Property PrintOptions;
+    Property ReadOnly;
+    Property RightClickSelect;
+    Property RowSelect;
+    Property RowSelectType;
+    {$IFDEF D4}
+    Property ScrollBarsStyle;
+    {$ENDIF}
+    Property SelectOnlySiblings;
+    Property ShowButtons;
+    Property ShowLines;
+    Property ShowRoot;
+    Property SortedColumns;
+    Property StateImages;
+    Property ToolTips;
+    Property OnValidateEditText;
+    property OnAssignEditorProps;
+
+    property Align;
+    property Enabled;
+    property Font;
+    property Color;
+    property Ctl3D;
+    Property DragCursor;
+    Property DragMode;
+    property ParentColor default False;
+    property ParentCtl3D;
+    property TabOrder;
+    property TabStop;
+    property Visible;
+    property OnClick;
+    property OnEnter;
+    property OnExit;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnStartDrag;
+    property OnEndDrag;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnDblClick;
+    property OnKeyDown;
+    property OnKeyPress;
+    property OnKeyUp;
+    property PopupMenu;
+    property ParentFont;
+    property ParentShowHint;
+    property ShowHint;
+    {$IFDEF D4}
+    property Anchors;
+    property BiDiMode;
+    property BorderWidth;
+    property Constraints;
+    property DragKind;
+    property ParentBiDiMode;
+    property OnEndDock;
+    property OnStartDock;
+    {$ENDIF}
+    {$IFDEF D5}
+    Property OnContextPopup;
+    {$ENDIF}
+  End;
+
+  TDCTreeGridSimpleEditor=Class(TDCCustomTreeSimpleEditor);
+
+  TDCTreeGridMemoEditor=Class(TDCCustomTreeMemoEditor);
+
+const
+  ColumnTextSpaceLeft=1;
+  ColumnTextSpaceTop=0;
+  ColumnTextSpaceRight=1;
+  ColumnTextSpaceBottom=0;
+
+implementation
+
+uses dcTreeGridEditorsReg;
+
+{$R dcTreeGrid.res}
+
+Const
+  HeaderBevelTop=2;
+  HeaderBevelRight=2;
+  HeaderBevelBottom=2;
+
+  ImageListSpaceLeft=1;
+  ImageListSpaceTop=1;
+  ImageListSpaceRight=1;
+  ImageListSpaceBottom=1;
+
+  SizeAreaWidth=5;
+
+  crSizeColumn=105;
+  crSizeColumns=106;
+
+  TriangleWidth=10;
+  TriangleHeight=7;
+
+  SErrInvalidColumn='Invalid column';
+  SErrColumnAlreadyAdded='Column already added';
+
+Type
+  TPublicControl=Class(TControl);
+  
+Function GetTrianglePointSize(Height:Integer):Integer;
+Begin
+  Result:=(Height-1)*2 Div 21;
+End;
+
+Procedure ShrinkRectInRect(Var InRect:TRect;Const OutRect:TRect);
+Begin
+  If InRect.Left<=OutRect.Left Then
+    InRect.Left:=OutRect.Left+1;
+  If InRect.Top<=OutRect.Top Then
+    InRect.Top:=OutRect.Top+1;
+  If InRect.Right>=OutRect.Right Then
+    InRect.Right:=OutRect.Right-1;
+  If InRect.Bottom>=OutRect.Bottom Then
+    InRect.Bottom:=OutRect.Bottom-1;
+End;
+
+{ TDCTreeColumn }
+
+Constructor TDCTreeColumn.Create(Collection:TCollection);
+Begin
+  Inherited;
+  FVisible:=True;
+  FWidth:=100;
+  FWidthCoef:=1;
+  FCaptionFont:=TFont.Create;
+  FCaptionFont.OnChange:=OnCaptionFontChanged;
+  FOptions:=[coUseCaptionEllipsis];
+  FImageIndex:=-1;
+  FFont:=TFont.Create;
+  If Index=0 Then
+    FFont.Assign(TreeView.Font);
+  FFont.OnChange:=OnFontChanged;
+  TreeView.ColumnCreated(Self);
+
+  //CaptionFont
+  OnCaptionFontChanged(Nil);//to force call RecalcHeaderHeight
+  ParentCaptionFont:=True;
+
+  //Font
+  OnFontChanged(Nil);//to force recalc all tree
+  ParentFont:=True;
+
+  //CaptionColor
+  ParentCaptionColor:=True;
+
+  //Color
+  ParentColor:=True;
+
+  FEditorProps := nil;
+  ReCreateEditorProps;
+End;
+
+{---------------------------------------------------------}
+
+Destructor TDCTreeColumn.Destroy;
+Var
+  ATreeView:TDCCustomTreeGrid;
+Begin
+  FEditorProps.Free;
+
+  ATreeView:=TreeView;
+  ATreeView.ColumnBeforeDeleted(Self);
+  FFont.Free;
+  FFont:=Nil;
+  FCaptionFont.Free;
+  FCaptionFont:=Nil;
+  Inherited;
+  With ATreeView Do
+  Begin
+    If HandleAllocated Then
+      Columns.RecalcHeaderHeight;
+    ColumnDeleted(Self);
+  End;  
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.Assign(Source:TPersistent);
+Begin
+  If Source Is TDCTreeColumn Then
+    With TDCTreeColumn(Source) Do
+    Begin
+      Self.Align:=Align;
+      Self.Caption:=Caption;
+      Self.CaptionAlign:=CaptionAlign;
+      Self.CaptionColor:=CaptionColor;
+      Self.CaptionFont:=CaptionFont;
+      Self.Color:=Color;
+      Self.Font:=Font;
+      Self.ImageIndex:=ImageIndex;
+      Self.FMaxWidth:=MaxWidth;
+      Self.FMinWidth:=MinWidth;
+      Self.Options:=Options;
+      Self.Visible:=Visible;
+      Self.Width:=Width;
+      Self.ParentCaptionColor:=ParentCaptionColor;
+      Self.ParentCaptionFont:=ParentCaptionFont;
+      Self.ParentColor:=ParentColor;
+      Self.ParentFont:=ParentFont;
+      Self.FCreateIndex:=FCreateIndex;
+
+      Self.FEditorClass := FEditorClass;
+      Self.ReCreateEditorProps;
+      Self.FEditorProps.Assign(FEditorProps);
+    End
+    Else
+      Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.AutoFitCaption;
+Var
+  AWidth:Integer;
+Begin
+  If Not IsAutoFitCaption Then
+    Exit;
+  TreeView.Canvas.Font:=CaptionFont;
+  AWidth:=GetRealTextWidth(TreeView.Canvas,Caption)+(ColumnTextSpaceLeft+ColumnTextSpaceRight)+TreeView.GetBevelWidth;
+  With TDCCustomTreeGrid(TreeView) Do
+    If IsDrawColumnImage(Self) Then
+      Inc(AWidth,ImageListSpaceLeft+TImageList(ColumnImages).Width);
+  Width:=AWidth;
+  FDisableAutoFitCaption:=False;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.DefineProperties(Filer:TFiler);
+Begin
+  Filer.DefineProperty('CreateIndex',ReadCreateIndex,WriteCreateIndex,True);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetCorrectedWidth(Value:Integer):Integer;
+Begin
+  Result:=Value;
+  If Result<FMinWidth Then
+    Result:=FMinWidth
+  Else
+    If (FMaxWidth>0) And (Result>FMaxWidth) Then
+      Result:=FMaxWidth;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetDisplayName:String;
+Begin
+  If FCaption<>'' Then
+    Result:=FCaption
+  Else
+    Result:=Inherited GetDisplayName;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetLeft:Integer;
+Var
+  Column:TDCTreeColumn;
+  I:Integer;
+Begin
+  Result:=-TreeView.FOffsetX;
+  For I:=0 To Collection.Count-1 Do
+  Begin
+    Column:=TDCTreeColumn(Collection.Items[I]);
+    If Column=Self Then
+      Exit;
+    If Column.Visible Then
+      Inc(Result,Column.Width);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetNext:TDCTreeColumn;
+Begin
+  Result:=GetNextVisibleByIndex(Index+1);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetNextCycle:TDCTreeColumn;
+Begin
+  Result:=GetNext;
+  If Result=Nil Then
+    Result:=GetNextVisibleByIndex(0);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetNextVisibleByIndex(Index:Integer):TDCTreeColumn;
+Var
+  Count:Integer;
+Begin
+  Count:=Collection.Count;
+  Repeat
+    If Index=Count Then
+    Begin
+      Result:=Nil;
+      Exit;
+    End;
+    Result:=TDCTreeColumn(Collection.Items[Index]);
+    If Result=Nil Then
+      Exit;
+    Inc(Index);
+  Until Result.Visible;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetPrev:TDCTreeColumn;
+Begin
+  Result:=GetPrevVisibleByIndex(Index-1);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetPrevCycle:TDCTreeColumn;
+Begin
+  Result:=GetPrev;
+  If Result=Nil Then
+    Result:=GetPrevVisibleByIndex(Collection.Count-1);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetPrevVisibleByIndex(Index:Integer):TDCTreeColumn;
+Begin
+  Repeat
+    If Index<0 Then
+    Begin
+      Result:=Nil;
+      Exit;
+    End;
+    Result:=TDCTreeColumn(Collection.Items[Index]);
+    If Result=Nil Then
+      Exit;
+    Dec(Index);
+  Until Result.Visible;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetTreeColumns:TDCTreeColumns;
+Begin
+  Result:=TDCTreeColumns(Collection);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.GetTreeView:TDCCustomTreeGrid;
+Begin
+  Result:=TreeColumns.TreeView;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.InvalidateFrom(AInvalidateFrom:Integer);
+Begin
+  With TreeView Do
+  Begin
+    InvalidateHeaderColumn(Self);
+    If IsTreeViewColumn(Self) Then
+      InvalidateToRight(AInvalidateFrom)
+    Else
+      InvalidateToRight(Self.Left);
+  End;    
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsAutoFitCaption:Boolean;
+Begin
+  Result:=Not FDisableAutoFitCaption And (coAutoFitCaption In Options);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsStoreCaptionColor:Boolean;
+Begin
+  Result:=Not FParentCaptionColor;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsStoreCaptionFont:Boolean;
+Begin
+  Result:=Not FParentCaptionFont;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsStoreColor:Boolean;
+Begin
+  Result:=Not FParentColor;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsStoreFont:Boolean;
+Begin
+  Result:=Not FParentFont;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.IsStoreWidth:Boolean;
+Begin
+  Result:=Not IsAutoFitCaption;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.OnCaptionFontChanged(Sender:TObject);
+Begin
+  FParentCaptionFont:=False;
+  TreeColumns.ColumnCaptionFontChanged(Self);
+  AutoFitCaption;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.OnFontChanged;
+Begin
+  If Index>0 Then
+    FParentFont:=False;
+  TreeColumns.ColumnFontChanged(Self);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.OnParentColorChanged(AColor:TColor);
+Begin
+  If ParentColor Then
+  Begin
+    Color:=AColor;
+    FParentColor:=True;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.OnParentHeaderColorChanged(AColor:TColor);
+Begin
+  If ParentCaptionColor Then
+  Begin
+    CaptionColor:=AColor;
+    FParentCaptionColor:=True;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.OnParentFontChanged(AFont:TFont);
+Begin
+  If ParentCaptionFont Then
+  Begin
+    CaptionFont:=AFont;
+    FParentCaptionFont:=True;
+  End;
+  If ParentFont Then
+  Begin
+    Font:=AFont;
+    FParentFont:=True;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.ReadCreateIndex(Reader:TReader);
+Begin
+  FCreateIndex:=Reader.ReadInteger;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetAlign(Value:TAlignment);
+Begin
+  If FAlign=Value Then
+    Exit;
+  FAlign:=Value;
+  TreeView.InvalidateToRight(Left);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetCaption(Const Value:String);
+Begin
+  If FCaption=Value Then
+    Exit;
+  FCaption:=Value;
+  TreeView.InvalidateHeaderColumn(Self);
+  AutoFitCaption;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetCaptionAlign(Value:TAlignment);
+Begin
+  If FCaptionAlign=Value Then
+    Exit;
+  FCaptionAlign:=Value;
+  With TreeView Do
+    InvalidateHeaderColumn(Self);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetCaptionColor(Value:TColor);
+Begin
+  If FCaptionColor=Value Then
+    Exit;
+  FCaptionColor:=Value;
+  FParentCaptionColor:=False;
+  TreeView.InvalidateHeaderColumn(Self);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetCaptionFont(Value:TFont);
+Begin
+  FCaptionFont.Assign(Value);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetColor(Value:TColor);
+Begin
+  If FColor=Value Then
+    Exit;
+  FColor:=Value;
+  FParentColor:=False;
+  TreeView.InvalidateColumn(Self);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetFont(Value:TFont);
+Begin
+  FFont.Assign(Value);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetImageIndex(Value:Integer);
+Begin
+  If FImageIndex=Value Then
+    Exit;
+  FImageIndex:=Value;
+  TreeView.InvalidateHeaderColumn(Self);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetMaxWidth(Value:Integer);
+Begin
+  If FMaxWidth=Value Then
+    Exit;
+  If (Value<FMinWidth) And (Value<>0) Then
+    InvalidOperation(SErrInvalidValue);
+  FMaxWidth:=Value;
+  If (Width>Value) And (Value>0) Then
+    Width:=Value;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetMinWidth(Value:Integer);
+Begin
+  If FMinWidth=Value Then
+    Exit;
+  If ((Value>FMaxWidth) And (FMaxWidth>0)) Or (Value<0) Then
+    InvalidOperation(SErrInvalidValue);
+  FMinWidth:=Value;
+  If Width<Value Then
+    Width:=Value;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetOptions(Value:TDCColumnOptions);
+Var
+  AddedOptions:TDCColumnOptions;
+  ChangedOptions:TDCColumnOptions;
+Begin
+  If FOptions=Value Then
+    Exit;
+  AddedOptions:=Value-FOptions;
+  ChangedOptions:=(FOptions-Value)+AddedOptions;
+  FOptions:=Value;
+  If coAutoFitCaption In AddedOptions Then
+  Begin
+    FDisableAutoFitCaption:=False;
+    AutoFitCaption;
+  End;
+  If [coUseCaptionEllipsis]*ChangedOptions<>[] Then
+    TreeView.InvalidateHeaderColumn(Self);
+  If coUseEllipsis In Options Then
+    With TreeView Do
+      InvalidateRect(Bounds(Self.Left,GetHeaderHeight,Self.Width,ClientHeight-GetHeaderheight));
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetParentCaptionColor(Value:Boolean);
+Begin
+  If FParentCaptionColor=Value Then
+    Exit;
+  If Value Then
+    CaptionColor:=TreeView.HeaderColor;
+  FParentCaptionColor:=Value;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetParentCaptionFont(Value:Boolean);
+Begin
+  If FParentCaptionFont=Value Then
+    Exit;
+  If Value Then
+    FCaptionFont.Assign(TreeView.Font);
+  FParentCaptionFont:=Value;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetParentColor(Value:Boolean);
+Begin
+  If FParentColor=Value Then
+    Exit;
+  If Value Then
+    Color:=TreeView.Color;
+  FParentColor:=Value;    
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetParentFont(Value:Boolean);
+Begin
+  If FParentFont=Value Then
+    Exit;
+  If Value Then
+    FFont.Assign(TreeView.Font);
+  If Value Or (Index>0) Then
+    FParentFont:=Value;
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetVisible(Value:Boolean);
+Begin
+  If FVisible=Value Then
+    Exit;
+  If Value Then
+    TreeView.ColumnBeforeShow(Self)
+  Else
+    TreeView.ColumnBeforeHide(Self);
+  FVisible:=Value;
+  TreeColumns.RecalcHeaderHeight;
+  TreeView.ResetCache;
+  TDCCustomTreeGrid(TreeView).RecalcTreeColumnIndex;
+  If Value Then
+    TreeView.ColumnAfterShow(Self)
+  Else
+    TreeView.ColumnAfterHide(Self);
+  TreeView.InvalidateToRight(Left);
+  TreeView.UpdateScroll(True,True);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetWidth(Value:Integer);
+Var
+  Next:TDCTreeColumn;
+  InvalidateLeft:Integer;
+  NewWidthCoef:Double;
+  StartIndex:Integer;
+  StopIndex:Integer;
+  MaxWidthDelta:Integer;
+  MinWidthDelta:Integer;
+Begin
+  If FWidth=Value Then
+    Exit;
+  MaxWidthDelta:=TreeView.GetMaxWidthDelta(Self);
+  MinWidthDelta:=TreeView.GetMinWidthDelta(Self);
+  If (FWidth-Value)>MaxWidthDelta Then
+    Value:=FWidth-MaxWidthDelta;
+  If (Value-FWidth)>MinWidthDelta Then
+    Value:=FWidth+MinWidthDelta;
+  Value:=GetCorrectedWidth(Value);
+  If FWidth=Value Then
+    Exit;  
+  InvalidateLeft:=SetWidthInternal(Value);
+  FDisableAutoFitCaption:=True;
+  With TreeView Do
+    If tgoAutoFit In Options Then
+    Begin
+      NewWidthCoef:=Self.Width/ClientWidth;
+      StartIndex:=Index+1;
+      StopIndex:=Collection.Count-1;
+      If StartIndex=Collection.Count Then
+      Begin
+        StartIndex:=0;
+        Dec(StopIndex);
+      End;
+      TreeView.ShrinkCoef(StartIndex,StopIndex,(FWidthCoef-NewWidthCoef));
+      FWidthCoef:=NewWidthCoef;
+      Next:=GetNext;
+      If Not TreeColumns.Locked Then
+        InvalidateFrom(InvalidateLeft);
+      If tgoAutoFit In Options Then
+        DoAutoFit(ClientWidth-TreeColumns.WidthTo[Next],Next)
+      Else
+        If IsWordWrap Then
+          WordWrapTree;
+   End
+    Else
+      TreeColumns.ColumnWidthChanged(Self,InvalidateLeft);
+  Changed(False);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetWidthSoft(Value:Integer);
+Begin
+  Value:=GetCorrectedWidth(Value);
+  If FWidth=Value Then
+    Exit;
+  InvalidateFrom(SetWidthInternal(Value));
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumn.SetWidthInternal(Var Value:Integer):Integer;
+Begin
+  If Value<FWidth Then
+    Result:=Value
+  Else
+    Result:=FWidth;
+  Inc(Result,Left-(HeaderBevelRight+ColumnTextSpaceRight+FocusSpace));
+  FWidth:=Value;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.SetWordWrap(Value:Boolean);
+Begin
+  If FWordWrap=Value Then
+    Exit;
+  FWordWrap:=True;
+  If Not TreeView.WordWrap Then
+    TreeView.WordWrap:=True
+  Else
+    TreeView.WordWrapTree;    
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumn.WriteCreateIndex(Writer:TWriter);
+Begin
+  Writer.WriteInteger(FCreateIndex);
+End;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumn.EditorPropsChanged(Sender: TObject);
+begin
+  Changed(false);
+  TreeView.Perform(CM_FONTCHANGED, 0, 0);
+  TreeView.Invalidate;
+end;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumn.SetEditorClass(const Value: string);
+begin
+  if Value <> FEditorClass then
+    begin
+      FEditorClass := Value;
+      ReCreateEditorProps;
+      EditorPropsChanged(nil);
+      Changed(false);
+    end;
+end;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumn.SetEditorProps(Value: TEditorProps);
+begin
+  FEditorProps.Assign(Value);
+end;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumn.ReCreateEditorProps;
+var
+  ps: TEditorPropsClass;
+begin
+  FEditorProps.Free;
+  ps := GetEditorPropsClass(FEditorClass);
+  FEditorProps := ps.Create(Self);
+end;
+
+{ TDCTreeColumns }
+
+Constructor TDCTreeColumns.Create(AOwner:TPersistent;ItemClass:TCollectionItemClass);
+Begin
+  Inherited Create(ItemClass);
+  FOwner:=AOwner;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.AutoFitCaptions;
+Var
+  I:Integer;
+Begin
+  If TreeView.HandleAllocated Then
+    For I:=0 To Count-1 Do
+      Items[I].AutoFitCaption;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.ColumnCaptionFontChanged(Column:TDCTreeColumn);
+Begin
+  If Locked Then
+    Include(FLockedActions,laCaptionFontChanged)
+  Else
+    OnColumnCaptionFontChanged(Column);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.ColumnFontChanged(Column:TDCTreeColumn);
+Begin
+  If Locked Then
+    Include(FLockedActions,laFontChanged)
+  Else
+    OnColumnFontChanged(Column);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.ColumnWidthChanged(Column:TDCTreeColumn;InvalidateFrom:Integer);
+Begin
+  If Locked Then
+    Include(FLockedActions,laWidthChanged)
+  Else
+    OnColumnWidthChanged(Column,InvalidateFrom);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetCreateItems(Index:Integer):TDCTreeColumn;
+Var
+  I:Integer;
+Begin
+  For I:=0 To Count Do
+  Begin
+    Result:=Items[I];
+    If Result.CreateIndex=Index Then
+      Exit;
+  End;
+  Result:=Nil;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetFirstVisible:TDCTreeColumn;
+Var
+  I:Integer;
+Begin
+  For I:=0 To Count-1 Do
+  Begin
+    Result:=Items[I];
+    If Result.Visible Then
+      Exit;
+  End;
+  Result:=Nil;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetItems(Index:Integer):TDCTreeColumn;
+Begin
+  Result:=TDCTreeColumn(Inherited Items[Index]);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetOwner:TPersistent;
+Begin
+  Result:=FOwner;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetTreeView:TDCCustomTreeGrid;
+Begin
+  Result:=TDCCustomTreeGrid(FOwner);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetWidth:Integer;
+Var
+  I:Integer;
+  Item:TDCTreeColumn;
+Begin
+  Result:=0;
+  For I:=0 To Count-1 Do
+  Begin
+    Item:=Items[I];
+    If Item.Visible Then
+      Inc(Result,Item.Width);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetWidthFrom(Column:TDCTreeColumn):Integer;
+Var
+  I:Integer;
+  Item:TDCTreeColumn;
+  Index:Integer;
+Begin
+  Result:=0;
+  If Column=Nil Then
+    Index:=0
+  Else
+    Index:=Column.Index;
+  For I:=Index To Count-1 Do
+  Begin
+    Item:=Items[I];
+    If Item.Visible Then
+      Inc(Result,Item.Width);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.GetWidthTo(Column:TDCTreeColumn):Integer;
+Var
+  I:Integer;
+  Item:TDCTreeColumn;
+Begin
+  Result:=0;
+  If Column=Nil Then
+    Exit;
+  For I:=0 To Column.Index-1 Do
+  Begin
+    Item:=Items[I];
+    If Item.Visible Then
+      Inc(Result,Item.Width);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.Lock;
+Begin
+  Inc(FLockCount);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeColumns.Locked:Boolean;
+Begin
+  Result:=FLockCount>0;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnColumnCaptionFontChanged(Column:TDCTreeColumn);
+Begin
+  RecalcHeaderHeight;
+  If Column=Nil Then
+    TreeView.InvalidateHeader
+  Else
+    TreeView.InvalidateHeaderColumn(Column);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnColumnFontChanged(Column:TDCTreeColumn);
+Begin
+  If (Column<>Nil) And (Column.Index=0) Then
+    TreeView.Font:=Column.Font
+  Else
+    With TreeView Do
+    Begin
+      ResetCache;
+      Invalidate;
+      UpdateScroll(True,True);
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnColumnWidthChanged(Column:TDCTreeColumn;InvalidateFrom:Integer);
+Begin
+  With TreeView Do
+  Begin
+    If IsWordWrap Then
+      WordWrapTree
+    Else
+    Begin
+      If Column=Nil Then
+        Invalidate
+      Else
+        Column.InvalidateFrom(InvalidateFrom);
+      UpdateScroll(True,True);
+    End;  
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnParentColorChanged(AColor:TColor);
+Var
+  I:Integer;
+Begin
+  For I:=0 To Count-1 Do
+    Items[I].OnParentColorChanged(AColor);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnParentFontChanged(AFont:TFont);
+Var
+  I:Integer;
+Begin
+  Lock;
+  Try
+    For I:=0 To Count-1 Do
+      Items[I].OnParentFontChanged(AFont);
+  Finally
+    UnLock;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.OnParentHeaderColorChanged(AColor:TColor);
+Var
+  I:Integer;
+Begin
+  For I:=0 To Count-1 Do
+    Items[I].OnParentHeaderColorChanged(AColor);
+End;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumns.BeginSelfUpdates;
+begin
+  inc(fSelfUpdateCount);
+end;
+
+{---------------------------------------------------------}
+
+procedure TDCTreeColumns.EndSelfUpdates;
+begin
+  if fSelfUpdateCount > 0 then
+    dec(fSelfUpdateCount);
+end;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.RecalcHeaderHeight;
+Var
+  OldHeaderHeight:Integer;
+  I:Integer;
+  Column:TDCTreeColumn;
+  AHeight:Integer;
+  ImageHeight:Integer;
+Begin
+  OldHeaderHeight:=FHeaderHeight;
+  FHeaderHeight:=0;
+  For I:=0 To Count-1 Do
+  Begin
+    Column:=Items[I];
+    If Column.Visible Then
+    Begin
+      AHeight:=(GetFontHeight(Column.CaptionFont)+
+                (TreeView.GetBevelHeight+(ColumnTextSpaceTop+ColumnTextSpaceBottom+1))) And Not 1;
+      With TreeView Do
+        If ColumnImages<>Nil Then
+        Begin
+          ImageHeight:=(TImageList(FColumnImages).Height+GetBevelHeight+ImageListSpaceTop+ImageListSpaceBottom+1) And Not 1;
+          If ImageHeight>AHeight Then
+            AHeight:=ImageHeight;
+        End;          
+      If AHeight>FHeaderHeight Then
+        FHeaderHeight:=AHeight;
+    End;
+  End;
+  If OldHeaderHeight<>FHeaderHeight Then
+    With TreeView Do
+    Begin
+      Invalidate;
+      UpdateScroll(True,True);
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.UnLock;
+Begin
+  If FLockCount=0 Then
+    Exit;
+  Dec(FLockCount);
+  If FLockCount>0 Then
+    Exit;
+  If laCaptionFontChanged In FLockedActions Then
+    OnColumnCaptionFontChanged(Nil);
+  If laFontChanged In FLockedActions Then
+    OnColumnFontChanged(Nil);
+  If laWidthChanged In FLockedActions Then
+    OnColumnWidthChanged(Nil,0);
+  FLockedActions:=[];
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeColumns.Update(Item:TCollectionItem);
+Begin
+  Inherited;
+
+  if fSelfUpdateCount = 0 then
+    fUpdatedByUser := Count > 0;
+
+  With TreeView Do
+  Begin
+    RecalcTreeColumnIndex;
+    If Item=Nil Then
+      Invalidate;
+  End;  
+End;
+
+{ TDCSortedColumn }
+
+Procedure TDCSortedColumn.Assign(Source:TPersistent);
+Begin
+  If Source Is TDCSortedColumn Then
+    With TDCSortedColumn(Source) Do
+    Begin
+      Self.TreeView.LockSort;
+      Try
+        Self.Column:=Self.TreeView.Columns[Column.Index];
+        Self.Descending:=Descending;
+      Finally
+        Self.TreeView.UnLockSort;
+      End;
+    End
+    Else
+      Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Destructor TDCSortedColumn.Destroy;
+Begin
+  Column:=Nil;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.DefineProperties(Filer:TFiler);
+Begin
+  Inherited;
+  Filer.DefineProperty('Column',ReadColumn,WriteColumn,Column<>Nil);
+  Filer.DefineProperty('Descending',ReadDescending,WriteDescending,Descending);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCSortedColumn.GetTreeView:TDCCustomTreeGrid;
+Begin
+  Result:=TDCCustomTreeGrid(TDCSortedColumns(Collection).GetOwner);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.ReadColumn(Reader:TReader);
+Begin
+  Column:=TreeView.Columns[Reader.ReadInteger];
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.ReadDescending(Reader:TReader);
+Begin
+  Descending:=Reader.ReadBoolean;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.SetColumn(Value:TDCTreeColumn);
+Var
+  Index:Integer;
+Begin
+  If FColumn=Value Then
+    Exit;
+  Index:=TDCSortedColumns(Collection).IndexOf(Value);
+  If Index>=0 Then
+    Error(SErrColumnAlreadyAdded);
+  FColumn:=Value;
+  TreeView.AlphaSort;  
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.SetDescending(Value:Boolean);
+Begin
+  If FDescending=Value Then
+    Exit;
+  FDescending:=Value;
+  TreeView.AlphaSort;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.WriteColumn(Writer:TWriter);
+Begin
+  Writer.WriteInteger(Column.Index);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumn.WriteDescending(Writer:TWriter);
+Begin
+  Writer.WriteBoolean(Descending);
+End;
+
+{ TDCSortedColumns }
+
+Constructor TDCSortedColumns.Create(AOwner:TPersistent;ItemClass:TCollectionItemClass);
+Begin
+  Inherited Create(ItemClass);
+  FOwner:=AOwner;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumns.Assign(Source:TPersistent);
+Begin
+  TDCCustomTreeGrid(FOwner).LockSort;
+  Try
+    Inherited;
+  Finally
+    TDCCustomTreeGrid(FOwner).UnLockSort;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCSortedColumns.ClearAll(Exclude:TDCTreeColumn);
+Var
+  I:Integer;
+  Item:TDCSortedColumn;
+Begin
+  For I:=Count-1 DownTo 0 Do
+  Begin
+    Item:=Items[I];
+    If Item.Column<>Exclude Then
+      Item.Free;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCSortedColumns.Find(AColumn:TDCTreeColumn):TDCSortedColumn;
+Var
+  Index:Integer;
+Begin
+  Index:=IndexOf(AColumn);
+  If Index<0 Then
+    Result:=Nil
+  Else
+    Result:=Items[Index];
+End;
+
+{---------------------------------------------------------}
+
+Function TDCSortedColumns.GetItems(Index:Integer):TDCSortedColumn;
+Begin
+  Result:=TDCSortedColumn(Inherited Items[Index]);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCSortedColumns.GetOwner:TPersistent;
+Begin
+  Result:=FOwner;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCSortedColumns.IndexOf(AColumn:TDCTreeColumn):Integer;
+Var
+  I:Integer;
+Begin
+  For I:=0 To Count-1 Do
+    With Items[I] Do
+      If (Column=AColumn) And (AColumn<>Nil) Then
+      Begin
+        Result:=I;
+        Exit;
+      End;
+  Result:=-1;    
+End;
+
+{ TDCTreeGridNode }
+
+Constructor TDCTreeGridNode.Create(AOwner:TDCTreeNodes);
+Begin
+  Inherited;
+  FColumns:=TStringList.Create;
+End;
+
+{---------------------------------------------------------}
+
+Destructor TDCTreeGridNode.Destroy;
+Begin
+  Inherited;
+  FColumns.Free;
+  FColumns:=Nil;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.Assign(Source:TPersistent);
+Begin
+  Inherited;
+  If Source Is TDCTreeGridNode Then
+    FColumns.Assign(TDCTreeGridNode(Source).FColumns);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.CheckIndex(Index:Integer);
+Begin
+  If (Index<0) Or (Index>=TDCCustomTreeGrid(TreeView).Columns.Count) Then
+    InvalidOperationFmt(SErrInvalidIndex,[Index]);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.DeleteColumn(Index:Integer);
+Begin
+  If Index=0 Then//Set value to original Text property
+    FText:=GetColumns(0);
+  If Index>=FColumns.Count Then
+    Exit;
+  FColumns.Delete(Index);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeGridNode.DisplayRect(TextOnly:Boolean):TRect;
+Begin
+  Result:=Inherited DisplayRect(TextOnly);
+  Dec(Result.Bottom,TDCCustomTreeGrid(TreeView).GetLineHeight);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeGridNode.GetColumns(Index:Integer):String;
+Begin
+  If Index<FColumns.Count Then
+    Result:=FColumns[Index]
+  Else
+    Result:='';
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeGridNode.GetIndentInternal:Integer;
+Begin
+  Result:=Inherited GetIndentInternal+TDCCustomTreeGrid(TreeView).GetLineWidth;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCTreeGridNode.GetText:String;
+Begin
+  With TDCCustomTreeGrid(TreeView) Do
+  Begin
+    If FTreeColumnIndex>=0 Then
+      Result:=Self.Columns[FTreeColumnIndex]
+    Else
+      Result:=Inherited GetText;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.ReadCustomData(Stream:TStream);
+Var
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  Inherited;
+  For I:=0 To TDCCustomTreeGrid(TreeView).Columns.Count-1 Do
+  Begin
+    Column:=TDCCustomTreeGrid(TreeView).Columns[I];
+    Columns[Column.CreateIndex]:=ReadStrFromStream(Stream);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.SetColumnCount(Count:Integer);
+Var
+  I:Integer;
+Begin
+  For I:=FColumns.Count To Count Do
+    FColumns.Add('');
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.SetColumns(Index:Integer;Const Value:String);
+Begin
+  If GetColumns(Index)=Value Then
+    Exit;
+  With TDCCustomTreeGrid(TreeView) Do
+    If (FTreeColumnIndex<0) Or (Index=FTreeColumnIndex) Then
+      Self.Text:=Value//to correct recalc width and etc.
+    Else
+    Begin
+      SetColumnsInternal(Index,Value);
+      ResortNode;
+      If MultiLineNodes Then
+      Begin
+        NodeWidthChanged;
+        InvalidateBelow(True);
+      End
+      Else
+        InvalidateNodeColumn(Self,CreateColumn[Index]);
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.SetColumnsInternal(Index:Integer;Const Value:String);
+Begin
+  CheckIndex(Index);
+  If Index>=FColumns.Count Then
+    SetColumnCount(Index+1);
+  If (Index=FColumns.Count-1) And (Value='') Then
+    FColumns.Delete(Index)
+  Else
+    FColumns[Index]:=Value;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.SetTextInternal(Const Value:String);
+Begin
+  With TDCCustomTreeGrid(TreeView) Do
+    If FTreeColumnIndex>=0 Then
+    Begin
+      Self.SetColumnsInternal(FTreeColumnIndex,Value);
+      FText:=Value;
+    End
+    Else
+      Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCTreeGridNode.WriteCustomData(Stream:TStream);
+Var
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  Inherited;
+  For I:=0 To TDCCustomTreeGrid(TreeView).Columns.Count-1 Do
+  Begin
+    Column:=TDCCustomTreeGrid(TreeView).Columns[I];
+    WriteStrToStream(Stream,Columns[Column.CreateIndex]);
+  End;
+End;
+
+{ TDCCustomTreeGrid }
+
+function TDCCustomTreeGrid.GetTreeColumnClass: TDCTreeColumnClass;
+begin
+  Result := TDCTreeColumn;
+end;
+
+Constructor TDCCustomTreeGrid.Create(AOwner:TComponent);
+Begin
+  Inherited;
+  FBaseNodeClass:=TDCTreeGridNode;
+  DefaultNodeClass:=FBaseNodeClass;
+  FColumns:=TDCTreeColumns.Create(Self,GetTreeColumnClass);
+  FHeaderColor:=clBtnFace;
+  FSortedColumns:=TDCSortedColumns.Create(Self,TDCSortedColumn);
+  FTreeColumnIndex:=-1;
+End;
+
+{---------------------------------------------------------}
+
+Destructor TDCCustomTreeGrid.Destroy;
+Begin
+  Destroying;
+  ColumnImages:=Nil;
+  FColumns.Free;//Columns.Destroy called ColumnDeleted and FColumnList must exsist
+  FColumns:=Nil;
+  FSortedColumns.Free;
+  FSortedColumns:=Nil;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.AfterScrollUpdate;
+Begin
+  Inherited;
+  If FMouseOperation=gmoMoving Then
+  Begin
+    With GetCursorPos Do
+      MovingProcess(X,Y);
+      ShowDragImage;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.AllowDrawFocusRect(Node:TDCTreeNode):Boolean;
+Begin
+  Result:=(Inherited AllowDrawFocusRect(Node){ Or
+           (IsGridRowSelect And ((FEditNode=Node) And (Node<>Nil)))}) And
+           ((CurrentColumn=FDrawColumn){ Or IsGridRowSelect})
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.AllowDrawText(Node:TDCTreeNode):Boolean;
+Begin
+  Result:=Inherited AllowDrawText(Node) Or (CurrentColumn<>FDrawColumn);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.AllowShowToolTip:Boolean;
+Begin
+  Result:=Inherited AllowShowToolTip And (FMouseOperation=gmoNone);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.AlwaysEdit:Boolean;
+Begin
+  Result:=(tgoAlwaysEdit In Options) Or IsEditorAlwaysEdit;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.BeforeScrollUpdate;
+Begin
+  If FMouseOperation=gmoMoving Then
+  Begin
+    MovingColumnIndex:=-1;
+    HideDragImage;
+  End;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.CancelSizing;
+Begin
+  If FMouseOperation=gmoSizing Then
+  Begin
+    FMouseColumn.Width:=FSizeOldWidth;
+    FMouseOperation:=gmoNone;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.CancelSortingMoving;
+Begin
+  MouseColumnDown:=False;
+  Case FMouseOperation Of
+    gmoSorting:
+      Begin
+        FMouseColumn:=Nil;
+        FMouseOperation:=gmoNone;
+      End;
+    gmoMoving:
+      Begin
+        KillScrollTimer;
+        MovingColumnIndex:=-1;
+        InvalidateHeaderColumn(FMouseColumn);
+        FMouseColumn:=Nil;
+        FMouseOperation:=gmoNone;
+        FDragImages.SetDragImage(0,0,0);
+        FDragImages.EndDrag;
+        FDragImages.Clear;
+      End;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.CanEdit(Node:TDCTreeNode):Boolean;
+Begin
+  Result:=((CurrentColumn=Nil) Or (CurrentColumn.Visible And
+          Not (coDisableEditing In CurrentColumn.Options))) And Inherited CanEdit(Node)
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnDeleted(Column:TDCTreeColumn);
+Var
+  Index:Integer;
+  Node:TDCTreeGridNode;
+Begin
+  ShrinkCoef(0,FColumns.Count-1,Column.WidthCoef);
+  Index:=Column.CreateIndex;
+  Node:=TDCTreeGridNode(Items.GetFirstNode);
+  RecalcTreeColumnIndex;
+  While Node<>Nil Do
+  Begin
+    Node.DeleteColumn(Index);
+    Node:=TDCTreeGridNode(Node.GetNext);
+  End;
+  ColumnAfterHide(Column);
+  Index:=FSortedColumns.IndexOf(Column);
+  If Index>=0 Then
+    FSortedColumns[Index].Free;
+
+  If Columns.Count=0 Then
+    RecalcAll
+  Else
+    ResetCache;
+  Invalidate;
+  If HandleAllocated Then
+    UpdateScroll(True,True);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnAfterHide(Column:TDCTreeColumn);
+Begin
+  If HandleAllocated Then
+    DoAutoFit(ClientWidth,Nil);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnAfterShow(Column:TDCTreeColumn);
+Begin
+  If FVisibleColumnCount=0 Then
+    CurrentColumn:=Column;
+  RecalcTreeColumnIndex;
+  If Column.Visible Then
+    Inc(FVisibleColumnCount);
+  If HandleAllocated Then
+    DoAutoFit(ClientWidth,Nil);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnBeforeDeleted(Column:TDCTreeColumn);
+Var
+  AColumn:TDCTreeColumn;
+  I:Integer;
+  Index:Integer;
+Begin
+  Index:=Column.CreateIndex;
+  //Recalc create index
+  For I:=0 To Columns.Count-1 Do
+  Begin
+    AColumn:=Columns[I];
+    If AColumn.CreateIndex>Index Then
+      Dec(AColumn.FCreateIndex);
+  End;
+  ColumnBeforeHide(Column);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnBeforeHide(Column:TDCTreeColumn);
+Var
+  AColumn:TDCTreeColumn;
+Begin
+  If Column.Visible Then
+    Dec(FVisibleColumnCount);
+  //Calc new current column
+  If CurrentColumn=Column Then
+  Begin
+    AColumn:=Column.GetNext;
+    If AColumn=Nil Then
+      FCurrentColumn:=Column.GetPrev
+    Else
+      FCurrentColumn:=AColumn;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnBeforeShow(Column:TDCTreeColumn);
+Begin
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnCreated(Column:TDCTreeColumn);
+Var
+  Node:TDCTreeGridNode;
+Begin
+  Column.FCreateIndex:=Columns.Count-1;
+  If Columns.Count=1 Then
+  Begin
+    Node:=TDCTreeGridNode(Items.GetFirstNode);
+    While Node<>Nil Do
+    Begin
+      Node.FColumns.Add(Node.Text);
+      Node:=TDCTreeGridNode(Node.GetNext);
+    End;
+  End;
+  SetWidthCoefs;
+  ColumnAfterShow(Column);
+  InvalidateToRight(Column.Left);
+  UpdateScroll(True,True);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ColumnImagesChange(Sender:TObject);
+Begin
+  FColumns.RecalcHeaderHeight;
+  Invalidate;
+  UpdateScroll(True,True);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.CompareNodes(Node1,Node2:TDCTreeGridNode;ColumnIndex:Integer):Integer;
+Begin
+  Result:=AnsiCompareText(Node1.Columns[ColumnIndex],
+                          Node2.Columns[ColumnIndex]);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.CurrentColumnChanged(Column:TDCTreeColumn);
+Begin
+  If Assigned(FOnCurrentColumnChanged) Then
+    FOnCurrentColumnChanged(Self,Column);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.CurrentColumnChanging(Column:TDCTreeColumn):Boolean;
+Begin
+  Result:=True;
+  If Assigned(FOnCurrentColumnChanging) Then
+    FOnCurrentColumnChanging(Self,Column,Result);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DoAutoFit(AWidth:Integer;AColumn:TDCTreeColumn);
+  Procedure TryReAutoFit;
+  Var
+    HorzScrollBarWidth:Integer;
+  Begin
+    HorzScrollBarWidth:=GetSystemMetrics(SM_CYHSCROLL);
+    If (CalcVertPage(GetRealPageSize)<RootNode.ExpandedCount) And (AWidth>ClientWidth-HorzScrollBarWidth) Then
+    Begin
+      FInAutoFit:=False;
+      DoAutoFit(AWidth-HorzScrollBarWidth,AColumn);
+      FInAutoFit:=True;
+    End;
+  End;
+Var
+  LocalDelta:Integer;
+  NewColumnWidth:Integer;
+  I:Integer;
+  RestWidth:Integer;
+  Index:Integer;
+  ErrorDelta:Double;
+  ColumnWidth:Double;
+  OldWidth:Integer;
+  Coef:Double;
+  AColumns:TList;
+  IsAdd:Boolean;
+  SkipRemove:Boolean;
+  Column:TDCTreeColumn;
+Begin
+  If Not (tgoAutoFit In Options) Then
+    Exit;
+  If FInAutoFit Then
+    Exit;
+  FInAutoFit:=True;
+  Try
+    If AColumn=Nil Then
+      Index:=0
+    Else
+      Index:=AColumn.Index;
+    IsAdd:=False;
+    AColumns:=TList.Create;
+    Try
+      For I:=Index To FColumns.Count-1 Do
+      Begin
+        Column:=FColumns[I];
+        If Column.Visible Then
+          AColumns.Add(Column);
+      End;
+      Repeat
+        Coef:=GetListInvertCoef(AColumns)*AWidth;
+        LocalDelta:=0;
+        RestWidth:=AWidth;
+        ErrorDelta:=0;
+        I:=0;
+        While I<AColumns.Count Do
+        Begin
+          Column:=AColumns[I];
+          If I=AColumns.Count-1 Then
+            NewColumnWidth:=RestWidth
+          Else
+          Begin
+            ColumnWidth:=Column.WidthCoef*Coef;
+            NewColumnWidth:=Trunc(ColumnWidth);
+            ErrorDelta:=ErrorDelta+Frac(ColumnWidth);
+          End;
+          If ErrorDelta>1 Then
+          Begin
+            Inc(NewColumnWidth);
+            ErrorDelta:=ErrorDelta-1;
+          End;
+          Dec(RestWidth,NewColumnWidth);
+          OldWidth:=Column.Width;
+          If IsAdd Then
+            Inc(NewColumnWidth,Column.Width);
+          SkipRemove:=Column.Width=NewColumNWidth;
+          If Not SkipRemove Then
+          Begin
+            Column.SetWidthSoft(NewColumnWidth);
+            Inc(LocalDelta,NewColumnWidth-Column.Width);
+          End;
+          If (Column.Width-OldWidth=0) And Not SkipRemove Then
+            AColumns.Remove(Column)
+          Else
+            Inc(I);
+        End;
+        If (LocalDelta=0) Or (AColumns.Count=0) Then
+          Break;
+        AWidth:=LocalDelta;
+        IsAdd:=True;
+      Until False;
+    Finally
+      AColumns.Free;
+    End;
+    If WordWrap Then
+    Begin
+      ResetCache;
+      TryReAutoFit;
+    End;
+    If IsWordWrap Then
+      WordWrapTree;
+    If Not FColumns.Locked Then
+      UpdateScroll(True,True);
+  Finally
+    FInAutoFit:=False;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DoCancelMode;
+Begin
+  Inherited;
+  CancelSizing;
+  CancelSortingMoving;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DoCollapsed(Node:TDCTreeNode);
+Begin
+  Inherited;
+  InvalidateHorzLines(Node);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.DoCompare(Node1,Node2:TDCTreeNode):Integer;
+Var
+  I:Integer;
+  Index:Integer;
+  SortedColumn:TDCSortedColumn;
+Begin
+  If FSortedColumns.Count=0 Then
+    Result:=CompareNodes(TDCTreeGridNode(Node1),TDCTreeGridNode(Node2),0)
+  Else
+    Result:=0;
+    For I:=0 To FSortedColumns.Count-1 Do
+    Begin
+      SortedColumn:=FSortedColumns[I];
+      If SortedColumn.Column<>Nil Then
+      Begin
+        Index:=SortedColumn.Column.CreateIndex;
+        Result:=CompareNodes(TDCTreeGridNode(Node1),TDCTreeGridNode(Node2),Index);
+        If SortedColumn.Descending Then
+          Result:=-Result;
+        If Result<>0 Then
+          Exit;
+      End;
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DoExpanded(Node:TDCTreeNode);
+Begin
+  Inherited;
+  InvalidateHorzLines(Node);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawColumn(AColumn:TDCTreeColumn;Const ARect:TRect;Node:TDCTreeGridNode);
+Var
+  DrawRect:TRect;
+  ATextRect:TRect;
+  Procedure _DrawHorzLine;
+  Begin
+    If DrawHorzLines Then
+    Begin
+      Canvas.Pen.Color:=GetLineColor;
+      Canvas.MoveTo(DrawRect.Left,DrawRect.Bottom-1);
+      Canvas.LineTo(DrawRect.Right,DrawRect.Bottom-1);
+    End;
+  End;
+
+  Procedure _DrawVertLine;
+  Begin
+    If DrawVertLines Then
+    Begin
+      Canvas.Pen.Color:=GetLineColor;
+      Canvas.MoveTo(DrawRect.Right-1,DrawRect.Top);
+      Canvas.LineTo(DrawRect.Right-1,DrawRect.Bottom-1);
+    End;
+  End;
+Var
+  DrawTextFlags:TDrawTextFlags;
+  AText:String;
+Begin
+  FDrawColumn:=AColumn;
+  DrawRect:=ARect;
+  _DrawHorzLine;
+  _DrawVertLine;
+  If DrawHorzLines Then
+    Dec(DrawRect.Bottom);
+  If DrawVertLines Then
+    Dec(DrawRect.Right);
+  With FCanvas Do
+  Begin
+    Font:=GetNodeColumnFont(Node,FDrawColumn);
+    Font.Color:=GetNodeFontColor(Node,Font.Color);
+    Brush.Color:=GetNodeColumnBrush(Node,FDrawColumn);
+    Brush.Color:=GetNodeBrushColor(Node,Brush.Color);
+    ATextRect:=DrawRect;
+    If AllowDrawFocusRect(Node) Then
+      ShrinkRectInRect(DrawRect,GetFocusRect);
+    InflateRect(ATextRect,-FocusSpace,-FocusSpace);
+    FillRectExclude(DrawRect,ATextRect);
+    Case FDrawColumn.Align Of
+      taLeftJustify:TextHorzAlign:=haLeft;
+      taRightJustify:TextHorzAlign:=haRight;
+      taCenter:TextHorzAlign:=haCenter;
+    End;
+    TextVertAlign:=vaCenter;
+    DrawTextFlags:=[];
+    If coUseEllipsis In FDrawColumn.Options Then
+      Include(DrawTextFlags,dtfEndEllipsis);
+    AText:=Node.Columns[AColumn.CreateIndex];
+    DrawEditor(Node,AText,ATextRect,AColumn.Index);
+    If Not FPrinting Then
+      FillRectExclude(ATextRect,DrawRect);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawColumns(Const ARect:TRect;Node:TDCTreeNode);
+  Function _ColumnVisible(Column:TDCTreeColumn):Boolean;
+  Begin
+    Result:=Column.Visible And (Column.Width>0);
+  End;
+Var
+  DrawRect:TRect;
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  DrawRect:=Rect(0,ARect.Top,-FOffsetX,ARect.Bottom);
+  I:=0;
+  While I<FColumns.Count Do
+  Begin
+    Column:=FColumns[I];
+    Inc(I);
+    If _ColumnVisible(Column) Then
+    Begin
+      DrawRect.Left:=DrawRect.Right;
+      DrawRect.Right:=DrawRect.Left+Column.Width;
+      If DrawRect.Right>ARect.Left Then
+      Begin
+        If Not IsTreeViewColumn(Column) Then
+          DrawColumn(Column,DrawRect,TDCTreeGridNode(Node));
+        Break;
+      End;
+    End;
+  End;
+  While I<FColumns.Count Do
+  Begin
+    Column:=FColumns[I];
+    If _ColumnVisible(Column) Then
+    Begin
+      DrawRect.Left:=DrawRect.Right;
+      DrawRect.Right:=DrawRect.Left+Column.Width;
+      If DrawRect.Left>ARect.Right Then
+        Exit;
+      If Not IsTreeViewColumn(Column) Then
+        DrawColumn(Column,DrawRect,TDCTreeGridNode(Node));
+    End;
+    Inc(I);
+  End;
+  If FVisibleColumnCount=0 Then
+    DrawRect.Left:=GetTreeColumnRight
+  Else
+    DrawRect.Left:=FColumns.Width-FOffsetX;
+  With GetClientRect Do
+    If DrawRect.Left<Right-Left Then
+    Begin
+      DrawRect.Right:=Right;
+      FCanvas.Brush.Color:=Color;
+      FCanvas.FillRect(DrawRect);
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawHeader(Const ARect:TRect);
+Var
+  DrawRect:TRect;
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  DrawRect:=Rect(0,ARect.Top,-FOffsetX,ARect.Bottom);
+  I:=0;
+  While I<FColumns.Count Do
+  Begin
+    Column:=FColumns[I];
+    Inc(I);
+    If Column.Visible Then
+    Begin
+      DrawRect.Left:=DrawRect.Right;
+      DrawRect.Right:=DrawRect.Left+Column.Width;
+      If DrawRect.Right>ARect.Left Then
+      Begin
+        DrawHeaderColumn(Column,DrawRect);
+        Break;
+      End;
+    End;
+  End;
+  While I<FColumns.Count Do
+  Begin
+    Column:=FColumns[I];
+    If Column.Visible Then
+    Begin
+      DrawRect.Left:=DrawRect.Right;
+      DrawRect.Right:=DrawRect.Left+Column.Width;
+      If DrawRect.Left>ARect.Right Then
+        Exit;
+      DrawHeaderColumn(Column,DrawRect);
+    End;
+    Inc(I);
+  End;
+  DrawRect.Left:=DrawRect.Right;
+  DrawRect.Right:=GetClientRect.Right;
+  FCanvas.Brush.Color:=Color;
+  FCanvas.FillRect(DrawRect);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawHeaderColumn(Column:TDCTreeColumn;Const ARect:TRect);
+Begin
+  DrawHeaderColumnEx(Column,ARect,(FMouseOperation In [gmoSorting,gmoMoving]) And
+                                  (FMouseColumn=Column) And MouseColumnDown)
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawHeaderColumnEx(Column:TDCTreeColumn;Const ARect:TRect;DrawDown:Boolean);
+Var
+  ADrawRect:TRect;
+  ATextRect:TRect;
+
+  Function _GetHeaderColor:TColor;
+  Begin
+    Result:=ColorToRGB(Column.CaptionColor);
+    If DrawDown And (tgoFlat In Options) Then
+      Result:=Result Xor ColorToRGB(clWhite);
+  End;
+
+  Procedure _DrawEdge;
+  Var
+    ButtonRect:TRect;
+  Begin
+    If DrawDown Then
+    Begin
+      Canvas.Brush.Color:=_GetHeaderColor;
+      If tgoFlat In Options Then
+      Begin
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_SUNKENOUTER,BF_LEFT Or BF_TOP OR BF_MONO);
+        Inc(ADrawRect.Left);
+        Inc(ADrawRect.Top);
+      End
+      Else
+      Begin
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_SUNKENOUTER,BF_LEFT Or BF_TOP);
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDOUTER,BF_RIGHT Or BF_BOTTOM);
+        InflateRect(ADrawRect,-1,-1);
+        ButtonRect:=ADrawRect;
+        Inc(ADrawRect.Left,2);
+        Inc(ADrawRect.Top,2);
+        Canvas.FillRectExclude(ButtonRect,ADrawRect);
+      End;
+    End
+    Else
+    Begin
+      DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDINNER,BF_LEFT Or BF_TOP);
+      If tgoFlat In Options Then
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDINNER,BF_RIGHT Or BF_BOTTOM)
+      Else
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDOUTER,BF_RIGHT Or BF_BOTTOM);
+      InflateRect(ADrawRect,-1,-1);
+      If Not (tgoFlat In Options) Then
+      Begin
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDOUTER,BF_LEFT Or BF_TOP);
+        DrawEdge(FCanvas.Handle,ADrawRect,BDR_RAISEDINNER,BF_RIGHT Or BF_BOTTOM);
+        InflateRect(ADrawRect,-1,-1);
+      End;
+    End;
+  End;
+
+  Procedure _DrawImage;
+  Var
+    ImageRect:TRect;
+  Begin
+    If Not IsDrawColumnImage(Column) Then
+      Exit;
+    ImageRect:=Bounds(ADrawRect.Left+ImageListSpaceLeft,(ADrawRect.Bottom+ADrawRect.Top-TImageList(FColumnImages).Height) Div 2,
+                      TImageList(FColumnImages).Width,TImageList(FColumnImages).Height);
+    If ImageRect.Top<ADrawRect.Top Then
+      ImageRect.Top:=ADrawRect.Top;
+    If ImageRect.Right>ADrawRect.Right Then
+      ImageRect.Right:=ADrawRect.Right;
+    If ImageRect.Bottom>ADrawRect.Bottom Then
+      ImageRect.Bottom:=ADrawRect.Bottom;
+    If ImageRect.Right=ImageRect.Left Then
+      Dec(ImageRect.Right);
+    ImageList_DrawEx(ColumnImages.Handle,Column.ImageIndex,Canvas.Handle,ImageRect.Left,ImageRect.Top,
+                     ImageRect.Right-ImageRect.Left,ImageRect.Bottom-ImageRect.Top,ColorToRGB(HeaderColor),
+                     CLR_NONE,ILD_NORMAL);
+    Canvas.Brush.Color:=_GetHeaderColor;
+    With ADrawRect Do
+      Canvas.FillRectExclude(Rect(Left,Top,ImageRect.Right,Bottom),ImageRect);
+    ADrawRect.Left:=ImageRect.Right;
+  End;
+
+  Procedure _DrawTriangle;
+  Var
+    PointSize:Integer;
+    AWidth:Integer;
+    AHeight:Integer;
+    Pt:TPoint;
+    SortedColumn:TDCSortedColumn;
+  Begin
+    SortedColumn:=FSortedColumns.Find(Column);
+    If SortedColumn<>Nil Then
+    Begin
+      PointSize:=GetTrianglePointSize(ADrawRect.Bottom-ADrawRect.Top);
+      If PointSize<>0 Then
+      Begin
+        AWidth:=PointSize*TriangleWidth;
+        If AWidth<((ADrawRect.Right-ADrawRect.Left)*2) Div 3 Then
+        Begin
+          AHeight:=PointSize*TriangleHeight;
+          Pt.X:=ADrawRect.Right-AWidth;
+          Pt.Y:=(ADrawRect.Bottom+ADrawRect.Top-AHeight) Div 2;
+          DrawTriangle(Pt,PointSize,Not SortedColumn.Descending,_GetHeaderColor);
+          With FCanvas Do
+          Begin
+            Brush.Color:=_GetHeaderColor;
+            FillRectExclude(Rect(Pt.X,ADrawRect.Top,Pt.X+AWidth,ADrawRect.Bottom),
+                            Bounds(Pt.X,Pt.Y,AWidth,AHeight));
+          End;
+          ADrawRect.Right:=Pt.X;
+        End;
+      End;
+    End;
+  End;
+Var
+  DrawTextFlags:TDrawTextFlags;
+Begin
+  If IsRectEmpty(ARect) Then
+    Exit;
+  ADrawRect:=ARect;
+  _DrawEdge;
+  _DrawImage;
+  _DrawTriangle;
+  ATextRect:=ADrawRect;
+  Inc(ATextRect.Left,ColumnTextSpaceLeft);
+  Inc(ATextRect.Top,ColumnTextSpaceTop);
+  Dec(ATextRect.Right,ColumnTextSpaceRight);
+  Dec(ATextRect.Bottom,ColumnTextSpaceBottom);
+  With FCanvas Do
+  Begin
+    Brush.Color:=_GetHeaderColor;
+    FillRectExclude(ADrawRect,ATextRect);
+    Case Column.CaptionAlign Of
+      taLeftJustify:TextHorzAlign:=haLeft;
+      taRightJustify:TextHorzAlign:=haRight;
+      taCenter:TextHorzAlign:=haCenter;
+    End;
+    Font:=Column.CaptionFont;
+    If DrawDown And (tgoFlat In Options) Then
+      Font.Color:=clWhite;
+    TextVertAlign:=vaCenter;
+    DrawTextFlags:=[];
+    If coUseCaptionEllipsis In Column.Options Then
+      Include(DrawTextFlags,dtfEndEllipsis);
+    DrawText(Column.Caption,ATextRect,DrawTextFlags);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.DrawHorzLines:Boolean;
+Begin
+  Result:=(tgoHorzLines In Options) And IsGridMode;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawMovingTriangle(X,Y:Integer;Down:Boolean);
+Begin
+  Canvas.Pen.Color:=clRed;
+  Canvas.Brush.Color:=clRed;
+  If Down Then
+    Canvas.Polygon([Point(X,Y),Point(X+5,Y-5),Point(X+2,Y-5),Point(X+2,Y-8),
+                    Point(X-2,Y-8),Point(X-2,Y-5),Point(X-5,Y-5)])
+  Else
+    Canvas.Polygon([Point(X,Y),Point(X+5,Y+5),Point(X+2,Y+5),Point(X+2,Y+8),
+                    Point(X-2,Y+8),Point(X-2,Y+5),Point(X-5,Y+5)])
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawNode(Node:TDCTreeNode;const ARect:TRect);
+Var
+  DispInfo:TDCNodeDispInfo;
+  I:TNodePart;
+Begin
+  TDCTreeGridNode(Node).GetNodeDispInfo(DispInfo);
+  If DrawHorzLines Then
+    For I:=npCheckBox To npText Do
+      Dec(DispInfo[I].Bottom,GetLineHeight);
+  InternalDrawNode(Node,DispInfo,ARect);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawNodeButton(Node:TDCTreeNode;Const ARect:TRect);
+Var
+  DrawRect:TRect;
+Begin
+  DrawRect:=ARect;
+  If DrawHorzLines And (Node.GetNextSibling=Nil) Then
+  Begin
+    Canvas.Pen.Color:=GetLineColor;
+    Canvas.MoveTo(ARect.Left,ARect.Bottom-1);
+    Canvas.LineTo(ARect.Right,ARect.Bottom-1);
+    Dec(DrawRect.Bottom);
+  End;
+  If DrawVertLines Then
+    Canvas.Pen.Color:=GetLineColor
+  Else
+    Canvas.Pen.Color:=GetNodeBackgroundColor(Node);
+  Canvas.MoveTo(ARect.Right-1,ARect.Top);
+  Canvas.LineTo(ARect.Right-1,ARect.Bottom);
+  Dec(DrawRect.Right);
+  Inherited DrawNodeButton(Node,DrawRect);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawNodeLineSection(Node,SourceNode:TDCTreeNode;const ARect:TRect);
+Var
+  DrawRect:TRect;
+Begin
+  DrawRect:=ARect;
+  If DrawHorzLines And Not SourceNode.Expanded And (SourceNode.GetNextSibling=Nil) And
+     (SourceNode.GetNext=TDCTreeGridNode(Node).GetNextVisible) Then
+  Begin
+    Canvas.Pen.Color:=GetLineColor;
+    Canvas.MoveTo(ARect.Left,ARect.Bottom-1);
+    Canvas.LineTo(ARect.Right,ARect.Bottom-1);
+    Dec(DrawRect.Bottom);
+  End;
+  If DrawVertLines Then
+    Canvas.Pen.Color:=GetLineColor
+  Else
+    Canvas.Pen.Color:=GetNodeBackgroundColor(SourceNode);
+  Canvas.MoveTo(ARect.Right-1,ARect.Top);
+  Canvas.LineTo(ARect.Right-1,ARect.Bottom);
+  Dec(DrawRect.Right);
+  Inherited DrawNodeLineSection(Node,SourceNode,DrawRect);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawTreeView(Const ARect:TRect);
+Var
+  HeaderHeight:Integer;
+  DrawRect:TRect;
+Begin
+  If FMouseOperation=gmoMoving Then
+    MovingColumnIndex:=-1;
+  HeaderHeight:=GetHeaderHeight;
+  If ARect.Top<=HeaderHeight Then
+  Begin
+    DrawRect:=ARect;
+    DrawRect.Top:=0;
+    DrawRect.Bottom:=HeaderHeight;
+    DrawHeader(DrawRect);
+    DrawRect.Top:=DrawRect.Bottom;
+    DrawRect.Bottom:=ARect.Bottom;
+    Inherited DrawTreeView(DrawRect);
+  End
+  Else
+    Inherited;
+  If FMouseOperation=gmoMoving Then
+    With GetCursorPos Do
+      MovingProcess(X,Y);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.DrawTriangle(Const Pt:TPoint;PointSize:Integer;
+                                         IsAsc:Boolean;BkColor:TColor);
+Var
+  Y:Integer;
+
+  Procedure _MoveTo(AY:Integer);
+  Begin
+    Y:=AY;
+  End;
+
+  Procedure _LineTo(X,Height:Integer;Color:TColor);
+  Begin
+    Canvas.Pen.Color:=Color;
+    Canvas.Brush.Color:=Color;
+    Canvas.FillRect(Bounds(Pt.X+X*PointSize,Pt.Y+Y*PointSize,PointSize,Height*PointSize));
+    Inc(Y,Height);
+  End;
+Begin
+  _MoveTo(0);
+  _LineTo(0,7,BkColor);
+  If IsAsc Then
+  Begin
+    _MoveTo(0);
+    _LineTo(1,5,BkColor);
+    _LineTo(1,2,clBtnShadow);
+
+    _MoveTo(0);
+    _LineTo(2,3,BkColor);
+    _LineTo(2,3,clBtnShadow);
+    _LineTo(2,1,clWhite);
+
+    _MoveTo(0);
+    _LineTo(3,1,BkColor);
+    _LineTo(3,3,clBtnShadow);
+    _LineTo(3,2,BkColor);
+    _LineTo(3,1,clWhite);
+
+    _MoveTo(0);
+    _LineTo(4,2,clBtnShadow);
+    _LineTo(4,4,BkColor);
+    _LineTo(4,1,clWhite);
+
+    _MoveTo(0);
+    _LineTo(5,2,clWhite);
+    _LineTo(5,4,BkColor);
+    _LineTo(5,1,clWhite);
+
+    _MoveTo(0);
+    _LineTo(6,1,BkColor);
+    _LineTo(6,3,clWhite);
+    _LineTo(6,2,BkColor);
+    _LineTo(6,1,clWhite);
+
+    _MoveTo(0);
+    _LineTo(7,3,BkColor);
+    _LineTo(7,4,clWhite);
+
+    _MoveTo(0);
+    _LineTo(8,5,BkColor);
+    _LineTo(8,2,clWhite);
+  End
+  Else
+  Begin
+    _MoveTo(0);
+    _LineTo(1,2,clBtnShadow);
+    _LineTo(1,5,BkColor);
+
+    _MoveTo(0);
+    _LineTo(2,4,clBtnShadow);
+    _LineTo(2,3,BkColor);
+
+    _MoveTo(0);
+    _LineTo(3,1,clBtnShadow);
+    _LineTo(3,2,BkColor);
+    _LineTo(3,3,clBtnShadow);
+    _LineTo(3,1,BkColor);
+
+    _MoveTo(0);
+    _LineTo(4,1,clBtnShadow);
+    _LineTo(4,4,BkColor);
+    _LineTo(4,2,clBtnShadow);
+
+    _MoveTo(0);
+    _LineTo(5,1,clBtnShadow);
+    _LineTo(5,4,BkColor);
+    _LineTo(5,2,clWhite);
+
+    _MoveTo(0);
+    _LineTo(6,1,clBtnShadow);
+    _LineTo(6,2,BkColor);
+    _LineTo(6,3,clWhite);
+    _LineTo(6,1,BkColor);
+
+    _MoveTo(0);
+    _LineTo(7,1,clBtnShadow);
+    _LineTo(7,3,clWhite);
+    _LineTo(7,3,BkColor);
+
+    _MoveTo(0);
+    _LineTo(8,1,clBtnShadow);
+    _LineTo(8,1,clWhite);
+    _LineTo(8,5,BkColor);
+  End;
+  _MoveTo(0);
+  _LineTo(9,7,BkColor);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.DrawVertLines:Boolean;
+Begin
+  Result:=(tgoVertLines In Options) And IsGridMode;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.Edit(Node:TDCTreeNode;Var NewText:String);
+Begin
+  SetCurrentColumnText(NewText);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.EndSizing;
+Begin
+  If FMouseOperation=gmoSizing Then
+    FMouseOperation:=gmoNone;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.EndSortingMoving(AddToSortList:Boolean);
+Var
+  SortedColumn:TDCSortedColumn;
+  Index:Integer;
+Begin
+  Case FMouseOperation of
+    gmoSorting:
+      Begin
+        If Not (coDisableSorting In FMouseColumn.Options) And MouseColumnDown Then
+        Begin
+          SortedColumn:=FSortedColumns.Find(FMouseColumn);
+          If Not AddToSortList Then
+            FSortedColumns.ClearAll(FMouseColumn);
+          If SortedColumn=Nil Then
+          Begin
+            SortedColumn:=TDCSortedColumn(FSortedColumns.Add);
+            SortedColumn.Column:=FMouseColumn;
+          End
+          Else
+            SortedColumn.Descending:=Not SortedColumn.Descending;
+        End;
+        MouseColumnDown:=False;
+        FMouseColumn:=Nil;
+        FMouseOperation:=gmoNone;
+      End;
+    gmoMoving:
+      Begin
+        If FMovingColumnIndex>=0 Then
+        Begin
+          Index:=MovingColumnIndex;
+          MovingColumnIndex:=-1;
+          If FMouseColumn.Index<Index Then
+            Dec(Index);
+          FMouseColumn.Index:=Index;
+          
+          RecalcTreeColumnIndex;
+          Invalidate;
+        End;
+        CancelSortingMoving;
+      End;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetAnotherHitTest(Pt:TPoint;Const DispInfo:TDCNodeDispInfo):TDCHitTests;
+Begin
+  If (Pt.X>=FColumns.Width-FOffsetX) Or (FVisibleColumnCount=0) Then
+    Result:=[]
+  Else
+    Result:=[dhtOnRight];
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetBevelHeight:Integer;
+Begin
+  Result:=2;
+  If Not (tgoFlat In Options) Then
+    Inc(Result,2)
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetBevelWidth:Integer;
+Begin
+  Result:=2;
+  If Not (tgoFlat In Options) Then
+    Inc(Result,2)
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetColumnRectIn(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+Begin
+  Result:=InflateByLines(GetColumnRectOut(Node,Column));
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetColumnRectOut(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+Var
+  ATop:Integer;
+Begin
+  ATop:=Node.GetPositionYSmart;
+  If (ATop<0) Or (ATop>Height) Then
+    Result:=Rect(0,0,0,0)
+  Else
+    Result:=Bounds(Column.Left,ATop,Column.Width,Node.GetHeight)
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetColumnTextRect(Node:TDCTreeGridNode;Column:TDCTreeColumn):TRect;
+Var
+  ColumnRect:TRect;
+Begin
+  If Column<>Nil Then
+  Begin
+    ColumnRect:=GetColumnRectIn(Node,Column);
+//    InflateRect(ColumnRect,-FocusSpace,-FocusSpace);
+  End;
+  If IsTreeViewColumn(Column) Then
+  Begin
+    Result:=Node.DisplayRect(True);
+//    InflateRect(Result,-FocusSpace,-FocusSpace);
+    If DrawHorzLines Then
+      Dec(Result.Bottom);
+    If DrawVertLines Then
+      Dec(Result.Right);
+    If Column<>Nil Then
+      Result.Right:=ColumnRect.Right;
+  End
+  Else
+    Result:=ColumnRect;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetCreateColumn(Index:Integer):TDCTreeColumn;
+Var
+  I:Integer;
+Begin
+  For I:=0 To FColumns.Count-1 Do
+  Begin
+    Result:=FColumns[I];
+    If Result.CreateIndex=Index Then
+      Exit;
+  End;
+  Result:=Nil;  
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetCurrentColumn:TDCTreeColumn;
+Begin
+  Result:=FCurrentColumn;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetCurrentColumnCreateIndex:Integer;
+Begin
+  If CurrentColumn=Nil Then
+    Result:=0
+  Else
+    Result:=CurrentColumn.CreateIndex;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetCurrentColumnIndex:Integer;
+Begin
+  If CurrentColumn=Nil Then
+    Result:=0
+  Else
+    Result:=CurrentColumn.Index;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetCurrentColumnText:String;
+Begin
+  If Selected=Nil Then
+    Result:=''
+  Else
+    If CurrentColumn=Nil Then
+      Result:=Selected.Text
+    Else
+      Result:=TDCTreeGridNode(Selected).Columns[CurrentColumn.CreateIndex]
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetDefaultNodeBrushColor(Node:TDCTreeNode):TColor;
+Begin
+  If IsGridMode Then
+    If FDrawColumn.ParentColor Then
+      Result:=Node.Color
+    Else
+      Result:=FDrawColumn.Color
+  Else
+    Result:=Inherited GetDefaultNodeBrushColor(Node);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetDrawColor(Node:TDCTreeNode;ActiveColor,InactiveColor,DefaultColor:TColor):TColor;
+Var
+  IsSelected:Boolean;
+Begin
+  Result:=DefaultColor;
+  If (Node=FDropTarget) And (DropTargetKind=tkStandard)  Then
+  Begin
+    If IsGridRowSelect Or (CurrentColumn=FDrawColumn) Then
+      Result:=ActiveColor
+  End
+  Else
+    If Node.Selected Then
+    Begin
+      IsSelected:=True;
+      If IsGridMode Then
+        If IsGridRowSelect Then
+        Begin
+          If IsEditing And (CurrentColumn=FDrawColumn) Then
+            Exit;
+          If Selected=Node Then
+            IsSelected:=True;
+        End
+        Else
+        Begin
+          If IsEditing Then
+            Exit;
+          IsSelected:=CurrentColumn=FDrawColumn;
+        End;
+      If IsSelected Then
+        If IsFocused Then
+          Result:=ActiveColor
+        Else
+          If Not HideSelection And Not (csDesigning In ComponentState) Then
+            Result:=InactiveColor;
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetDrawRect:TRect;
+Begin
+  Result:=GetClientRect;
+  Inc(Result.Top,GetHeaderHeight);
+  Result.Right:=GetTreeColumnRight;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetEditorClass(Node:TDCTreeNode;AColumn:Integer):TControlClass;
+var
+  edclass : string;
+  Column  : TDCTreeColumn;
+Begin
+  result := nil;
+  if (AColumn < Columns.Count) and (Node is TDCTreeGridNode) then
+  begin
+    Column := TDCTreeColumn(Columns[AColumn]);
+    edclass := Column.EditorClass;
+    if edclass <> '' then
+      result := GetTreeGridEditorByName(edclass);
+  end;
+
+  if Result = nil then
+    If IsGridMode Then
+    Begin
+      If MultiLineNodes Then
+        Result:=TDCTreeGridMemoEditor
+      Else
+        Result:=TDCTreeGridSimpleEditor;
+      DoGetEditorClass(Node,Result);
+    End
+    Else
+      Result:=Inherited GetEditorClass(Node,AColumn);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeEditor(Node:TDCTreeNode):TControl;
+Var
+  AColumn:Integer;
+Begin
+  If CurrentColumn=Nil Then
+    AColumn:=0
+  Else
+    AColumn:=CurrentColumn.Index;
+  Result:=GetEditor(Node,AColumn);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeFocusRect(Node:TDCTreeNode):TRect;
+Var
+  Column:TDCTreeColumn;
+  ColumnRect:TRect;
+Begin
+  Column:=CurrentColumn;
+  If Column=Nil Then
+  Begin
+    Result:=Inherited GetNodeFocusRect(Node);
+    With GetDrawRect Do
+      If Result.Right>Right Then
+        Result.Right:=Right;
+  End
+  Else
+  Begin
+    ColumnRect:=GetColumnRectIn(TDCTreeGridNode(Node),Column);
+    If IsTreeViewColumn(Column) Then
+    Begin
+      Result:=Inherited GetNodeFocusRect(Node);
+      Dec(Result.Right,GetLineWidth);
+      Dec(Result.Bottom,GetLineHeight);
+      If Result.Right>ColumnRect.Right Then
+        Result.Right:=ColumnRect.Right;
+      If Result.Bottom>ColumnRect.Bottom Then
+        Result.Bottom:=ColumnRect.Bottom;
+    End
+    Else
+      Result:=ColumnRect;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeWordWrapRect(Node:TDCTreeNode;AColumn:Integer):TWordWrapSize;
+Var
+  Column:TDCTreeColumn;
+Begin
+  If IsGridMode And (AColumn>0) Then
+  Begin
+    Column:=Columns[AColumn];
+    Result.Left:=Column.Left+FocusSpace+TextSpace;
+    Result.Right:=Result.Left+Column.Width-FocusSpace*2-TextSpace*2;
+    If DrawVertLines Then
+      Dec(Result.Right);
+  End
+  Else
+    Result:=Inherited GetNodeWordWrapRect(Node,AColumn);  
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetGridHitTest(X,Y:Integer):TDCTreeGridPosInfo;
+  Procedure _SetColumn(Result:PDCTreeGridPosInfo;Column:TDCTreeColumn);
+  Begin
+    Result.SizeColumn:=Column;
+    Include(Result.HitTests,ghtOnSizer);
+  End;
+Var
+  ALeft,ARight:Integer;
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  Result.PosInfo:=Items.GetHitTest(X,Y);
+  ARight:=-FOffsetX;
+  Result.Column:=Nil;
+  Result.SizeColumn:=Nil;
+  Result.HitTests:=[];
+  If Y<0 Then
+    Exit;
+  If dhtAbove In Result.PosInfo.HitTests Then
+    Include(Result.HitTests,ghtOnHeaderArea)
+  Else
+    Include(Result.HitTests,ghtOnCellsArea);
+  For I:=0 To FColumns.Count-1 Do
+  Begin
+    Column:=FColumns[I];
+    If Column.Visible Then
+    Begin
+      ALeft:=ARight;
+      ARight:=ALeft+Column.Width;
+      If (ALeft<=X) And (X<ARight) Then
+      Begin
+        If dhtAbove In Result.PosInfo.HitTests Then
+          Include(Result.HitTests,ghtOnHeader)
+        Else
+          Include(Result.HitTests,ghtOnCells);
+        Result.Column:=Column;
+      End;
+      If (Abs(ARight-X)<SizeAreaWidth) And Not ((tgoAutoFit In Options) And (I=FColumns.Count-1)) Then
+      Begin
+        If ALeft=ARight Then
+        Begin
+          If ARight<X Then
+          Begin
+            Include(Result.HitTests,ghtMultiple);
+            _SetColumn(@Result,Column);
+          End
+        End
+        Else
+          _SetColumn(@Result,Column);
+      End;
+    End;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetHeaderColumnRect(Column:TDCTreeColumn):TRect;
+Begin
+  Result:=Bounds(Column.Left,0,Column.Width,GetHeaderHeight);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetHeaderColumnVisibleRect(Column:TDCTreeColumn):TRect;
+Begin
+  Result:=GetHeaderColumnRect(Column);
+  If Result.Left<0 Then
+    Result.Left:=0
+  Else
+    If Result.Right>ClientWidth Then
+      Result.Right:=ClientWidth;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetHeaderHeight:Integer;
+Begin
+  If tgoHideHeader In Options Then
+    Result:=0
+  Else
+    Result:=FColumns.HeaderHeight;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreegrid.GetHitTestRect:TRect;
+Begin
+  Result:=GetClientRect;
+  Inc(Result.Top,GetHeaderHeight);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetInvertCoef(StartIndex,StopIndex:Integer):Double;
+Var
+  I:Integer;
+  Column:TDCTreeColumn;
+Begin
+  Result:=0;
+  For I:=StartIndex To StopIndex Do
+  Begin
+    Column:=FColumns[I];
+    If Column.Visible Then
+      With Column Do
+        Result:=Result+WidthCoef;
+  End;    
+  If Result<>0 Then
+    Result:=1/Result;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetLineColor:TColor;
+Begin
+  Result:=clBtnShadow
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetLineHeight:Integer;
+Begin
+  If DrawHorzLines Then
+    Result:=1
+  Else
+    Result:=0;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetLineWidth:Integer;
+Begin
+  If DrawVertLines Then
+    Result:=1
+  Else
+    Result:=0;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetListInvertCoef(AColumns:TList):Double;
+var
+  I:Integer;
+Begin
+  Result:=0;
+  For I:=0 To AColumns.Count-1 Do
+    With TDCTreeColumn(AColumns[I]) Do
+      Result:=Result+WidthCoef;
+  If Result<>0 Then
+    Result:=1/Result;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetMaxWidth:Integer;
+Begin
+  If IsGridMode Then
+    Result:=FColumns.Width
+  Else
+    Result:=Inherited GetMaxWidth;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetMaxWidthDelta(Column:TDCTreeColumn):Integer;
+Var
+  I:Integer;
+  Index:Integer;
+Begin
+  If Not (tgoAutoFit In Options) Then
+  Begin
+    Result:=MaxInt;
+    Exit;
+  End;  
+  Result:=0;
+  Index:=Column.Index+1;
+  If Index=FColumns.Count Then
+  Begin
+    Result:=MaxInt;
+    Exit;
+  End;
+  For I:=Index To FColumns.Count-1 Do
+  Begin
+    Column:=FColumns[I];
+    With Column Do
+      If MaxWidth=0 Then
+      Begin
+        Result:=MaxInt;
+        Exit;
+      End
+      Else
+        Inc(Result,MaxWidth-Width);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetMinWidthDelta(Column:TDCTreeColumn):Integer;
+Var
+  I:Integer;
+  Index:Integer;
+Begin
+  If Not (tgoAutoFit In Options) Then
+  Begin
+    Result:=MaxInt;
+    Exit;
+  End;  
+  Result:=0;
+  Index:=Column.Index+1;
+  If Index=FColumns.Count Then
+  Begin
+    Result:=MaxInt;
+    Exit;
+  End;
+  For I:=Index To FColumns.Count-1 Do
+  Begin
+    Column:=FColumns[I];
+    With Column Do
+      Inc(Result,Width-MinWidth);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetMovingColumnIndex(X,Y:Integer):Integer;
+Begin
+  With GetGridHitTest(X,Y) Do
+    If ghtOnHeaderArea In HitTests Then
+      If ghtOnHeader In HitTests Then
+      Begin
+        Result:=Column.Index;
+        With GetHeaderColumnVisibleRect(Column) Do
+          If (Right+Left) Div 2<X Then
+            Inc(Result)
+      End
+      Else
+        If X>=FColumns.Width-FOffsetX Then
+          Result:=FColumns.Count
+        Else
+          Result:=-1
+    Else
+      Result:=-1;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeBackgroundColor(Node:TDCTreeNode):TColor;
+Begin
+  If IsGridMode And RowSelect And (RowSelectType=rtFull) And (Node<>Nil) Then
+    If FDrawColumn.ParentColor Then
+      Result:=Node.Color
+    Else
+      Result:=FDrawColumn.Color
+  Else
+    Result:=Color;    
+  Result:=Inherited GetSelectedColor(Node,Result);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeBrushColor(Node:TDCTreeNode;Default:TColor):TColor;
+Begin
+  Result:=GetDrawColor(Node,ActiveSelectedColor,InactiveSelectedColor,Default);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeColumnBrush(Node:TDCTreeNode;Column:TDCTreeColumn):TColor;
+Begin
+  If Column.ParentColor Then
+    Result:=Node.Color
+  Else
+    Result:=Column.Color;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeColumnFont(Node:TDCTreeNode;Column:TDCTreeColumn):TFont;
+Begin
+  If Column.ParentFont Then
+    Result:=TDCTreeGridNode(Node).InternalFont
+  Else
+    Result:=Column.Font;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeColumnHeight(Node:TDCTreeNode;Column:TDCTreeColumn):Integer;
+Begin
+  Canvas.Font:=Column.Font;
+  Result:=(GetEditorHeight(Node,TDCTreeGridNode(Node).Columns[Column.CreateIndex],Column.CreateIndex)+1) And Not 1+FocusSpace*2;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetNodeFontColor(Node:TDCTreeNode;Default:TColor):TColor;
+Begin
+  Result:=GetDrawColor(Node,ActiveSelectedFontColor,InactiveSelectedFontColor,Default);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetPageSize:TSize;
+Begin
+  With GetClientRect Do
+    Result.cX:=Right-Left;
+  With GetDrawRect Do
+    Result.cY:=Bottom-Top;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetPrintWidth:Integer;
+Begin
+  If IsGridMode Then
+    Result:=GetMaxWidth
+  Else
+    Result:=Inherited GetPrintWidth;  
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetScrollRect(DeltaX,DeltaY:Integer):TRect;
+Begin
+  Result:=GetClientRect;
+  If DeltaY<>0 Then
+    Inc(Result.Top,GetHeaderHeight);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetTextForEditor(Node:TDCTreeNode):String;
+Begin
+  Result:=GetCurrentColumnText;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetTreeColumn:TDCTreeColumn;
+Begin
+  If IsGridMode Then
+    Result:=FColumns.GetFirstVisible
+  Else
+    Result:=Nil
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetTreeColumnLeft:Integer;
+Begin
+  If IsGridMode Then
+    Result:=TDCTreeColumn(FColumns.GetFirstVisible).Left
+  Else
+    Result:=0
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.GetTreeColumnRight:Integer;
+Var
+  Column:TDCTreeColumn;
+Begin
+  If IsGridMode Then
+  Begin
+    Column:=FColumns.GetFirstVisible;
+    If Column=Nil Then
+      Result:=GetClientRect.Right
+    Else
+      With Column Do
+      Begin
+        Result:=Left;
+        If Visible Then
+          Inc(Result,Width);
+      End
+  End
+  Else
+    Result:=GetClientRect.Right
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.KeyDown(Var Key:Word;Shift:TShiftState);
+Var
+  Column:TDCTreeColumn;
+Begin
+  If IsGridMode And (Shift=[]) Then
+    Case Key Of
+      VK_RIGHT : Begin
+                   Column:=CurrentColumn.GetNext;
+                   If Column<>Nil Then
+                     CurrentColumn:=Column;
+                   Exit;
+                 End;
+      VK_LEFT  : Begin
+                   Column:=CurrentColumn.GetPrev;
+                   If Column<>Nil Then
+                     CurrentColumn:=Column;
+                   Exit;
+                 End;
+    End;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.InflateByLines(Const ARect:TRect):TRect;
+Begin
+  Result:=ARect;
+  If DrawHorzLines Then
+    Dec(Result.Bottom);
+  If DrawVertLines Then
+    Dec(Result.Right);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsDownAndUpEqual(X,Y:Integer):Boolean;
+Begin
+  Result:=Inherited IsDownAndUpEqual(X,Y) And
+          (GetGridHitTest(FMouseDownX,FMouseDownY).Column=GetGridHitTest(X,Y).Column);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsDrawColumnImage(Column:TDCTreeColumn):Boolean;
+Begin
+  Result:=(FColumnImages<>Nil) And (Column.ImageIndex>=0) And (Column.ImageIndex<FColumnImages.Count);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsEditorAlwaysEdit:Boolean;
+Begin
+  Result:=GetEditor(Selected,CurrentColumnIndex).Perform(DM_GETALWAYSEDIT,0,0)>0;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsColumnWordWrap(AColumn:Integer):Boolean;
+Begin
+  If AColumn<Columns.Count Then
+    Result:=Columns[AColumn].WordWrap
+  Else
+    Result:=False;  
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsGridMode:Boolean;
+Begin
+  Result:=FVisibleColumnCount>0;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsGridRowSelect:Boolean;
+Begin
+  Result:=(RowSelect Or MultiSelect) And (FVisibleColumnCount>1);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsOnItem(X,Y:Integer):Boolean;
+Begin
+  Result:=Inherited IsOnItem(X,Y);
+  If Not Result Then
+    With GetGridHitTest(X,Y) Do
+      Result:=dhtOnRight In PosInfo.HitTests;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsRowSelect:Boolean;
+Begin
+  Result:=Inherited IsRowSelect Or IsGridMode ;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsSameAsPrev:Boolean;
+Begin
+  Result:=AlwaysEdit Or
+          (Inherited IsSameAsPrev And (FMouseClickColumn=GetGridHitTest(FMouseDownX,FMouseDownY).Column));
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsSorted:Boolean;
+Begin
+  If IsGridMode Then
+    Result:=FSortedColumns.Count<>0
+  Else
+    Result:=Inherited IsSorted;  
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsSortLocked:Boolean;
+Begin
+  Result:=Inherited IsSortLocked Or (FSortLock>0);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.IsTreeViewColumn(Column:TDCTreeColumn):Boolean;
+Begin
+  Result:=GetTreeColumn=Column;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InternalDrawNode(Node:TDCTreeNode;
+                                             Const DispInfo:TDCNodeDispInfo;
+                                             Const ARect:TRect);
+Var
+  NodeRect:TRect;
+  ARight:Integer;
+
+  Procedure _DrawHorzLine;
+  Begin
+    If DrawHorzLines Then
+    Begin
+      Canvas.Pen.Color:=GetLineColor;
+      With DispInfo[npButton] Do
+      Begin
+        Canvas.MoveTo(Right,Bottom-1);
+        Canvas.LineTo(GetTreeColumnRight,Bottom-1);
+      End;
+    End;
+  End;
+
+  Procedure _DrawVertLine;
+  Begin
+    If DrawVertLines Then
+    Begin
+      Canvas.Pen.Color:=GetLineColor;
+      Canvas.MoveTo(ARight,ARect.Top);
+      Canvas.LineTo(ARight,DispInfo[npText].Bottom);
+    End;
+  End;
+Var
+  Rgn:THandle;
+  OldRgn:THandle;
+Begin
+  //Save clip region
+  OldRgn:=CreateRectRgn(0,0,0,0);
+  If GetClipRgn(Canvas.Handle,OldRgn)<=0 Then
+  Begin
+    DeleteObject(OldRgn);
+    OldRgn:=0;
+  End;
+  //Set new clip region
+  ARight:=GetTreeColumnRight;
+  If DrawVertLines Then
+    Dec(ARight);
+  Rgn:=CreateRectRgn(GetTreeColumnLeft,ARect.Top,ARight,ARect.Bottom);
+  ExtSelectClipRgn(Canvas.Handle,Rgn,RGN_AND);
+  DeleteObject(Rgn);
+  FDrawColumn:=GetTreeColumn;
+  Inherited InternalDrawNode(Node,DispInfo,ARect);
+  If OldRgn<>0 Then
+  Begin
+    SelectClipRgn(Canvas.Handle,OldRgn);
+    DeleteObject(OldRgn);
+  End
+  Else
+    SelectClipRgn(Canvas.Handle,0);
+  _DrawHorzLine;
+  _DrawVertLine;
+  NodeRect:=Bounds(ARect.Left,DispInfo[npLines].Top,
+                   ARect.Right-ARect.Left,TDCTreeGridNode(Node).Height);
+  If ARect.Bottom>GetHeaderHeight Then
+    DrawColumns(NodeRect,Node);
+  FDrawColumn:=CurrentColumn;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateColumn(Column:TDCTreeColumn);
+Begin
+  If HandleAllocated Then
+    InvalidateRect(Bounds(Column.Left,0,Column.Width,ClientHeight));
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateHeader;
+Begin
+  If HandleAllocated Then
+    InvalidateRect(Bounds(0,0,ClientWidth,GetHeaderHeight))
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateHeaderColumn(Column:TDCTreeColumn);
+Begin
+  If Column.Visible Then
+    InvalidateRect(Bounds(Column.Left,0,Column.Width,GetHeaderHeight))
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateHorzLines(Node:TDCTreeNode);
+Begin
+  If DrawHorzLines And Not Items.Locked And Node.IsVisible Then
+    InvalidateRect(Bounds(0,TDCTreeGridNode(Node).GetPositionYSmart,
+                          TDCTreeGridNode(Node).GetPositionX,TDCTreeGridNode(Node).GetHeight))
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateNodeColumn(Node:TDCTreeGridNode;AColumn:TDCTreeColumn);
+Begin
+  If Node<>Nil Then
+    If AColumn.CreateIndex=FTreeColumnIndex Then
+      Node.Invalidate([npText])
+    Else
+      If Node.AllowPaint Then
+        InvalidateRect(GetColumnRectOut(Node,AColumn));
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.InvalidateToRight(ALeft:Integer);
+Begin
+  If HandleAllocated Then
+    With GetClientRect Do
+      InvalidateRect(Rect(ALeft,0,Right,Bottom));
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.LockSort;
+Begin
+  Inc(FSortLock);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MakeColumnVisible(Column:TDCTreeColumn;PartialOk:Boolean);
+Var
+  ALeft,ARight:Integer;
+Begin
+  If Not HandleAllocated Then
+    Exit;
+  If Not Column.Visible Then
+    Error(SErrInvalidColumn);
+  ALeft:=Column.Left;
+  ARight:=ALeft+Column.Width;
+  If (PartialOk And (ARight<0)) Or (ALeft<0) Then
+    ProcessHScroll(ALeft+FOffsetX)
+  Else
+    If (PartialOk And (ALeft>ClientWidth)) Or (ARight>ClientWidth) Then
+    Begin
+      If Column.Width>ClientWidth Then
+        ProcessHScroll(ALeft+FOffsetX)
+      Else
+        ProcessHScroll(ARight-ClientWidth+FOffsetX)
+    End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MakeEditNodeVisible(Node:TDCTreeNode);
+Begin
+  If IsGridMode Then
+  Begin
+    MakeColumnVisible(CurrentColumn,False);
+    Node.MakeVisibleVert;
+  End
+  Else
+    Inherited
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MouseDown(Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+Var
+  PosInfo:TDCTreeGridPosInfo;
+Begin
+  Inherited;                             
+  Case Button Of
+    mbLeft:
+      Begin
+        PosInfo:=GetGridHitTest(X,Y);
+        FMouseClickColumn:=CurrentColumn;
+        If OnSizer(PosInfo) Then
+        Begin
+          FMouseColumn:=PosInfo.SizeColumn;
+          FMouseOperation:=gmoSizing;
+          FSizeOldWidth:=FMouseColumn.Width;
+          FSizeX:=FMouseColumn.Left+FSizeOldWidth;
+          FSizeDelta:=FSizeX-X;
+        End
+        Else
+          If (ghtOnHeader In PosInfo.HitTests) And (PosInfo.Column<>Nil) And
+             ([coDisableSorting,coDisableMoving]*PosInfo.Column.Options<>[coDisableSorting,coDisableMoving]) Then
+          Begin
+            FMouseColumn:=PosInfo.Column;
+            FMouseOperation:=gmoSorting;
+            MouseColumnDown:=True;
+          End
+      End;
+    mbRight:
+      Begin
+        CancelSizing;
+        CancelSortingMoving;
+      End;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MouseMove(Shift:TShiftState;X,Y:Integer);
+Begin
+  Inherited;
+  Case FMouseOperation Of
+    gmoSizing:
+      FMouseColumn.Width:=X-FMouseColumn.Left+FSizeDelta;
+    gmoSorting:
+      Begin
+        If coDisableMoving In FMouseColumn.Options Then
+          With GetGridHitTest(X,Y) Do
+            MouseColumnDown:=(ghtOnHeader In HitTests) And (Column=FMouseColumn);
+        If (((Abs(FMouseDownX-X)>=DragHorzSpace) Or (Abs(FMouseDownY-Y)>=DragVertSpace)))
+            And Not (coDisableMoving In FMouseColumn.Options) Then
+          MovingStart(X,Y);
+      End;
+    gmoMoving:
+      MovingProcess(X,Y);
+  Else
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MouseUp(Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+Begin
+  Case Button Of
+    mbLeft:
+    Begin
+      EndSizing;
+      EndSortingMoving(ssShift In Shift);
+    End;
+    mbRight:
+      CancelSizing;
+  End;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MovingProcess(X,Y:Integer);
+Var
+  Pt:TPoint;
+Begin
+  MovingColumnIndex:=GetMovingColumnIndex(X,Y);
+  UpdateDragCursor(X,Y);
+  Pt:=ClientToScreen(Point(X,Y));
+  FDragImages.DragMove(Pt.X,Pt.Y);
+  If ((ClientWidth-X<DragScrollSpace) And (FColumns.Width-FOffsetX>ClientWidth)) Or
+     ((X<DragScrollSpace) And (FOffsetX>0)) Then
+    CreateScrollTimer;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MovingStart(X,Y:Integer);
+Var
+  DrawBitmap:TBitmap;
+Begin
+  DrawBitmap:=TBitmap.Create;
+  Try
+    With GetHeaderColumnRect(FMouseColumn) Do
+    Begin
+      DrawBitmap.Width:=Right-Left;
+      DrawBitmap.Height:=Bottom-Top;
+    End;
+    Canvas.Handle:=DrawBitmap.Canvas.Handle;
+    DrawHeaderColumnEx(FMouseColumn,Bounds(0,0,DrawBitmap.Width,DrawBitmap.Height),False);
+    Canvas.Handle:=0;
+    TImageList(FDragImages).Width:=DrawBitmap.Width;
+    TImageList(FDragImages).Height:=DrawBitmap.Height;
+    FDragImages.Add(DrawBitmap,Nil);
+  Finally
+    DrawBitmap.Free;
+  End;
+  UpdateDragCursor(X,Y);
+  FHotSpot.X:=(FMouseDownX-FMouseColumn.Left);
+  FHotSpot.Y:=FMouseDownY;
+  FMovingColumnIndex:=-1;
+  FDragImages.SetDragImage(0,FHotSpot.X,FHotSpot.Y);
+  With ClientToScreen(Point(X,Y)) Do
+    FDragImages.BeginDrag(GetDeskTopWindow,X,Y);
+  FMouseOperation:=gmoMoving;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.MultiSelectChanged;
+Begin
+  If Selected<>Nil Then
+    InvalidateRect(Bounds(0,TDCTreeGridNode(Selected).GetPositionYSmart,FColumns.Width-FOffsetX,TDCTreeGridNode(Selected).GetHeight));
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.NodeHeight(Node:TDCTreeNode; AColumn : integer):Integer;
+Var
+  I:Integer;
+  AHeight:Integer;
+Begin
+  Result:=(Inherited NodeHeight(Node, AColumn)+(GetLineHeight+1)) And Not 1;
+  For I:=1 To Columns.Count-1 Do
+  Begin
+    AHeight:=GetNodeColumnHeight(Node,Columns[I]);
+    If Result<AHeight Then
+      Result:=AHeight;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.NodeSelectionChanged(Node:TDCTreeNode);
+Var
+  Y:Integer;
+Begin
+  If IsGridMode Then
+  Begin
+    If TDCTreeGridNode(Node).AllowPaint Then
+      If IsGridRowSelect Then
+      Begin
+        Y:=TDCTreeGridNode(Node).GetPositionYSmart;
+        Inherited;
+        InvalidateRect(Rect(GetTreeColumnRight,Y,ClientRect.Right,Y+TDCTreeGridNode(Node).GetHeight));
+      End
+      Else
+      Begin
+        If CurrentColumn<>Nil Then
+          InvalidateNodeColumn(TDCTreeGridNode(Node),CurrentColumn);
+      End;
+  End
+  Else
+    Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.Notification(Component:TComponent;Operation:TOperation);
+Begin
+  Inherited;
+  If (Component=ColumnImages) And (Operation=opRemove) Then
+    ColumnImages:=Nil;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.OnColorChanged;
+Begin
+  Inherited;
+  FColumns.OnParentColorChanged(Color);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.OnEscapeKey;
+Begin
+  Inherited;
+  CancelSizing;
+  CancelSortingMoving;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.OnFontChanged;
+Begin
+  Inherited;
+  FColumns.OnParentFontChanged(Font);
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.OnSizer(PosInfo:TDCTreeGridPosInfo):Boolean;
+Begin
+  Result:=(ghtOnHeaderArea In PosInfo.HitTests) And
+          (ghtOnSizer In PosInfo.HitTests) And Not (coDisableSizing In PosInfo.SizeColumn.Options);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ProcessScrollTimer;
+Begin
+  If FMouseOperation=gmoMoving Then
+    With GetCursorPos Do
+    Begin
+      If X<ClientWidth Div 2 Then
+        Scroll(smLineLeft)
+      Else
+        Scroll(smLineRight);
+      If ((ClientWidth-X>=DragScrollSpace) Or (FColumns.Width-FOffsetX<=ClientWidth)) And
+         ((X>=DragScrollSpace) Or (FOffsetX=0)) Then
+         KillScrollTimer
+    End
+  Else
+    Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.RecalcTreeColumnIndex;
+Var
+  AColumn:TDCTreeColumn;
+Begin
+  FTreeColumnIndex:=-1;
+  If FColumns.Count>0 Then
+  Begin
+    AColumn:=FColumns.GetFirstVisible;
+    If AColumn<>Nil Then
+      FTreeColumnIndex:=AColumn.CreateIndex;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetColumns(Value:TDCTreeColumns);
+Begin
+  FColumns.Assign(Value);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetColumnImages(Value:TCustomImageList);
+Begin
+  If FColumnImages=Value Then
+    Exit;
+  If (FColumnImages<>Nil) And (FColumnImagesLink<>Nil) Then
+     FColumnImages.UnRegisterChanges(FColumnImagesLink);
+  FColumnImages:=Value;
+  UpdateImageListLink(FColumnImages,FColumnImagesLink,ColumnImagesChange);
+  If Not (csDestroying In ComponentState) Then
+    ColumnImagesChange(Self);
+  FColumns.AutoFitCaptions;  
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetCurrentColumn(Value:TDCTreeColumn);
+Var
+  CurCol:TDCTreeColumn;
+Begin
+  If CurrentColumn=Value Then
+    Exit;
+  If (Value<>Nil) And Not Value.Visible Then
+    Error(SErrInvalidColumn);
+  If Not CurrentColumnChanging(Value) Then
+    Exit;
+  CurCol:=CurrentColumn;
+  If CurCol<>Nil Then
+    InvalidateNodeColumn(TDCTreeGridNode(Selected),CurCol);
+  FCurrentColumn:=Value;
+  If FCurrentColumn<>Nil Then
+  Begin
+    MakeColumnVisible(FCurrentColumn,False);
+    InvalidateNodeColumn(TDCTreeGridNode(Selected),FCurrentColumn);
+  End;
+  CurrentColumnChanged(Value);
+  DeselectPrevious(Selected);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetCurrentColumnText(Const Value:String);
+Begin
+  If Selected=Nil Then
+    Exit;
+  If CurrentColumn=Nil Then
+    Selected.Text:=Value
+  Else
+    TDCTreeGridNode(Selected).Columns[CurrentColumn.CreateIndex]:=Value
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetEditorRectAndText(Node:TDCTreeNode);
+Begin
+  if CurrentColumn <> nil then
+    SetEditorData(TDCTreeColumn(CurrentColumn).EditorProps);
+
+  If CurrentColumn<>Nil Then
+  Begin
+    Canvas.Font:=GetNodeColumnFont(Node,CurrentColumn);;
+    Canvas.Brush.Color:=GetNodeColumnBrush(Node,CurrentColumn);;
+  End;
+  SetEditRect(GetColumnTextRect(TDCTreeGridNode(Node),CurrentColumn),Not (DrawHorzLines Or DrawHorzLines));
+  SetEditText(GetTextForEditor(Node),True);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetHeaderColor(Value:TColor);
+Begin
+  If FHeaderColor=Value Then
+    Exit;
+  FHeaderColor:=Value;
+  FColumns.OnParentHeaderColorChanged(Value);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetMovingColumnIndex(Value:Integer);
+  Function _GetArrowPoint:TPoint;
+  Begin
+    If FMovingColumnIndex<FColumns.Count Then
+      Result:=Point(FColumns[FMovingColumnIndex].Left,0)
+    Else
+      Result:=Point(FColumns.Width-FOffsetX,0);
+    If Result.X<0 Then
+      Result.X:=0
+    Else
+      If Result.X>ClientWidth Then
+        Result.X:=ClientWidth;
+    Result:=ClientToScreen(Result);
+  End;
+Var
+  Pt:TPoint;
+Begin
+  If FMovingColumnIndex=Value Then
+    Exit;
+  HideDragImage;
+  Try
+    Canvas.Handle:=GetDC(0);
+    Try
+      If (FMovingColumnIndex>=0) And (FMovingColumnIndex<>FMouseColumn.Index+1) And (FMovingColumnIndex<>FMouseColumn.Index) Then
+      Begin
+        Pt:=_GetArrowPoint;
+
+        Canvas.Draw(Pt.X-6,Pt.Y-10,FArrowUp);
+        Canvas.Draw(Pt.X-6,Pt.Y+GetHeaderHeight,FArrowDown);
+      End;
+      FMovingColumnIndex:=Value;
+      If (FMovingColumnIndex>=0) And (FMovingColumnIndex<>FMouseColumn.Index+1) And (FMovingColumnIndex<>FMouseColumn.Index) Then
+      Begin
+        If FArrowUp=Nil Then
+        Begin
+          FArrowUp:=TBitmap.Create;
+          FArrowUp.Width:=11;
+          FArrowUp.Height:=9;
+          FArrowDown:=TBitmap.Create;
+          FArrowDown.Width:=11;
+          FArrowDown.Height:=9;
+        End;
+        Pt:=_GetArrowPoint;
+
+        FArrowUp.Canvas.CopyRect(Rect(0,0,11,9),Canvas,Bounds(Pt.X-6,Pt.Y-10,11,9));
+        FArrowDown.Canvas.CopyRect(Rect(0,0,11,9),Canvas,Bounds(Pt.X-6,Pt.Y+GetHeaderHeight,11,9));
+        DrawMovingTriangle(Pt.X-1,Pt.Y-2,True);
+        DrawMovingTriangle(Pt.X-1,Pt.Y+GetHeaderHeight,False);
+     End
+     Else
+     Begin
+       FArrowUp.Free;
+       FArrowUp:=Nil;
+       FArrowDown.Free;
+       FArrowDown:=Nil;
+     End;
+    Finally
+      ReleaseDC(0,Canvas.Handle);
+      Canvas.Handle:=0;
+    End;
+  Finally
+    ShowDragImage;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetMouseColumnDown(Value:Boolean);
+Begin
+  If FMouseColumnDown=Value Then
+    Exit;
+  FMouseColumnDown:=Value;
+  InvalidateHeaderColumn(FMouseColumn);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetOptions(Value:TDCTreeGridOptions);
+Var
+  AddedOptions:TDCTreeGridOptions;
+  ChangedOptions:TDCTreeGridOptions;
+Begin
+  If FOptions=Value Then
+    Exit;
+  AddedOptions:=Value-FOptions;
+  ChangedOptions:=AddedOptions+(FOptions-Value);
+  FOptions:=Value;
+  If tgoFlat In ChangedOptions Then
+    InvalidateHeader;  
+  If tgoHideHeader In ChangedOptions Then
+  Begin
+    Invalidate;
+    UpdateScroll(True,True);
+  End;
+  If ([tgoHorzLines,tgoVertLines]*ChangedOptions<>[]) And IsGridMode Then
+  Begin
+    Invalidate;
+    ResetCache;
+  End;
+  If tgoAutoFit In AddedOptions Then
+  Begin
+    SetWidthCoefs;
+    DoAutoFit(ClientWidth,Nil);
+  End;  
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetSortedColumns(Value:TDCSortedColumns);
+Begin
+  FSortedColumns.Assign(Value);
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.SetWidthCoefs;
+Var
+  Rest:Double;
+  I:Integer;
+  Column:TDCTreeColumn;
+  Coef:Double;
+  AWidth:Integer;
+Begin
+  Rest:=1;
+  AWidth:=FColumns.Width;
+  For I:=0 To FColumns.Count-1 Do
+  Begin
+    Column:=FColumns[I];
+    If Column.Visible Then
+    Begin
+      If I=FColumns.Count-1 Then
+        Coef:=Rest
+      Else
+        If AWidth=0 Then
+          Coef:=1/FVisibleColumnCount
+        Else
+          Coef:=Column.Width/AWidth;
+      Column.WidthCoef:=Coef;
+      Rest:=Rest-Coef;
+    End;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.ShrinkCoef(StartIndex,StopIndex:Integer;
+                                       Coef:Double);
+Var
+  I:Integer;
+  Delta:Double;
+  Column:TDCTreeColumn;
+Begin
+  Delta:=1+Coef*GetInvertCoef(StartIndex,StopIndex);
+  For I:=StartIndex To StopIndex Do
+  Begin
+    Column:=FColumns[I];
+    If Column.Visible Then
+    With Column Do
+      WidthCoef:=WidthCoef*Delta;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.TryEditNode;
+Begin
+  If AlwaysEdit And (FFocused<>Nil) Then
+  Begin
+    FFocused.EditText;
+    If FEditControl<>Nil Then
+      TPublicControl(FEditControl).Click;
+  End
+  Else  
+    Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.UnLockSort;
+Begin
+  If FSortLock=0 Then
+    Exit;
+  Dec(FSortLock);
+  If FSortLock<>0 Then
+    Exit;
+  If IsSorted Then
+    AlphaSort;
+End;
+
+{---------------------------------------------------------}
+
+Function TDCCustomTreeGrid.UpdateCursorAt(X,Y:Integer):Boolean;
+Var
+  PosInfo:TDCTreeGridPosInfo;
+Begin
+  If csDesigning In ComponentState Then
+  Begin
+    Result:=False;
+    Exit;
+  End;
+  Result:=Inherited UpdateCursorAt(X,Y);
+  If Not Result Then
+  Begin
+    PosInfo:=GetGridHitTest(X,Y);
+    Result:=OnSizer(PosInfo);
+    If Result Then
+      If ghtMultiple In PosInfo.HitTests Then
+        Windows.SetCursor(Screen.Cursors[crSizeColumns])
+      Else
+        Windows.SetCursor(Screen.Cursors[crSizeColumn]);
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.UpdateDragCursor(X,Y:Integer);
+Var
+  NewCursor:TCursor;
+  OldCursor:TCursor;
+Begin
+  OldCursor:=FDragImages.DragCursor;
+  If PtInRect(Bounds(0,0,ClientWidth,GetHeaderHeight),Point(X,Y)) Then
+    NewCursor:=crDefault
+  Else
+    NewCursor:=crNoDrop;
+  If (OldCursor<>NewCursor) And FDragImages.Dragging Then
+  Begin
+    HideDragImage;
+    FDragImages.DragCursor:=NewCursor;
+    ShowDragImage;
+  End;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMChar(Var Message:TWMChar);
+Begin
+  If (FMouseOperation=gmoNone) And Not IsEditing And AlwaysEdit And
+     (Selected<>Nil) Then
+  Begin
+    With Message Do
+      If (CharCode>=Ord(' ')) Or (CharCode=13) Then
+      Begin
+        Selected.EditText;
+        If CharCode<>13 Then
+          FEditControl.Perform(Message.Msg,Message.CharCode,Message.KeyData);
+      End;
+  End;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMKillFocus(Var Message:TMessage);
+Begin
+  CancelSortingMoving;
+  CancelSizing;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMLButtonDblClk(Var Message:TMessage);
+Begin
+  inherited;
+  CancelSortingMoving;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMLButtonDown(Var Message:TWMLButtonDown);
+Var
+  HitTest:TDCTreeGridPosInfo;
+Begin
+  Inherited;
+  HitTest:=GetGridHitTest(Message.XPos,Message.YPos);
+  If [dhtOnItem,dhtOnRight] * HitTest.PosInfo.HitTests<>[] Then
+    CurrentColumn:=HitTest.Column;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMSetFocus(Var Message:TMessage);
+Begin
+  If (CurrentColumn=Nil) And IsGridMode Then
+    CurrentColumn:=FColumns.GetFirstVisible;
+  Inherited;
+End;
+
+{---------------------------------------------------------}
+
+Procedure TDCCustomTreeGrid.WMWindowPosChanged(Var Message:TWMWindowPosMsg);
+Begin
+  If FColumns=Nil Then
+    Inherited
+  Else
+  Begin
+    FColumns.Lock;
+    Try
+      DoAutoFit(ClientWidth,Nil);
+      Inherited;
+    Finally
+      FColumns.UnLock;
+    End;
+  End;
+End;
+
+procedure TDCCustomTreeGrid.SetEditorData(AData: TPersistent);
+begin
+  FEditControl.Perform(DM_SETEDITORDATA, Integer(AData), 0);
+end;
+
+{ TEditorProps }
+
+procedure TEditorProps.Assign(Source: TPersistent);
+begin
+  if Source is TEditorProps then
+    with TEditorProps(Source) do
+      Self.FColumn := FColumn
+    else
+      inherited;
+end;
+
+constructor TEditorProps.Create(AColumn: TDCTreeColumn);
+begin
+  inherited Create;
+  FColumn := AColumn;
+end;
+
+procedure TEditorProps.UpdateColumn;
+begin
+  if FColumn <> nil then
+    FColumn.TreeView.Invalidate;
+end;
+
+Initialization
+  Screen.Cursors[crSizeColumn]:=LoadCursor(hInstance,'DCTREEGRIDCOLUMN'); //don't resource
+  Screen.Cursors[crSizeColumns]:=LoadCursor(hInstance,'DCTREEGRIDCOLUMNS'); //don't resource
+end.

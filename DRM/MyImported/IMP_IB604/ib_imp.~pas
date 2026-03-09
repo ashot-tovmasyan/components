@@ -1,0 +1,34 @@
+unit ib_imp;
+
+interface
+
+uses
+  ib_imp604,
+//  IBBatchMove_imp604,
+  ibblob_imp604,
+  IBCustomDataset_imp604,
+  ibdatabase_imp604,
+  ibdatabaseinfo_imp604,
+//  IBDialogs_imp604,
+  iberrorcodes_imp604,
+  ibevents_imp604,
+  ibexternals_imp604,
+  IBExtract_imp604,
+  ibheader_imp604,
+//  IBInstall_imp604,
+//  IBInstallHeader_imp604,
+  IBIntf_imp604,
+  ibquery_imp604,
+  IBServices_imp604,
+  ibsql_imp604,
+  ibsqlmonitor_imp604,
+  ibstoredproc_imp604,
+  ibtable_imp604,
+  ibupdatesql_imp604,
+  ibutils_imp604,
+  IBXconst_imp604,
+  IBUpdateSQLW_imp;  //дополнительный компонент от Фаниса Галимарзанова
+
+implementation
+
+end.

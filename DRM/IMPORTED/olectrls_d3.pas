@@ -1,0 +1,332 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit OLECTRLS_D3;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  dcscript,
+  dcsystem,
+  dcdreamlib,
+  Windows,
+  Messages,
+  ActiveX,
+  SysUtils,
+  Classes,
+  Controls,
+  Forms,
+  Menus,
+  Graphics,
+  ComObj,
+  AxCtrls,
+  OleCtrls;
+function ConvertTControlDataToVariant(var R : TControlData) : OleVariant;
+function ConvertVariantToTControlData(const V : OleVariant) : TControlData;
+function ConvertTEnumValueToVariant(var R : TEnumValue) : OleVariant;
+function ConvertVariantToTEnumValue(const V : OleVariant) : TEnumValue;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type __TControlData__Wrapper = class(TDCRecordWrapper)
+private
+fR : TControlData;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setEventCount(const val : Longint);
+function getEventCount : Longint;
+property EventCount : Longint read getEventCount write setEventCount;
+procedure setFlags(const val : Integer);
+function getFlags : Integer;
+property Flags : Integer read getFlags write setFlags;
+procedure setVersion(const val : Integer);
+function getVersion : Integer;
+property Version : Integer read getVersion write setVersion;
+procedure setFontCount(const val : Integer);
+function getFontCount : Integer;
+property FontCount : Integer read getFontCount write setFontCount;
+procedure setPictureCount(const val : Integer);
+function getPictureCount : Integer;
+property PictureCount : Integer read getPictureCount write setPictureCount;
+procedure setReserved(const val : Integer);
+function getReserved : Integer;
+property Reserved : Integer read getReserved write setReserved;
+procedure setInstanceCount(const val : Integer);
+function getInstanceCount : Integer;
+property InstanceCount : Integer read getInstanceCount write setInstanceCount;
+procedure setEnumPropDescs(const val : TList);
+function getEnumPropDescs : TList;
+property EnumPropDescs : TList read getEnumPropDescs write setEnumPropDescs;
+end;
+type __TEnumValue__Wrapper = class(TDCRecordWrapper)
+private
+fR : TEnumValue;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setValue(const val : Longint);
+function getValue : Longint;
+property Value : Longint read getValue write setValue;
+procedure setIdent(const val : AnsiString);
+function getIdent : AnsiString;
+property Ident : AnsiString read getIdent write setIdent;
+end;
+type
+_T0 = function (p0 : TFont): Variant of object;
+
+_T1 = procedure (const p0 : Variant;
+p1 : TFont) of object;
+
+{_T2 = procedure (p0 : Integer;
+p1 : Integer;
+const p2 : ITypeInfo) of object;}
+
+{_T3 = procedure (p0 : TGetStrProc) of object;}
+
+_T4 = function (const p0 : string): Integer of object;
+
+_T5 = function (p0 : Integer): string of object;
+
+{_T6 = procedure (p0 : TOleControl) of object;}
+
+function __TControlData__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TControlData__Wrapper.setEventCount(const val : Longint);
+begin
+TControlData(GetRecordPtr^).EventCount := val;
+end;
+function __TControlData__Wrapper.getEventCount : Longint;
+begin
+result := TControlData(GetRecordPtr^).EventCount;
+end;
+procedure __TControlData__Wrapper.setFlags(const val : Integer);
+begin
+TControlData(GetRecordPtr^).Flags := val;
+end;
+function __TControlData__Wrapper.getFlags : Integer;
+begin
+result := TControlData(GetRecordPtr^).Flags;
+end;
+procedure __TControlData__Wrapper.setVersion(const val : Integer);
+begin
+TControlData(GetRecordPtr^).Version := val;
+end;
+function __TControlData__Wrapper.getVersion : Integer;
+begin
+result := TControlData(GetRecordPtr^).Version;
+end;
+procedure __TControlData__Wrapper.setFontCount(const val : Integer);
+begin
+TControlData(GetRecordPtr^).FontCount := val;
+end;
+function __TControlData__Wrapper.getFontCount : Integer;
+begin
+result := TControlData(GetRecordPtr^).FontCount;
+end;
+procedure __TControlData__Wrapper.setPictureCount(const val : Integer);
+begin
+TControlData(GetRecordPtr^).PictureCount := val;
+end;
+function __TControlData__Wrapper.getPictureCount : Integer;
+begin
+result := TControlData(GetRecordPtr^).PictureCount;
+end;
+procedure __TControlData__Wrapper.setReserved(const val : Integer);
+begin
+TControlData(GetRecordPtr^).Reserved := val;
+end;
+function __TControlData__Wrapper.getReserved : Integer;
+begin
+result := TControlData(GetRecordPtr^).Reserved;
+end;
+procedure __TControlData__Wrapper.setInstanceCount(const val : Integer);
+begin
+TControlData(GetRecordPtr^).InstanceCount := val;
+end;
+function __TControlData__Wrapper.getInstanceCount : Integer;
+begin
+result := TControlData(GetRecordPtr^).InstanceCount;
+end;
+procedure __TControlData__Wrapper.setEnumPropDescs(const val : TList);
+begin
+TControlData(GetRecordPtr^).EnumPropDescs := val;
+end;
+function __TControlData__Wrapper.getEnumPropDescs : TList;
+begin
+result := TControlData(GetRecordPtr^).EnumPropDescs;
+end;
+function __TEnumValue__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TEnumValue__Wrapper.setValue(const val : Longint);
+begin
+TEnumValue(GetRecordPtr^).Value := val;
+end;
+function __TEnumValue__Wrapper.getValue : Longint;
+begin
+result := TEnumValue(GetRecordPtr^).Value;
+end;
+procedure __TEnumValue__Wrapper.setIdent(const val : AnsiString);
+begin
+TEnumValue(GetRecordPtr^).Ident := val;
+end;
+function __TEnumValue__Wrapper.getIdent : AnsiString;
+begin
+result := TEnumValue(GetRecordPtr^).Ident;
+end;
+function _TControlData_ : IDispatch;
+begin
+  result := __TControlData__Wrapper.Create;
+end;
+function _TEnumValue_ : IDispatch;
+begin
+  result := __TEnumValue__Wrapper.Create;
+end;
+
+type __TControlData__Wrapper__ = class(__TControlData__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TControlData__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTControlDataToVariant(var R : TControlData) : OleVariant;
+var
+__rw : __TControlData__Wrapper__;
+begin
+__rw := __TControlData__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTControlData(const V : OleVariant) : TControlData;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TControlData((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+
+type __TEnumValue__Wrapper__ = class(__TEnumValue__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TEnumValue__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTEnumValueToVariant(var R : TEnumValue) : OleVariant;
+var
+__rw : __TEnumValue__Wrapper__;
+begin
+__rw := __TEnumValue__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTEnumValue(const V : OleVariant) : TEnumValue;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TEnumValue((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+procedure __RegisterProps;
+begin
+end;
+
+procedure __RegisterConsts0;
+begin
+end;
+
+procedure __UnregisterConsts0;
+begin
+end;
+
+const ClassList : array[0..2] of TClass = (
+EOleCtrlError,
+TEnumPropDesc,
+TEventDispatch
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+const MethodNames : array[0..3] of string = (
+'TControlData'
+,'TEnumValue'
+,'FontToOleFont'
+,'OleFontToFont'
+);
+
+procedure __UnregisterProcs;
+var i : integer;
+begin
+__RegisteredMethods.Free;
+end;
+
+procedure _mreg_0;
+begin
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[0],Addr(_TControlData_)));
+__RegisteredMethods.Add(RegisterRWProc(MethodNames[1],Addr(_TEnumValue_)));
+RegisterProc(nil,MethodNames[2],mtProc,TypeInfo(_T0),[
+TypeInfo(TFont),TypeInfo(Variant)],Addr(FontToOleFont),cRegister);
+
+RegisterProc(nil,MethodNames[3],mtProc,TypeInfo(_T1),[
+TypeInfo(Variant),
+TypeInfo(TFont)],Addr(OleFontToFont),cRegister);
+
+RegRegisterMethod(TEnumPropDesc,'StringToValue',TypeInfo(_T4),[
+TypeInfo(string),TypeInfo(Integer)],Addr(TEnumPropDesc.StringToValue));
+
+RegRegisterMethod(TEnumPropDesc,'ValueToString',TypeInfo(_T5),[
+TypeInfo(Integer),TypeInfo(string)],Addr(TEnumPropDesc.ValueToString));
+
+end;
+initialization
+__RegisteredMethods := TList.Create;
+_mreg_0;
+{RegisterProc(TEnumPropDesc,'Create',mtConstructor,TypeInfo(_T2),[
+TypeInfo(Integer),
+TypeInfo(Integer),
+TypeInfo(ITypeInfo)],Addr(TEnumPropDesc.Create),cRegister)}
+
+{RegRegisterMethod(TEnumPropDesc,'GetStrings',TypeInfo(_T3),[
+TypeInfo(TGetStrProc)],Addr(TEnumPropDesc.GetStrings))}
+
+{RegisterProc(TEventDispatch,'Create',mtConstructor,TypeInfo(_T6),[
+TypeInfo(TOleControl)],Addr(TEventDispatch.Create),cRegister)}
+
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+__UnregisterProcs;
+end.

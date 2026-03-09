@@ -1,0 +1,12 @@
+Whats new in 2.22
+------------------
+
++ Delphi 6 support is added
+
+
+Whats new in 2.21
+-----------------
+
+- Access Violation introduced with 2.2 is fixed
+
+- Sometimes ActiveGroupIndex is not stored correctly

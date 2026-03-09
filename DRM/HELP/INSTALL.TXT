@@ -1,0 +1,13 @@
+InfoTree Help installation is fully automatic, but if some problems still occur
+you can install InfoTree Help manually.
+
+To install the InfoTree Help to Delphi 5 please follow the instructions listed
+below:
+
+1. Make sure that infotree.hlp and infotree.cnt files are in DELPHI5\HELP directory 
+   (if you have installed Delphi to another directory e.g. D5 then 
+    specify it instead of DELPHI5)
+
+2. Find delphi5.cnt file and open it with any text editor. Find INDEX block 
+   and add there a line:
+   :Index InfoTree Help =infotree.hlp

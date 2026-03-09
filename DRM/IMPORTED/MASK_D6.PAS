@@ -1,0 +1,145 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit MASK_D6;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  activex,
+  dcscript,
+  dcsystem,
+  dcdreamlib,
+  Windows,
+  SysUtils,
+  Classes,
+  StdCtrls,
+  Controls,
+  Messages,
+  Forms,
+  Graphics,
+  Menus,
+  MaskUtils,
+  Mask;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type
+_T0 = function : Boolean of object;
+
+_T1 = procedure  of object;
+
+_T2 = function (const p0 : string;
+var p1 : Integer): Boolean of object;
+
+_T3 = _T1;
+
+_T4 = _T1;
+
+_T5 = function : Integer of object;
+
+function __DC__GetTCustomMaskEdit__IsMasked(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCustomMaskEdit(Instance).IsMasked;
+end;
+
+function __DC__GetTCustomMaskEdit__EditText(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCustomMaskEdit(Instance).EditText;
+end;
+
+procedure __DC__SetTCustomMaskEdit__EditText(Instance : TObject; Params : PVariantArgList);
+begin
+TCustomMaskEdit(Instance).EditText:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTCustomMaskEdit__Text(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCustomMaskEdit(Instance).Text;
+end;
+
+procedure __DC__SetTCustomMaskEdit__Text(Instance : TObject; Params : PVariantArgList);
+begin
+TCustomMaskEdit(Instance).Text:=OleVariant(Params^[0]);
+end;
+
+procedure __RegisterProps;
+begin
+RegisterProperty(TCustomMaskEdit,'IsMasked',__DC__GetTCustomMaskEdit__IsMasked,nil);
+RegisterProperty(TCustomMaskEdit,'EditText',__DC__GetTCustomMaskEdit__EditText,__DC__SetTCustomMaskEdit__EditText);
+RegisterProperty(TCustomMaskEdit,'Text',__DC__GetTCustomMaskEdit__Text,__DC__SetTCustomMaskEdit__Text);
+end;
+
+const __ConstNames0 : array[0..2] of string = (
+'msMasked'
+,'msReEnter'
+,'msDBSetText'
+);
+var __RegisteredConstsList0 : TList;
+procedure __RegisterConsts0;
+begin
+__RegisteredConstsList0 := TList.Create;
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[0] ,msMasked));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[1] ,msReEnter));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[2] ,msDBSetText));
+end;
+
+procedure __UnregisterConsts0;
+var i : integer;
+begin
+__RegisteredConstsList0.Free
+end;
+
+const ClassList : array[0..2] of TClass = (
+EDBEditError,
+TCustomMaskEdit,
+TMaskEdit
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+procedure _mreg_0;
+begin
+RegRegisterMethod(TCustomMaskEdit,'EditCanModify',TypeInfo(_T0),[TypeInfo(Boolean)], pointer(228));
+
+RegRegisterMethod(TCustomMaskEdit,'Reset',TypeInfo(_T1),NoParams, pointer(232));
+
+RegRegisterMethod(TCustomMaskEdit,'Validate',TypeInfo(_T2),[
+TypeInfo(string),
+TypeInfo(Integer),TypeInfo(Boolean)], pointer(236));
+
+RegRegisterMethod(TCustomMaskEdit,'ValidateError',TypeInfo(_T3),NoParams, pointer(240));
+
+RegRegisterMethod(TCustomMaskEdit,'ValidateEdit',TypeInfo(_T4),NoParams, pointer(244));
+
+RegRegisterMethod(TCustomMaskEdit,'GetTextLen',TypeInfo(_T5),[TypeInfo(Integer)],Addr(TCustomMaskEdit.GetTextLen));
+
+end;
+initialization
+_mreg_0;
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+end.

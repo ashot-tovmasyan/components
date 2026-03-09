@@ -1,0 +1,24 @@
+Dream InfoTreeGrid
+Version 4.11
+Copyright (c) 1997-2001 Altium Limited
+D3 D4 D5 D6 CPB3 CPB4 CPB5
+
+e-mail: contact@dream-com.com
+   WWW: http://www.dream-com.com
+------------------------------------------------------------
+
+Dream InfoTreeGrid is a components suite that provides your users with 
+an easy way of data browsing. DCInfoTreeGrid can be linked with  unlimited 
+number of datasets for browsing them hierarchically depending on the 
+defined relations.  You can  easily  setup it  for working  with
+master/detail  datasets,  self-referenced tables or with any other custom 
+data.
+
+Multiselect (using keyboard or mouse),  node and column font styles and
+colors,  check boxes / radio buttons,  expand on drag,  auto scroll, 
+a pack of inplace editors and other great features are implemented.
+
+------------------------------------------------------------
+
+Please visit http://www.dream-com.com/itreegrid.html
+for the additional information

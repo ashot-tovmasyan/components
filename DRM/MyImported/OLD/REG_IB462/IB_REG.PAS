@@ -1,0 +1,1214 @@
+unit ib_reg;
+
+interface
+
+implementation
+
+{$R ibbmp.dcr}
+uses
+  Classes, SysUtils, Controls, Forms, Dialogs, db,
+  {dsgnintf,}
+//  DesignIntf, DesignEditors,
+  dcdsgnstuff,
+  typinfo,
+  a_Fldlinks, a_sqledit, {эти 2 файла взяты из Property editors и переделаны для избавления от dblcb50.bpl}
+  IBIntf,
+  IBXConst,
+  IBTransactionEdit,
+  IBDatabaseEdit,
+  IBUpdateSQLEditor,
+  IBTable, IBQuery, IBStoredProc, IBDatabase,
+  IBUpdateSQL, IBCustomDataSet, IBSQL,
+  IBDatabaseInfo, IBSQLMonitor, IBEvents, IBExtract,
+  IBServices, IBInstall,
+  IBBatchMove, DBLogDlg, IBGeneratorEditor, IBUtils,
+  IBServiceEditor, IBRestoreEditor, IBSecurityEditor,
+  IBEventsEditor, IBDCLConst,
+  IB,
+  dctreeed, {Object Explorer for TIBDataSetBaseEditor.Edit}
+  treeinsp;
+
+type
+ { TIBFileNameProperty}
+  TIBFileNameProperty = class(TStringProperty)
+  public
+    procedure Edit; override;
+    function GetAttributes: TPropertyAttributes; override;
+  end;
+
+  { TIBNameProperty}
+  TIBNameProperty = class(TStringProperty)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+  end;
+
+  { TIBStoredProcNameProperty}
+  TIBStoredProcNameProperty = class(TIBNameProperty)
+  public
+    procedure GetValues(Proc: TGetStrProc); override;
+  end;
+
+  { TIBTableNameProperty}
+  TIBTableNameProperty = class(TIBNameProperty)
+  public
+    procedure GetValues(Proc: TGetStrProc); override;
+  end;
+
+  TDBStringProperty = class(TStringProperty)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure GetValueList(List: TStrings); virtual;
+    procedure GetValues(Proc: TGetStrProc); override;
+  end;
+
+  TIBIndexFieldNamesProperty = class(TDBStringProperty)
+  public
+    procedure GetValueList(List: TStrings); override;
+  end;
+
+  TIBIndexNameProperty = class(TDBStringProperty)
+  public
+    procedure GetValueList(List: TStrings); override;
+  end;
+
+  TIBTableFieldLinkProperty = class(TFieldLinkProperty)
+  private
+    FTable: TIBTable;
+  protected
+    function GetIndexFieldNames: string; override;
+    function GetMasterFields: string; override;
+    procedure SetIndexFieldNames(const Value: string); override;
+    procedure SetMasterFields(const Value: string); override;
+  public
+    procedure Edit; override;
+  end;
+
+  { TIBTransactionEditor }
+
+  TIBTransactionEditor = class(TComponentEditor)
+  public
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+{ TIBDatabaseEditor }
+
+  TIBDatabaseEditor = class(TComponentEditor)
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+{ TIBUpdateSQLEditor }
+
+  TIBUpdateSQLEditor = class(TComponentEditor)
+  public
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+   function GetVerbCount: Integer; override;
+  end;
+
+{ TIBGeneratorFieldProperty }
+
+  TIBGeneratorFieldProperty = class(TPropertyEditor)
+  public
+    procedure Edit; override;
+    function  GetAttributes: TPropertyAttributes; override;
+    function  GetValue: string; override;
+  end;
+
+  TIBEventListProperty = class(TClassProperty)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure Edit; override;
+  end;
+
+{ TIBServiceEditor }
+
+  TIBServiceEditor = class(TComponentEditor)
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+  TIBSecurityEditor = class(TIBServiceEditor)
+    procedure ExecuteVerb(Index: Integer); override;
+  end;
+
+  TIBPageSizeProperty = class(TIntegerProperty)
+  public
+    function GetAttributes: TPropertyAttributes; override;
+    procedure GetValues(Proc: TGetStrProc); override;
+  end;
+
+
+  TIBRestoreFilesProperty = class(TClassProperty)
+  public
+    procedure Edit; override;
+    function GetAttributes : TPropertyAttributes; override;
+    function GetValue : String; override;
+  end;
+
+  TIBBackupFilesProperty = class(TPropertyEditor)
+  public
+    procedure Edit; override;
+    function GetAttributes : TPropertyAttributes; override;
+    function GetValue : String; override;
+  end;
+
+  TIBDataSetBaseEditor = class(TComponentEditor)
+  protected
+    IBDataset: TIBCustomDataset;
+    FGetTableNamesProc: TGetTableNamesProc;
+    FGetFieldnamesProc: TGetFieldNamesProc;
+    procedure GetTableNames(List: TStrings; SystemTables: Boolean);
+    procedure GetFieldNames(const TableName: string; List: TStrings);
+    function GetVerbCount: Integer; override;
+    procedure Edit; override;
+  end;
+
+  TIBQueryEditor = class(TIBDataSetBaseEditor)
+  public
+    procedure EditSQL;
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+{ TIBStoredProcEditor }
+
+  TIBStoredProcEditor = class(TIBDataSetBaseEditor)
+  public
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+{ TIBDataSetEditor }
+
+  TIBDataSetEditor = class(TIBDataSetBaseEditor)
+  public
+    procedure EditSQL;
+    procedure ExecuteVerb(Index: Integer); override;
+    function GetVerb(Index: Integer): string; override;
+    function GetVerbCount: Integer; override;
+  end;
+
+  TIBStoredProcParamsProperty = class(TModalCollectEdit)
+  public
+    procedure Edit; override;
+  end;
+
+{ TSQLPropertyEditor }
+
+  TSQLPropertyEditor = class(TClassProperty)
+  protected
+    FGetTableNamesProc: TGetTableNamesProc;
+    FGetFieldnamesProc: TGetFieldNamesProc;
+  public
+    procedure EditSQL;
+    function GetAttributes: TPropertyAttributes; override;
+  end;
+
+{ TIBQuerySQLProperty }
+
+  TIBQuerySQLProperty = class(TSQLPropertyEditor)
+  protected
+    Query: TIBQuery;
+    procedure GetTableNames(List: TStrings; SystemTables: Boolean);
+    procedure GetFieldNames(const TableName: string; List: TStrings);
+  public
+    procedure Edit; override;
+  end;
+
+{ TIBDatasetSQLProperty }
+
+  TIBDatasetSQLProperty = class(TSQLPropertyEditor)
+  protected
+    IBDataset: TIBDataset;
+    procedure GetTableNames(List: TStrings; SystemTables: Boolean);
+    procedure GetFieldNames(const TableName: string; List: TStrings);
+  public
+    procedure Edit; override;
+  end;
+
+  { TIBSQLProperty }
+
+  TIBSQLProperty = class(TSQLPropertyEditor)
+  protected
+    IBSQL: TIBSQL;
+    procedure GetTableNames(List: TStrings; SystemTables: Boolean);
+    procedure GetFieldNames(const TableName: string; List: TStrings);
+  public
+    procedure Edit; override;
+  end;
+
+{ TIBFileNameProperty }
+procedure TIBFileNameProperty.Edit;
+begin
+  with TOpenDialog.Create(nil) do
+    try
+      InitialDir := ExtractFilePath(GetStrValue);
+      Filter := SDatabasefiles;
+      if Execute then
+        SetStrValue(FileName);
+    finally
+      Free
+    end;
+end;
+
+function TIBFileNameProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog];
+end;
+
+  { TIBNameProperty}
+function TIBNameProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paValueList, paSortList];
+end;
+
+{ TIBStoredProcNameProperty}
+procedure TIBStoredProcNameProperty.GetValues(Proc: TGetStrProc);
+var
+   StoredProc : TIBStoredProc;
+   i : integer;
+begin
+    StoredProc := GetComponent(0) as TIBStoredProc;
+    with StoredProc do
+      for I := 0 to StoredProcedureNames.Count - 1 do
+        Proc (StoredProcedureNames[i]);
+end;
+
+{ TIBTableNameProperty }
+
+procedure TIBTableNameProperty.GetValues(Proc: TGetStrProc);
+var
+   TableName : TIBTable;
+   i : integer;
+begin
+  TableName := GetComponent(0) as TIBTable;
+  if Assigned(TableName.DataBase) then
+    with TableName do
+      for I := 0 to TableNames.Count - 1 do
+        Proc (TableNames[i]);
+end;
+
+function TDBStringProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paValueList, paSortList, paMultiSelect];
+end;
+
+procedure TDBStringProperty.GetValueList(List: TStrings);
+begin
+end;
+
+procedure TDBStringProperty.GetValues(Proc: TGetStrProc);
+var
+  I: Integer;
+  Values: TStringList;
+begin
+  Values := TStringList.Create;
+  try
+    GetValueList(Values);
+    for I := 0 to Values.Count - 1 do Proc(Values[I]);
+  finally
+    Values.Free;
+  end;
+end;
+
+function GetPropertyValue(Instance: TPersistent; const PropName: string): TPersistent;
+var
+  PropInfo: PPropInfo;
+begin
+  Result := nil;
+  PropInfo := TypInfo.GetPropInfo(Instance.ClassInfo, PropName);
+  if (PropInfo <> nil) and (PropInfo^.PropType^.Kind = tkClass) then
+    Result := TObject(GetOrdProp(Instance, PropInfo)) as TPersistent;
+end;
+
+function GetIndexDefs(Component: TPersistent): TIndexDefs;
+var
+  DataSet: TDataSet;
+begin
+  DataSet := Component as TDataSet;
+  Result := GetPropertyValue(DataSet, 'IndexDefs') as TIndexDefs; {do not localize}
+  if Assigned(Result) then
+  begin
+    Result.Updated := False;
+    Result.Update;
+  end;
+end;
+
+procedure TIBIndexFieldNamesProperty.GetValueList(List: TStrings);
+var
+  I: Integer;
+  IndexDefs: TIndexDefs;
+begin
+  IndexDefs := GetIndexDefs(GetComponent(0));
+  for I := 0 to IndexDefs.Count - 1 do
+    with IndexDefs[I] do
+      if (Options * [ixExpression, ixDescending] = []) and (Fields <> '') then {do not localize}
+        List.Add(Fields);
+end;
+
+
+{ TIBTableFieldLinkProperty }
+
+procedure TIBTableFieldLinkProperty.Edit;
+begin
+  FTable := DataSet as TIBTable;
+  inherited Edit;
+end;
+
+function TIBTableFieldLinkProperty.GetIndexFieldNames: string;
+begin
+  Result := FTable.IndexFieldNames;
+end;
+
+function TIBTableFieldLinkProperty.GetMasterFields: string;
+begin
+  Result := FTable.MasterFields;
+end;
+
+procedure TIBTableFieldLinkProperty.SetIndexFieldNames(const Value: string);
+begin
+  FTable.IndexFieldNames := Value;
+end;
+
+procedure TIBTableFieldLinkProperty.SetMasterFields(const Value: string);
+begin
+  FTable.MasterFields := Value;
+end;
+
+{ TIBIndexNameProperty }
+
+procedure TIBIndexNameProperty.GetValueList(List: TStrings);
+begin
+  GetIndexDefs(GetComponent(0)).GetItemNames(List);
+end;
+
+{ TIBTransactionEditor }
+
+procedure TIBTransactionEditor.ExecuteVerb(Index: Integer);
+begin
+  case Index of
+    0: if EditIBTransaction(TIBTransaction(Component)) then Designer.Modified;
+  end;
+end;
+
+function TIBTransactionEditor.GetVerb(Index: Integer): string;
+begin
+  case Index of
+    0: Result := SIBTransactionEditor;
+    1: Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+  end;
+end;
+
+function TIBTransactionEditor.GetVerbCount: Integer;
+begin
+  Result := 2;
+end;
+
+{ TIBDatabaseEditor }
+procedure TIBDatabaseEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 : if EditIBDatabase(TIBDatabase(Component)) then Designer.Modified;
+    end;
+  end;
+end;
+
+function TIBDatabaseEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index)
+  else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 : Result := SIBDatabaseEditor;
+      1 : Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBDatabaseEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 2;
+end;
+
+{ TIBUpdateSQLEditor }
+
+procedure TIBUpdateSQLEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 : if EditIBUpdateSQL(TIBUpdateSQL(Component)) then Designer.Modified;
+    end;
+  end;
+end;
+
+function TIBUpdateSQLEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index)
+  else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 : Result := SIBUpdateSQLEditor;
+      1 : Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBUpdateSQLEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 2;
+end;
+
+procedure TIBGeneratorFieldProperty.Edit;
+const
+  GENSQL =
+    'SELECT RDB$GENERATOR_NAME FROM RDB$GENERATORS ' +  {Do not localize}
+    'WHERE RDB$SYSTEM_FLAG = 0 OR RDB$SYSTEM_FLAG is NULL'; {Do not localize}
+var
+  DataSet: TIBCustomDataSet;
+  Gen : TIBGeneratorField;
+  sqlGen : TIBSQL;
+  DidActivate, DidConnect : Boolean;
+  I : Integer;
+begin
+  DidActivate := false;
+  DidConnect := false;
+  DataSet := TIBCustomDataSet(GetComponent(0));
+  if Dataset.Database = nil then
+    IBError(ibxeDatabaseNotAssigned, []);
+  if DataSet.Transaction = nil then
+    IBError(ibxeTransactionNotAssigned, []);
+  with TfrmGeneratorEditor.Create(nil) do
+  try
+    DataSet.FieldDefs.Update;
+    cbxFields.Items.BeginUpdate;
+    try
+      cbxFields.Items.Clear;
+      for I := 0 to DataSet.FieldDefs.Count - 1 do
+        cbxFields.Items.Add(DataSet.FieldDefs[I].Name);
+    finally
+      cbxFields.Items.EndUpdate;
+    end;
+    Gen := TIBGeneratorField(GetOrdProp(DataSet, 'GeneratorField')); {Do not localize}
+    sqlGen := TIBSQL.Create(DataSet.Database);
+    sqlGen.Transaction := DataSet.Transaction;
+    try
+      sqlGen.SQL.Text := GENSQL;
+      if not DataSet.Database.Connected then
+      begin
+        DataSet.Database.Connected := true;
+        DidConnect := true;
+      end;
+      if not DataSet.Transaction.Active then
+      begin
+        DataSet.Transaction.Active := true;
+        DidActivate := true;
+      end;
+      sqlGen.ExecQuery;
+      while not sqlGen.Eof do
+      begin
+        cbxGenerators.Items.Add(sqlGen.Fields[0].AsString);
+        sqlGen.Next;
+      end;
+    finally
+      sqlGen.Free;
+      if DidActivate then
+        DataSet.Transaction.Active := false;
+      if DidConnect then
+        DataSet.Database.Connected := false;
+    end;
+    cbxGenerators.Text := Gen.Generator;
+    cbxFields.Text := Gen.Field;
+    grpApplyEvent.ItemIndex := Ord(Gen.ApplyEvent);
+    Caption := DataSet.Name + ' GeneratorField';  {Do not localize}
+    if ShowModal = mrOK then
+    begin
+      Gen.Generator := Trim(cbxGenerators.Text);
+      Gen.Field := Trim(cbxFields.Text);
+      Gen.ApplyEvent := TIBGeneratorApplyEvent(grpApplyEvent.ItemIndex);
+      Gen.IncrementBy := StrToInt(edtIncrement.Text); 
+      Modified;
+    end;
+  finally
+    Free;
+  end;
+end;
+
+function TIBGeneratorFieldProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paReadOnly];
+end;
+
+function TIBGeneratorFieldProperty.GetValue: string;
+begin
+  Result := TIBGeneratorField(GetOrdProp(GetComponent(0), 'GeneratorField')).ValueName; {Do not localize}
+end;
+
+function TIBEventListProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog] - [paSubProperties];
+end;
+
+procedure TIBEventListProperty.Edit;
+var
+  Events: TStrings;
+begin
+  Events := TStringList.Create;
+  try
+    Events.Assign( TStrings(GetOrdValue));
+    if EditAlerterEvents( Events) then SetOrdValue( longint(Events));
+  finally
+    Events.Free;
+  end;
+end;
+
+
+
+{ TIBServiceEditor }
+
+procedure TIBServiceEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 :
+        if EditIBService(TIBCustomService(Component)) then
+          Designer.Modified;
+    end;
+  end;
+end;
+
+function TIBServiceEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index)
+  else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0 : Result := SIBServiceEditor;
+      1 : Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBServiceEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 2;
+end;
+
+{ TIBSecurityEditor }
+
+procedure TIBSecurityEditor.ExecuteVerb(Index: Integer);
+begin
+  case Index of
+    0 :
+      if EditIBSecurity(TIBCustomService(Component)) then
+        Designer.Modified;
+  end;
+end;
+
+function TIBPageSizeProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paValueList, paSortList];
+end;
+
+procedure TIBPageSizeProperty.GetValues(Proc: TGetStrProc);
+begin
+  Proc('1024'); {do not localize}
+  Proc('2048'); {do not localize}
+  Proc('4096'); {do not localize}
+  Proc('8192'); {do not localize}
+end;
+
+procedure TIBRestoreFilesProperty.Edit;
+var
+  t : TStrings;
+begin
+  t := TStringList.Create;
+  t.Assign(TStrings(GetOrdValue));
+  with TfrmIBRestoreEditor.Create(Application, t) do
+  try
+    if GetName = 'BackupFile' then   {do not localize}
+    begin
+      Caption := SBackupCaption;
+      if GetComponent(0).ClassName = 'TIBBackupService' then   {do not localize}
+        sgDatabaseFiles.Cells[1,0] := SRestoreSize
+      else
+        sgDatabaseFiles.ColCount := 1;
+    end;
+    if ShowModal = mrOK then
+    begin
+      GetStrings(t);
+      SetOrdValue(Longint(t));
+    end;
+  finally
+    t.Free;
+    Free;
+  end;
+end;
+
+function TIBRestoreFilesProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog] - [paSubProperties];
+end;
+
+function TIBRestoreFilesProperty.GetValue: String;
+var
+  t : TStrings;
+begin
+  t := TStrings(GetOrdValue);
+  if t.Count > 0 then
+    Result := t[0]
+  else
+    Result := '';
+end;
+
+{ TIBBackupFilesProperty }
+
+procedure TIBBackupFilesProperty.Edit;
+var
+  t : TStrings;
+begin
+  t := TStrings(GetOrdProp(GetComponent(0), 'BackupFile')); {do not localize}
+  with TfrmIBRestoreEditor.Create(Application, t) do
+  try
+    Caption := SBackupCaption;
+    ShowModal;
+  finally
+    Free;
+  end;
+end;
+
+function TIBBackupFilesProperty.GetAttributes: TPropertyAttributes;
+begin
+  Result := [paDialog, paReadOnly];
+end;
+
+function TIBBackupFilesProperty.GetValue: String;
+var
+  t : TStrings;
+begin
+  t := TStrings(GetOrdProp(GetComponent(0), 'Backupfile')); {do not localize}
+  if t.Count > 0 then
+    Result := t[0]
+  else
+    Result := '';
+end;
+
+{ TIBDataSetBaseEditor }
+
+procedure TIBDataSetBaseEditor.Edit;
+begin
+  EditObject(TDataset(Component),'Fields'); //панацея для запуска RegisterComponentAction Fields Editor
+end;
+
+procedure TIBDataSetBaseEditor.GetFieldNames(const TableName: string;
+  List: TStrings);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBDataset.Database.GetFieldNames(QuoteIdentifier(IBDataset.Database.SQLDialect, TableName), S);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TIBDataSetBaseEditor.GetTableNames(List: TStrings;
+  SystemTables: Boolean);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  // исправлена ошибка с приведением типа  (TStringList(List).Sorted := True);
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBDataset.Database.GetTableNames(S, SystemTables);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+function TIBDataSetBaseEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount;
+end;
+{ TIBQueryEditor }
+
+procedure TIBQueryEditor.EditSQL;
+var
+  SQLText: string;
+  SQL: TStrings;
+begin
+  SQL := TStringList.Create;
+  try
+    SQL.Assign(TIBQuery(Component).SQL);
+    SQLText := SQL.Text;
+    if (a_SQLEdit.EditSQL(SQLText, FGetTableNamesProc, FGetFieldNamesProc)) and
+      (SQL.Text <> SQLText) then
+    begin
+      SQL.Text := SQLText;
+      TIBQuery(Component).SQL.Assign(SQL);
+      Designer.Modified;
+    end;
+  finally
+    SQL.free;
+  end;
+end;
+
+procedure TIBQueryEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    IBDataSet := Component as TIBQuery;
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0: (IBDataSet as TIBQuery).ExecSQL;
+      1:
+      begin
+        if Assigned(IBDataSet.Database) then
+        begin
+          FGetTableNamesProc := GetTableNames;
+          FGetFieldNamesProc := GetFieldNames;
+        end
+        else
+        begin
+          FGetTableNamesProc := nil;
+          FGetFieldNamesProc := nil;
+        end;
+        EditSQL;
+      end;
+    end;
+  end;
+end;
+
+function TIBQueryEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0: Result := SExecute;
+      1: Result := SEditSQL;
+      2: Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBQueryEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 3;
+end;
+
+{ TIBStoredProcEditor }
+
+procedure TIBStoredProcEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    if Index = 0 then
+      (Component as TIBStoredProc).ExecProc;
+  end;
+end;
+
+function TIBStoredProcEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0: Result := SExecute;
+      1: Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBStoredProcEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 2;
+end;
+
+procedure TIBDataSetEditor.EditSQL;
+var
+  SQLText: string;
+  SQL: TStrings;
+begin
+  SQL := TStringList.Create;
+  try
+    SQL.Assign(TIBDataset(Component).SelectSQL);
+    SQLText := SQL.Text;
+    if (a_SQLEdit.EditSQL(SQLText, FGetTableNamesProc, FGetFieldNamesProc)) and
+      (SQL.Text <> SQLText) then
+    begin
+      SQL.Text := SQLText;
+      TIBDataset(Component).SelectSQL.Assign(SQL);
+      Designer.Modified;
+    end;
+  finally
+    SQL.free;
+  end;
+end;
+
+procedure TIBDataSetEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index < inherited GetVerbCount then
+    inherited ExecuteVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0:
+        if EditIBDataSet(TIBDataSet(Component)) then
+          Designer.Modified;
+      1: (Component as TIBDataSet).ExecSQL;
+      2:
+      begin
+        IBDataset := Component as TIBDataset;
+        if Assigned(IBDataSet.Database) then
+        begin
+          FGetTableNamesProc := GetTableNames;
+          FGetFieldNamesProc := GetFieldNames;
+        end
+        else
+        begin
+          FGetTableNamesProc := nil;
+          FGetFieldNamesProc := nil;
+        end;
+        EditSQL;
+      end;
+    end;
+  end;
+end;
+
+function TIBDataSetEditor.GetVerb(Index: Integer): string;
+begin
+  if Index < inherited GetVerbCount then
+    Result := inherited GetVerb(Index) else
+  begin
+    Dec(Index, inherited GetVerbCount);
+    case Index of
+      0: Result := SIBDataSetEditor;
+      1: Result := SExecute;
+      2: Result := SEditSQL;
+      3: Result := Format(SInterbaseExpressVersionEx, [IBX_Version]);
+    end;
+  end;
+end;
+
+function TIBDataSetEditor.GetVerbCount: Integer;
+begin
+  Result := inherited GetVerbCount + 4;
+end;
+
+{ TIBStoredProcParamsProperty }
+
+procedure TIBStoredProcParamsProperty.Edit;
+var
+  StoredProc: TIBStoredProc;
+  Params: TParams;
+begin
+  StoredProc := (GetComponent(0) as TIBStoredProc);
+  Params := TParams.Create(nil);
+  try
+    StoredProc.CopyParams(Params);
+  finally
+    Params.Free;
+  end;
+  inherited Edit;
+end;
+
+{ TSQLPropertyEditor }
+
+procedure TSQLPropertyEditor.EditSQL;
+var
+  SQLText: string;
+  SQL: TStrings;
+begin
+  SQL := TStringList.Create;
+  try
+    SQL.Assign(TStrings(GetOrdValue));
+    SQLText := SQL.Text;
+    if (a_SQLEdit.EditSQL(SQLText, FGetTableNamesProc, FGetFieldNamesProc)) and
+      (SQL.Text <> SQLText) then
+    begin
+      SQL.Text := SQLText;
+      SetOrdValue(LongInt(SQL));
+      Designer.Modified;
+    end;
+  finally
+    SQL.free;
+  end;
+end;
+
+function TSQLPropertyEditor.GetAttributes: TPropertyAttributes;
+begin
+  Result := inherited GetAttributes + [paDialog] - [paSubProperties];
+end;
+
+{ TIBQuerySQLProperty }
+
+procedure TIBQuerySQLProperty.Edit;
+begin
+  Query := TIBQuery(GetComponent(0));
+  if Assigned(Query.Database) then
+  begin
+    FGetTableNamesProc := GetTableNames;
+    FGetFieldNamesProc := GetFieldNames;
+  end
+  else
+  begin
+    FGetTableNamesProc := nil;
+    FGetFieldNamesProc := nil;
+  end;
+  EditSQL;
+end;
+
+procedure TIBQuerySQLProperty.GetFieldNames(const TableName: string;
+  List: TStrings);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    Query.Database.GetFieldNames(QuoteIdentifier(Query.Database.SQLDialect, TableName), S);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TIBQuerySQLProperty.GetTableNames(List: TStrings;
+  SystemTables: Boolean);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  // исправлена ошибка с приведением типа  (TStringList(List).Sorted := True);
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    Query.Database.GetTableNames(S, SystemTables);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TIBDatasetSQLProperty.Edit;
+begin
+  IBDataset := TIBDataset(GetComponent(0));
+  if Assigned(IBDataSet.Database) then
+  begin
+    FGetTableNamesProc := GetTableNames;
+    FGetFieldNamesProc := GetFieldNames;
+  end
+  else
+  begin
+    FGetTableNamesProc := nil;
+    FGetFieldNamesProc := nil;
+  end;
+  EditSQL;
+end;
+
+procedure TIBDatasetSQLProperty.GetFieldNames(const TableName: string;
+  List: TStrings);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBDataset.Database.GetFieldNames(QuoteIdentifier(IBDataset.Database.SQLDialect, TableName), S);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TIBDatasetSQLProperty.GetTableNames(List: TStrings;
+  SystemTables: Boolean);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  // исправлена ошибка с приведением типа  (TStringList(List).Sorted := True);
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBDataset.Database.GetTableNames(S, SystemTables);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+{ TIBSQLProperty }
+
+procedure TIBSQLProperty.Edit;
+begin
+  IBSQL := TIBSQL(GetComponent(0));
+  if Assigned(IBSQL.Database) then
+  begin
+    FGetTableNamesProc := GetTableNames;
+    FGetFieldNamesProc := GetFieldNames;
+  end
+  else
+  begin
+    FGetTableNamesProc := nil;
+    FGetFieldNamesProc := nil;
+  end;
+  EditSQL;
+end;
+
+procedure TIBSQLProperty.GetFieldNames(const TableName: string;
+  List: TStrings);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBSQL.Database.GetFieldNames(QuoteIdentifier(IBSQL.Database.SQLDialect, TableName), S);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure TIBSQLProperty.GetTableNames(List: TStrings;
+  SystemTables: Boolean);
+var
+  S : TStringList;
+  i : Integer;
+begin
+  // исправлена ошибка с приведением типа  (TStringList(List).Sorted := True);
+  List.Clear;
+  S := TStringList.Create;
+  try
+    S.sorted := true;
+    IBSQL.Database.GetTableNames(S, SystemTables);
+    for i := 0 to S.Count - 1 do
+      List.Add(S[i]);
+  finally
+    S.Free;
+  end;
+end;
+
+procedure _InstantRegister;
+var
+  IB60Client : Boolean;
+begin
+  RegisterComponents('InterBase', [TDataSource, TIBTable, TIBQuery,
+    TIBStoredProc, TIBDatabase, TIBTransaction, TIBUpdateSQL,
+    TIBDataSet, TIBSQL, TIBDatabaseInfo, TIBSQLMonitor, TIBEvents, TIBExtract]);
+  IB60Client := False;
+  try
+    IB60Client := (GetIBClientVersion >= 6);
+    if (TryIBLoad) and IB60Client then
+      RegisterComponents('InterBase Admin', [TIBConfigService, TIBBackupService,
+        TIBRestoreService, TIBValidationService, TIBStatisticalService,
+        TIBLogService, TIBSecurityService, TIBServerProperties, TIBLicensingService,
+        TIBInstall, TIBUninstall]);
+  except
+  end;
+
+//  RegisterNoIcon([TIBStringField, TIBBCDField]); регистрация полей добавлена в vcldbreg
+//  SafeRegisterClasses([TIBStringField, TIBBCDField]);
+//  RegisterFields([TIBStringField, TIBBCDField]); //не работает
+
+  RegisterPropertyEditor(TypeInfo(TIBFileName), TIBDatabase, 'DatabaseName', TIBFileNameProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(string), TIBStoredProc, 'StoredProcName', TIBStoredProcNameProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(string), TIBTable, 'TableName', TIBTableNameProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(string), TIBTable, 'IndexName', TIBIndexNameProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(string), TIBTable, 'IndexFieldNames', TIBIndexFieldNamesProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(string), TIBTable, 'MasterFields', TIBTableFieldLinkProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(TStrings), TIBEvents, 'Events', TIBEventListProperty); {do not localize} //не такой уж важный эдитор
+  RegisterPropertyEditor(TypeInfo(TIBGeneratorField), TIBDataset, 'GeneratorField', TIBGeneratorFieldProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(TIBGeneratorField), TIBQuery, 'GeneratorField', TIBGeneratorFieldProperty); {do not localize}
+
+  RegisterPropertyEditor(TypeInfo(TParams), TIBStoredProc, 'Params', TIBStoredProcParamsProperty);
+  RegisterPropertyEditor(TypeInfo(TStrings), TIBQuery, 'SQL', TIBQuerySQLProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(TStrings), TIBDataSet, 'SelectSQL', TIBDatasetSQLProperty); {do not localize}
+  RegisterPropertyEditor(TypeInfo(TStrings), TIBSQL, 'SQL', TIBSQLProperty); {do not localize}
+
+  RegisterComponentEditor(TIBDatabase, TIBDatabaseEditor);
+  RegisterComponentEditor(TIBTransaction, TIBTransactionEditor);
+  RegisterComponentEditor(TIBUpdateSQL, TIBUpdateSQLEditor);
+
+  RegisterComponentEditor(TIBTable, TIBDataSetBaseEditor);
+  RegisterComponentEditor(TIBQuery, TIBQueryEditor);
+  RegisterComponentEditor(TIBDataSet, TIBDataSetEditor);
+  RegisterComponentEditor(TIBStoredProc, TIBStoredProcEditor);
+
+  if IB60Client then
+  begin
+    RegisterComponentEditor(TIBConfigService, TIBServiceEditor);
+    RegisterComponentEditor(TIBBackupService, TIBServiceEditor);
+    RegisterComponentEditor(TIBLogService, TIBSecurityEditor);
+    RegisterComponentEditor(TIBRestoreService, TIBSecurityEditor);
+    RegisterComponentEditor(TIBSecurityService, TIBSecurityEditor);
+    RegisterComponentEditor(TIBServerProperties, TIBSecurityEditor);
+    RegisterPropertyEditor(TypeInfo(Integer), TIBRestoreService, 'PageSize', TIBPageSizeProperty);  {do not localize}
+    RegisterPropertyEditor(TypeInfo(TStrings), TIBRestoreService, 'DataBaseName', TIBRestoreFilesProperty); {do not localize}
+    RegisterPropertyEditor(TypeInfo(TStrings), TIBRestoreService, 'BackupFile', TIBRestoreFilesProperty); {do not localize}
+    RegisterPropertyEditor(TypeInfo(TStrings), TIBBackupService, 'BackupFile', TIBRestoreFilesProperty); {do not localize}
+  end;
+end;
+
+procedure RunRegister;
+begin
+  _InstantRegister;
+end;
+
+
+initialization
+  RunRegister;
+end.

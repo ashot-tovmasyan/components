@@ -1,0 +1,7 @@
+[Directories]
+DebugSourceDirs=
+SearchPath=..\..\..\units;..\..\units;..\;..\..\..\IMPORTED;..\..\IMPORTED
+PackageDCPOutputDir=
+PackageDLLOutputDir=
+UnitOutputDir=
+OutputDir=

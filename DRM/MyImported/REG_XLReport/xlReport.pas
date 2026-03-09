@@ -1,0 +1,5336 @@
+{*******************************************************************}
+{                                                                   }
+{       AfalinaSoft Visual Component Library                        }
+{       XL Report 4.0 with XLOptionPack  Technology                 }
+{                                                                   }
+{       Copyright (C) 1998, 2002 Afalina Co., Ltd.                  }
+{       ALL RIGHTS RESERVED                                         }
+{                                                                   }
+{   The entire contents of this file is protected by U.S. and       }
+{   International Copyright Laws. Unauthorized reproduction,        }
+{   reverse-engineering, and distribution of all or any portion of  }
+{   the code contained in this file is strictly prohibited and may  }
+{   result in severe civil and criminal penalties and will be       }
+{   prosecuted to the maximum extent possible under the law.        }
+{                                                                   }
+{   RESTRICTIONS                                                    }
+{                                                                   }
+{   THIS SOURCE CODE AND ALL RESULTING INTERMEDIATE FILES           }
+{   (DCU, OBJ, DLL, ETC.) ARE CONFIDENTIAL AND PROPRIETARY TRADE    }
+{   SECRETS OF AFALINA CO.,LTD. THE REGISTERED DEVELOPER IS         }
+{   LICENSED TO DISTRIBUTE THE XL REPORT AND ALL ACCOMPANYING VCL   }
+{   COMPONENTS AS PART OF AN EXECUTABLE PROGRAM ONLY.               }
+{                                                                   }
+{   THE SOURCE CODE CONTAINED WITHIN THIS FILE AND ALL RELATED      }
+{   FILES OR ANY PORTION OF ITS CONTENTS SHALL AT NO TIME BE        }
+{   COPIED, TRANSFERRED, SOLD, DISTRIBUTED, OR OTHERWISE MADE       }
+{   AVAILABLE TO OTHER INDIVIDUALS WITHOUT WRITTEN CONSENT          }
+{   AND PERMISSION FROM AFALINA CO., LTD.                           }
+{                                                                   }
+{   CONSULT THE END USER LICENSE AGREEMENT FOR INFORMATION ON       }
+{   ADDITIONAL RESTRICTIONS.                                        }
+{                                                                   }
+{*******************************************************************}
+
+unit xlReport;
+
+{$I xlcDefs.inc}
+
+interface
+
+uses Classes, ComObj, Controls, ActiveX, OleCtnrs, SysUtils, Windows, Forms, Dialogs,
+  Clipbrd, DDEML, DDEMan,
+  {$IFDEF XLR_VCL4}
+    OleCtrls,
+  {$ENDIF XLR_VCL4}
+  {$IFDEF XLR_VCL6}
+    Variants,
+  {$ENDIF XLR_VCL6}
+  {$IFNDEF XLR_AX}
+    DB,
+  {$ENDIF}
+  {$IFDEF XLR_TRIAL}
+    ShellAPI,
+  {$ENDIF}
+  Excel8G2, VBIDE8G2, Office8G2, xlcUtils, xlcOPack, xlcClasses, xlStdOPack
+  , MainCnct; (*ÏÐÈÂßÇÊÀ Ê DbProjectDirectory*)
+
+type
+
+{ Forward declaration of XL Report classes }
+
+  TxlExcelReport = class;
+  TxlExcelDataSource = class;
+  TxlExcelDataSources = class;
+{$IFNDEF XLR_AX}
+  TxlDataSource = class;
+  TxlDataSources = class;
+  TxlReport = class;
+{$ENDIF}
+
+  ExlReportError = xlcClasses.ExlReportError;
+
+{ Excel interfaces }
+
+{$IFDEF XLR_BCB}
+  IxlApplication = OLEVariant;
+  IxlWorkbooks = OLEVariant;
+  IxlWorkbook = OLEVariant;
+  IxlWorksheets = OLEVariant;
+  IxlWorksheet = OLEVariant;
+  IxlNames = OLEVariant;
+  IxlName = OLEVariant;
+  IxlRange = OLEVariant;
+  IxlWorksheetFunction = OLEVariant;
+  IxlPivotTable = OLEVariant;
+  IxlPivotField = OLEVariant;
+  IxlShape = OLEVariant;
+  IxlVBComponent = OLEVariant;
+  IxlCharacters = OLEVariant;
+{$ELSE}
+  IxlApplication = Excel8G2._Application;
+  IxlWorkbooks = Excel8G2.Workbooks;
+  IxlWorkbook = Excel8G2._Workbook;
+  IxlWorksheets = Excel8G2.Sheets;
+  IxlWorksheet = Excel8G2._Worksheet;
+  IxlNames = Excel8G2.Names;
+  IxlName = Excel8G2.Name;
+  IxlRange = Excel8G2.Range;
+  IxlWorksheetFunction = Excel8G2.WorksheetFunction;
+  IxlPivotTable = Excel8G2.PivotTable;
+  IxlPivotField = Excel8G2.PivotField;
+  IxlShape = Excel8G2.Shape;
+  IxlVBComponent = OLEVariant;
+  IxlCharacters = Excel8G2.Characters;
+{$ENDIF}
+
+{ Additional types }
+
+  // Report options
+  TxlReportOptions = (xroOptimizeLaunch, xroNewInstance, xroDisplayAlerts, xroAddToMRU,
+    xroAutoSave, xroUseTemp, xroAutoOpen, xroAutoClose, xroHideExcel, xroSaveClipboard,
+    xroRefreshParams);
+  TxlReportOptionsSet = set of TxlReportOptions;
+
+  // Range options
+  TxlRangeOptions = (xrgoAutoOpen, xrgoAutoClose, xrgoPreserveRowHeight);
+  TxlRangeOptionsSet = set of TxlRangeOptions;
+
+  // Data export mode
+  TxlDataExportMode = (xdmCSV, xdmVariant, xdmDDE);
+
+{ TxlExcelDataSource class }
+
+  TxlExcelDataSource = class(TxlAbstractDataSource)
+  private
+    FBuff: TObject;
+    FRowOffset: integer;
+    FOptions: TxlRangeOptionsSet;
+    FRows: OLEVariant;
+    FHeights: OLEVariant;
+    FRootRanges: OLEVariant;
+    FRanges: OLEVariant;
+    FRangesCount: integer;
+    FDeleteSpecialRow: boolean;
+    FSR: integer;
+    FAllowOptions: boolean;
+    // used interfaces
+    FIXLSApp: IxlApplication;
+    FINames: IxlNames;
+    FIName: IxlName;
+    FIRange: IxlRange;
+    FIWorkbook: IxlWorkbook;
+    FIWorkbooks: IxlWorkbooks;
+    FITempSheet: IxlWorksheet;
+    FISheet: IxlWorksheet;
+    FIWorksheets: IxlWorksheets;
+    FIMergedRows, FIUnMergedRows: IxlRange;
+    function GetReport: TxlExcelReport;
+    function GetMasterSource: TxlExcelDataSource;
+    procedure SetMasterSource(const Value: TxlExcelDataSource);
+    function GetRoot: TxlExcelDataSource;
+    function GetLevel: integer;
+    function GetMaxLevel: integer;
+    procedure SetOptions(const Value: TxlRangeOptionsSet);
+    function GetDataSources: TxlExcelDataSources;
+  protected
+    procedure Connect; override;
+    procedure Disconnect; override;
+    procedure MacroProcessing(const MacroType: TxlMacroType;
+      const MacroName: string); override;
+    // Template parsing
+    procedure GetRangeInfo(var ARow, AColumn, ARowCount, AColCount: integer;
+      var Formulas, RowCaptions: OLEVariant); override;
+    procedure ScanParsedCells(Formulas: OLEVariant); override;
+    // Data transfer
+    procedure PutNoRange; override;
+    procedure PutRange; override;
+    procedure PutRoot; override;                    
+    // Options processing
+    procedure OptionsProcessing; override;
+    // Events
+    procedure DoOnMacro(const MacroType: TxlMacroType; const MacroName: string;
+      var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13,
+      Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25,
+      Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant); override;
+    procedure DoOnBeforeDataTransfer; override;
+    procedure DoOnAfterDataTransfer; override;
+    // Properties
+    property DataSources: TxlExcelDataSources read GetDataSources;
+    property Report: TxlExcelReport read GetReport;
+    //
+    property Alias;
+    property Range;
+    property MasterSource: TxlExcelDataSource read GetMasterSource write SetMasterSource;
+    property Options: TxlRangeOptionsSet read FOptions
+      write SetOptions default [xrgoAutoOpen, xrgoPreserveRowHeight];
+  public
+    constructor Create(ACollection: TCollection); override;
+    // Used interfaces
+    property IXLSApp: IxlApplication read FIXLSApp;
+    property IWorkbooks: IxlWorkbooks read FIWorkbooks;
+    property IWorkbook: IxlWorkbook read FIWorkbook;
+    property INames: IxlNames read FINames;
+    property IName: IxlName read FIName;
+    property IWorksheets: IxlWorksheets read FIWorksheets;
+    property IWorksheet: IxlWorksheet read FISheet;
+    property ITempSheet: IxlWorksheet read FITempSheet;
+    property IRange: IxlRange read FIRange;
+  end;
+
+{ TxlExcelDataSources collection class }
+
+  TxlExcelDataSources = class(TxlAbstractDataSources)
+  private
+    function GetItem(Index: integer): TxlExcelDataSource;
+    procedure SetItem(Index: integer; const Value: TxlExcelDataSource);
+    function GetReport: TxlExcelReport;
+  protected
+  public
+    function Add: TxlExcelDataSource;
+    property Report: TxlExcelReport read GetReport;
+    property Items[Index: integer]: TxlExcelDataSource read GetItem write SetItem; default;
+  end;
+
+{ TxlExcelReportParam }
+
+  TxlExcelReportParam = class(TxlAbstractParameter)
+  private
+    function GetReport: TxlExcelReport;
+  protected
+    property Report: TxlExcelReport read GetReport;
+  end;
+
+{ TxlExcelReportParams }           
+
+  TxlExcelReportParams = class(TxlAbstractParameters)
+  private
+    function GetItem(Index: integer): TxlExcelReportParam;
+    function GetReport: TxlExcelReport;
+    procedure SetItem(Index: integer; const Value: TxlExcelReportParam);
+  protected
+    procedure Build; override;
+  public
+    function Add: TxlExcelReportParam;
+    property Items[Index: integer]: TxlExcelReportParam read GetItem write SetItem; default;
+    property Report: TxlExcelReport read GetReport;
+  end;
+
+
+{ TxlExcelReport class }
+
+  TxlExcelReport = class(TxlAbstractReport)
+  private
+    FTemplateRow: integer;
+    FNoRangeRow: integer;
+    FActiveSheetName: string;
+    FLastActiveSheetName: string;
+    FTemplateFileName: string;
+    FOptions: TxlReportOptionsSet;
+    FTempPath: string;
+    FDataMode: TxlDataExportMode;
+    FOLEContainer: TOLEContainer;
+    FPreview: boolean;
+    FDebug: boolean;
+    FMerged: boolean;
+    FLastWorkbookName: string;
+    FMSAlias: string;
+    FMSField: string;
+    FLastWindowState: TOLEEnum;
+    FLastLeft, FLastTop: double;
+    // used interfaces
+    FIXLApp: IxlApplication;
+    FIWorkbook: IxlWorkbook;
+    FIWorkbooks: IxlWorkbooks;
+    FINames: IxlNames;
+    FIWorksheets: IxlWorksheets;
+    FITempSheet: IxlWorksheet;
+    FIMultiSheet: IxlWorksheet;
+    FIWorksheetFunction: IxlWorksheetFunction;
+    FIModule: IxlVBComponent;
+    procedure SetOptions(const Value: TxlReportOptionsSet);
+    procedure SetTempPath(const Value: string);
+    procedure SetDataSources(const Value: TxlExcelDataSources);
+    function GetDataSources: TxlExcelDataSources;
+    function GetParams: TxlExcelReportParams;
+    procedure SetParams(const Value: TxlExcelReportParams);
+    function GetParamByName(Name: string): TxlExcelReportParam;
+    procedure SetMSAlias(const Value: string);
+  protected
+    //
+    function CreateParams: TxlAbstractParameters; override;
+    //
+    procedure Connect; override;
+    procedure Disconnect; override;
+    procedure BeforeBuild; override;
+    procedure AfterBuild; override;
+    procedure MacroProcessing(const MacroType: TxlMacroType; const MacroName: string); override;
+    procedure Parse; override;
+    procedure Show; override;
+    procedure OptionsProcessing; override;
+    procedure ErrorProcessing(E: Exception; var Raised: boolean); override;
+    procedure SaveInTempFile; virtual;
+    procedure RefreshParams(const ClearParams: boolean); override;
+    // events
+    procedure DoOnBeforeBuild; override;
+    procedure DoOnAfterBuild; override;
+    procedure DoOnMacro(const MacroType: TxlMacroType; const MacroName: string;
+      var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13,
+      Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25,
+      Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant); override;
+    procedure DoOnProgress(const Position, Max: integer); override;
+    procedure DoOnBeforeWorkbookSave(var WorkbookFileName, WorkbookFilePath: string;
+      Save: boolean); virtual;
+    procedure DoOnTargetBookSheetName(ISourceSheet: IxlWorksheet; ITargetWorkbook: IxlWorkbook;
+      var SheetName: string); virtual;
+    //
+    procedure MultisheetReport(const MultisheetDataSourceAlias, MultisheetFieldName: string); virtual;
+    // properties
+    property DataSources: TxlExcelDataSources read GetDataSources write SetDataSources;
+    property ActiveSheet: string read FActiveSheetName write FActiveSheetName;
+    property XLSTemplate: string read FTemplateFileName write FTemplateFileName;
+    property TempPath: string read FTempPath write SetTempPath;
+    property DataExportMode: TxlDataExportMode read FDataMode
+      write FDataMode default xdmDDE;
+    property OLEContainer: TOLEContainer read FOLEContainer write FOLEContainer;
+    property Preview: boolean read FPreview write FPreview;
+    property MacroBefore;
+    property MacroAfter;
+    property Debug: boolean read FDebug write FDebug;
+    property Params: TxlExcelReportParams read GetParams write SetParams;
+    property ParamByName[Name: string]: TxlExcelReportParam read GetParamByName;
+    property MultisheetAlias: string read FMSAlias write SetMSAlias;
+    property MultisheetField: string read FMSField write FMSField;
+  public
+    constructor Create(AOwner: TComponent); override;
+    // class methods
+    class function GetOptionMap: TxlOptionMap; override;
+    class procedure ReleaseExcelApplication;
+    class procedure ConnectToExcelApplication(OLEObject: OLEVariant);
+    //
+    procedure Report; override;
+    procedure ReportTo(const WorkbookName: string; const NewWorkbookName: string = ''); virtual;
+    {$IFNDEF XLR_BCB}
+    class procedure MergeReports(Reports: array of TxlExcelReport; SheetPrefixes: array of string); virtual;
+    {$ENDIF}
+    property Options: TxlReportOptionsSet read FOptions write SetOptions
+      default [xroDisplayAlerts, xroAutoOpen];
+    // used interfaces
+    property IXLSApp: IxlApplication read FIXLApp;
+    property IWorkbooks: IxlWorkbooks read FIWorkbooks;
+    property IWorkbook: IxlWorkbook read FIWorkbook;
+    property INames: IxlNames read FINames;
+    property IWorksheets: IxlWorksheets read FIWorksheets;
+    property ITempSheet: IxlWorksheet read FITempSheet;
+    property IWorksheetFunction: IxlWorksheetFunction read FIWorksheetFunction;
+    property IModule: IxlVBComponent read FIModule;
+  end;
+
+{$IFNDEF XLR_AX}
+
+{ New XL Report 4.0 classes }
+
+  // OnBefore/AfterBuild event handler
+  TxlReportHandleEvent = procedure (Report: TxlReport) of object;
+
+  // OnBefore/AfterDataTransfer
+  TxlDataTransferHandleEvent = procedure (DataSource: TxlDataSource) of object;
+
+  // OnMacro event handler
+  TxlOnMacro = procedure (Report: TxlReport; DataSource: TxlDataSource;
+    const AMacroType: TxlMacroType; const AMacroName: string;
+    var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10,
+    Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20,
+    Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant) of object;
+
+  // Save to selected file  event handler
+  TxlOnBeforeWorkbookSave = procedure (Report: TxlReport;
+    var WorkbookName, WorkbookPath: string; Save: boolean) of object;
+
+  // Progress
+  TxlOnProgress = procedure (Report: TxlReport; const Position, Max: integer) of object;
+
+  // OnTargetBookSheetName
+  TxlOnTargetBookSheetName = procedure (Report: TxlReport; ISheet: IxlWorksheet; ITargetWorkbook: IxlWorkbook;
+    var WorksheetName: string) of object;
+
+  // OnGetDataSourceInfo
+  TxlGetDataSourceInfo = procedure (DataSource: TxlDataSource; var FieldCount: integer) of object;
+
+  // OnGetFieldInfo
+  TxlGetFieldInfo = procedure (DataSource: TxlDataSource; const FieldIndex: integer;
+    var FieldName: string; var FieldType: TxlDataType) of object;
+
+  // OnGetRecord
+  TxlGetRecord = procedure (DataSource: TxlDataSource; const RecNo: integer;
+    var Values: OLEVariant; var EOF: boolean) of object;
+
+{ TxlDataSource class }
+
+  TxlDataSource = class(TxlExcelDataSource)
+  private
+    FDataSet: TDataSet;
+    // events
+    FBeforeTransfer: TxlDataTransferHandleEvent;
+    FAfterTransfer: TxlDataTransferHandleEvent;
+    FOnMacro: TxlOnMacro;
+    FOnGetDataSourceInfo: TxlGetDataSourceInfo;
+    FOnGetRecord: TxlGetRecord;
+    FOnGetFieldInfo: TxlGetFieldInfo;
+    function GetReport: TxlReport;
+    procedure SetDataSet(const Value: TDataSet);
+  protected
+    // Create DataSet wrapper
+    function CreateXLDataSet: TxlAbstractDataSet; override;
+    procedure DoOnMacro(const MacroType: TxlMacroType; const MacroName: string;
+      var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13,
+      Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25,
+      Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant); override;
+    procedure DoOnBeforeDataTransfer; override;
+    procedure DoOnAfterDataTransfer; override;
+  public
+    property Report: TxlReport read GetReport;
+    // Used interfaces
+    property IXLSApp;
+    property IWorkbooks;
+    property IWorkbook;
+    property INames;
+    property IName;
+    property IWorksheets;
+    property IWorksheet;
+    property ITempSheet;
+    property IRange;
+    // New in v.4.0
+    property MasterSource;
+    property RangeType;
+    property Row;
+    property Column;
+    property RowCount;
+    property ColCount;
+  published
+    property DataSet: TDataSet read FDataSet write SetDataSet;
+    property Alias;
+    property Range;
+    property MacroBefore;
+    property MacroAfter;
+    property Options;
+    property Enabled;
+    property Tag;
+    // New in v.4.0
+    property MasterSourceName;
+    // Events
+    property OnBeforeDataTransfer: TxlDataTransferHandleEvent read FBeforeTransfer
+      write FBeforeTransfer;
+    property OnAfterDataTransfer: TxlDataTransferHandleEvent read FAfterTransfer
+      write FAfterTransfer;
+    property OnMacro: TxlOnMacro read FOnMacro write FOnMacro;
+    // Unbound data events - new in v.4.0 
+    property OnGetDataSourceInfo: TxlGetDataSourceInfo read FOnGetDataSourceInfo
+      write FOnGetDataSourceInfo;
+    property OnGetFieldInfo: TxlGetFieldInfo read FOnGetFieldInfo write FOnGetFieldInfo;
+    property OnGetRecord: TxlGetRecord read FOnGetRecord write FOnGetRecord;
+  end;
+
+{ TxlDataSources collection class }
+
+  TxlDataSources = class(TxlExcelDataSources)
+  private
+    // properties
+    function GetItem(Index: integer): TxlDataSource;
+    procedure SetItem(Index: integer; const Value: TxlDataSource);
+    function GetReport: TxlReport;
+  protected
+  public
+    function Add: TxlDataSource;
+    property Report: TxlReport read GetReport;
+    property Items[Index: integer]: TxlDataSource read GetItem write SetItem; default;
+  end;
+
+{ TxlReportParam }
+
+  TxlReportParam = class(TxlExcelReportParam)
+  private
+    function GetReport: TxlReport;
+  public
+    property Report: TxlReport read GetReport;
+  published
+    property Name;
+    property Value;
+  end;
+
+{ TxlReportParams }
+
+  TxlReportParams = class(TxlExcelReportParams)
+  private
+    function GetItem(Index: integer): TxlReportParam;
+    function GetReport: TxlReport;
+    procedure SetItem(Index: integer; const Value: TxlReportParam);
+  public
+    function Add: TxlReportParam;
+    property Items[Index: integer]: TxlReportParam read GetItem write SetItem; default;
+    property Report: TxlReport read GetReport;
+  end;
+
+{ TxlReport class }
+
+  TxlReport = class(TxlExcelReport)
+  private
+    // events
+    FOnMacro: TxlOnMacro;
+    FOnBeforeWorkbookSave: TxlOnBeforeWorkbookSave;
+    FOnAfterBuild: TxlReportHandleEvent;
+    FOnBeforeBuild: TxlReportHandleEvent;
+    FOnProgress: TxlOnProgress;
+    FOnTargetBookSheetName: TxlOnTargetBookSheetName;
+    function GetDataSources: TxlDataSources;
+    procedure SetDataSources(const Value: TxlDataSources);
+    function GetParams: TxlReportParams;
+    procedure SetParams(const Value: TxlReportParams);
+    function GetParamByName(Name: string): TxlReportParam;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function CreateDataSources: TxlAbstractDataSources; override;
+    function CreateParams: TxlAbstractParameters; override;
+    procedure DoOnBeforeBuild; override;
+    procedure DoOnAfterBuild; override;
+    procedure DoOnMacro(const MacroType: TxlMacroType; const MacroName: string;
+      var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13,
+      Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25,
+      Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant); override;
+    procedure DoOnProgress(const Position, Max: integer); override;
+    procedure DoOnBeforeWorkbookSave(var WorkbookFileName, WorkbookFilePath: string;
+      Save: boolean); override;
+    procedure DoOnTargetBookSheetName(ISourceSheet: IxlWorksheet; ITargetWorkbook: IxlWorkbook;
+      var SheetName: string); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    // compatibility methods
+    constructor CreateEx(AOwner: TComponent;
+                       AXLSTemplate: string;
+                       AActiveSheet: string = '';
+                       AMacroBefore: string = '';
+                       AMacroAfter: string = '';
+                       AOptions: TxlReportOptionsSet = [xroDisplayAlerts, xroAutoOpen];
+                       ATempPath: string = '';
+                       AOnBeforeBuild: TxlReportHandleEvent = nil;
+                       AOnAfterBuild: TxlReportHandleEvent = nil); virtual;
+    function AddDataSet(ADataSet: TDataSet;
+                       ARange: string = '';
+                       AMacroBefore: string = '';
+                       AMacroAfter: string = '';
+                       AOptions: TxlRangeOptionsSet = [xrgoAutoOpen, xrgoPreserveRowHeight];
+                       AOnMacro: TxlOnMacro = nil;
+                       AOnBeforeDataTransfer: TxlDataTransferHandleEvent = nil;
+                       AOnAfterDataTransfer: TxlDataTransferHandleEvent = nil): TxlDataSource;
+    // main methods
+    procedure Report; reintroduce; override;
+    procedure Report(const APreview: boolean); reintroduce; overload;
+    procedure ReportTo(const WorkbookName: string; const NewWorkbookName: string = ''); override;
+    procedure Edit;
+    // class methods
+    class function GetOptionMap: TxlOptionMap; override;
+    class procedure ReleaseExcelApplication;
+    class procedure ConnectToExcelApplication(OLEObject: OLEVariant);
+    {$IFNDEF XLR_BCB}
+    class procedure MergeReports(Reports: array of TxlExcelReport; SheetPrefixes: array of string); override;
+    {$ENDIF}
+    // used interfaces
+    property IXLSApp;
+    property IWorkbooks;
+    property IWorkbook;
+    property INames;
+    property IWorksheets;
+    property ITempSheet;
+    property IWorksheetFunction;
+    property IModule;
+    // New v.4.0
+    property Debug;
+    property ParamByName[Name: string]: TxlReportParam read GetParamByName;
+  published
+    property ActiveSheet;
+    property DataExportMode;
+    property TempPath;
+    property MacroBefore;
+    property MacroAfter;
+    property Options;
+    property XLSTemplate;
+    property DataSources: TxlDataSources read GetDataSources write SetDataSources;
+    // New v.4.0
+    property Preview;
+    property MultisheetAlias;
+    property MultisheetField;
+    property Params: TxlReportParams read GetParams write SetParams;
+    // Events
+    property OnBeforeBuild: TxlReportHandleEvent read FOnBeforeBuild write FOnBeforeBuild;
+    property OnAfterBuild: TxlReportHandleEvent read FOnAfterBuild write FOnAfterBuild;
+    property OnMacro: TxlOnMacro read FOnMacro write FOnMacro;
+    property OnBeforeWorkbookSave: TxlOnBeforeWorkbookSave read FOnBeforeWorkbookSave
+      write FOnBeforeWorkbookSave;
+    property OnProgress: TxlOnProgress read FOnProgress write FOnProgress;
+    property OnTargetBookSheetName: TxlOnTargetBookSheetName read FOnTargetBookSheetName
+      write FOnTargetBookSheetName;
+    property OnError;  
+  end;
+
+{$ENDIF XLR_AX}
+
+{ Global const, variables and public routines }
+
+var
+  xlrExcelVer: integer = 0;
+  xlrLCID: integer = LOCALE_USER_DEFAULT;
+  {$IFDEF XLR_AX}
+  xlrTempPath: string;
+  {$ENDIF}
+  {$IFDEF XLR_DEBUG}
+    xlrDebug: boolean = true;
+  {$ELSE}
+    xlrDebug: boolean = false;
+  {$ENDIF XLR_DEBUG}
+
+{ Cells utils }
+
+function A1(const Row, Column: integer): string;
+function A1Abs(const Row, Column: integer): string;
+function R1C1(const Row, Column: integer): string;
+function R1C1OfRange(IRange: IxlRange): string;
+
+{ XL Report internal consts, variables and routines }
+
+const
+
+{$IFNDEF XLR_AX}
+  xlrProductName = 'XL Report';
+  xlrVersionAddStr = 'build 115';
+  {$IFDEF XLR_BCB}
+    {$IFDEF XLR_VCL4}
+      xlrIDEVer = 'B4';
+    {$ENDIF}
+    {$IFDEF XLR_VCL5}
+      xlrIDEVer = 'B5';
+    {$ENDIF}
+  {$ELSE}
+    {$IFDEF XLR_VCL4}
+      xlrIDEVer = 'D4';
+    {$ENDIF}
+    {$IFDEF XLR_VCL5}
+      xlrIDEVer = 'D5';
+    {$ENDIF}
+    {$IFDEF XLR_VCL6}
+      xlrIDEVer = 'D6';
+    {$ENDIF}
+  {$ENDIF}
+  {$IFDEF XLR_TRIAL}
+    xlrProductID = ', Trial';
+  {$ENDIF XLR_TRIAL}
+  {$IFDEF XLR_STD}
+    xlrProductID = ', Standard';
+  {$ENDIF XLR_STD}
+  {$IFDEF XLR_DEV}
+    xlrProductID = ', Developer';
+  {$ENDIF XLR_DEV}
+{$ELSE}
+  xlrProductName = 'Active XL Report';
+  xlrVersionAddStr = 'build 115';
+  xlrIDEVer = 'AX';
+  {$IFDEF XLR_TRIAL}
+    xlrProductID = ', Trial';
+  {$ENDIF XLR_TRIAL}
+  {$IFDEF XLR_STD}
+    xlrProductID = ', Standard';
+  {$ENDIF XLR_STD}
+  {$IFDEF XLR_DEV}
+    xlrProductID = ', Professional';
+  {$ENDIF XLR_DEV}
+{$ENDIF XLR_AX}
+
+  xlrHomeURL = 'www.afalinasoft.com';
+
+{$IFDEF XLR_TRIAL}
+  xlrOrderStr = 'Register now: ';
+  xlrOrderURL = 'http://www.afalinasoft.com/order.html';
+{$ENDIF}
+
+  xlrVersionHi = 4;
+  xlrVersionLo = 0;
+  xlrVersionBuild = 115;
+
+{ XLDataSet flags }
+  xlrMultisheet: DWORD = $0001;
+  xlrSetFilter: DWORD = $0002;
+
+  xlrModuleName = 'XLR_Module';
+  vbCR = #13;
+
+var
+  xlrLocaleR: string = 'R';
+  xlrLocaleC: string = 'C';
+
+function xlrVersionStr: string;
+procedure BeforeRunMacro(IXLApp: IxlApplication; const Hidden: boolean);
+
+implementation
+
+{$IFDEF XLR_AX}
+{$IFDEF XLR_DEV}
+uses  xlProOPack;
+{$ENDIF XLR_DEV}
+{$ENDIF XLR_AX}
+
+{$R xlReport.res}
+{$R xlReportG2.res}
+
+const
+  xlrTempFileSign: string = ' xlrtmp ';
+  xlrFileExtention = '*.xls';
+  // Reserved names
+  xlrTempSheetName = 'XLRpt_TempSheet';
+  xlrMultisheetCellName = 'MULTISHEETCELL';
+  xlrParam = 'XLRPARAMS';
+  lexXLRVersion = 'XLR_VERSION';
+  // Common options
+  lexOnlyValues = 'ONLYVALUES';
+  lexAutoSafe = 'AUTOSAFE';
+  lexRowsFit = 'ROWSFIT';
+  lexColsFit = 'COLSFIT';
+  // Report options
+  lexShowPivotBar = 'SHOWPIVOTBAR';
+  // Sheet options
+  lexMultisheet = 'MULTISHEET';
+  lexSheetHide = 'SHEETHIDE';
+  lexSheetHide2 = 'HIDE';
+  lexAutoScale = 'AUTOSCALE';
+  // Range options
+  lexGroupNoSort = 'GROUPNOSORT';
+  lexAutoFilter = 'AUTOFILTER';
+  lexPivot = 'PIVOT';
+  lexPivotName = 'NAME';
+  lexPivotDestination = 'DST';
+  lexPivotDataToRows = 'DATATOROWS';
+  lexPivotRowGrand = 'ROWGRAND';
+  lexPivotColumnGrand = 'COLUMNGRAND';
+  lexPivotNotSaveData = 'NOTSAVEDATA';
+  // Column options
+  lexCollapse = 'COLLAPSE';
+  lexPivotHidden = 'HIDDEN';
+  lexPivotPage = 'PAGE';
+  lexPivotRow = 'ROW';
+  lexPivotColumn = 'COLUMN';
+  lexPivotData = 'DATA';
+  lexGroup = 'GROUP';
+  lexSort = 'SORT';
+  lexDesc = 'DESC';
+  lexAsc = 'ASC';
+  // Subtotal functions
+  lexManual = 'NOTOTALS';
+  lexSum = 'SUM';
+  lexAVG = 'AVG';
+  lexCount = 'COUNT';
+  lexCountNums = 'COUNTNUMS';
+  lexMax = 'MAX';
+  lexMin = 'MIN';
+  lexProduct = 'PRODUCT';
+  lexStDev = 'STDEV';
+  lexStDevP = 'STDEVP';
+  lexVar = 'VAR';
+  lexVarP = 'VARP';
+  lexSumIf = 'SUMIF';
+
+  // Option cells
+  xlrReportOptionsRow = 1;
+  xlrReportOptionsColumn = 1;
+  xlrSheetOptionsRow = 2;
+  xlrSheetOptionsColumn = 1;
+
+  // Limits
+  xlrRangeMinRowsCount = 2;
+  xlrRangeMinColumnsCount = 2;
+  xlrMaxVarRowCount = 256;
+  xlrMaxCSVRowCount = 32;
+  xlrVarMaxStrLen = 1500;
+  xlrDDEMaxStrLen = 255;
+  xlrCSVMaxStrLen = 4096;
+
+  // Other consts
+  xlrProgID = 'Excel.Application';
+  xlrParamsRow = 2;
+  xlrStartNoRangeRow = 5;
+  xlrTemplateRowsStart = 2000;
+  xlrMaxColCount = 255;
+  xlrMaxRowCount = 65000;
+  xlrMaxSelectionRowCount = 2048;
+
+  xlrVBAMergeWorkbooks = 'xlrMergeWorkbooks';
+  xlrVBAMergeModule =
+    'Public Sub xlrMergeWorkbooks(Wbks As Variant, Prefixes As Variant)' + vbCR +
+    '  Dim TargetBook As Workbook, Wbk As Workbook' + vbCR +
+    '  Dim Sheet As Worksheet' + vbCR +
+    '  Dim WbkCount As Integer, i As Integer' + vbCR +
+    '  Application.DisplayAlerts = False' + vbCR +
+    '  Application.ScreenUpdating = False' + vbCR +
+    '  WbkCount = UBound(Wbks)' + vbCR +
+    '  Set TargetBook = Workbooks(Wbks(1))' + vbCR +
+    '  For i = 1 To WbkCount' + vbCR +
+    '    Set Wbk = Workbooks(Wbks(i))' + vbCR +
+    '    For Each Sheet In Wbk.Worksheets' + vbCR +
+    '      If Sheet.Visible = xlSheetVisible Then' + vbCR +
+    '        Sheet.UsedRange.Copy' + vbCR +
+    '        Sheet.UsedRange.PasteSpecial xlPasteValues, xlPasteSpecialOperationNone' + vbCR +
+    '        Application.Goto Sheet.Cells(1, 1)' + vbCR +
+    '        If Prefixes(i) <> "" Then' + vbCR +
+    '          Sheet.Name = Prefixes(i) & " - " & Sheet.Name' + vbCR +
+    '        Else' + vbCR +
+    '          REM Sheet.Name = Wbk.Name & " - " & Sheet.Name' + vbCR +
+    '        End If' + vbCR +
+    '        If i <> 1 Then' + vbCR +
+    '          Sheet.Copy TargetBook.Worksheets(TargetBook.Worksheets.Count)' + vbCR +
+    '        End If' + vbCR +
+    '      End If' + vbCR +
+    '    Next' + vbCR +
+    '  Next' + vbCR +
+    '  For i = 2 To WbkCount' + vbCR +
+    '    Workbooks(Wbks(i)).Close SaveChanges:=False' + vbCR +
+    '  Next' + vbCR +
+    '  Application.ScreenUpdating = True' + vbCR +
+    '  Application.Goto TargetBook.Worksheets(1).Cells(1, 1)' + vbCR +
+    'End Sub' + vbCR;
+
+  xlrVBAReportOptionsSubName = 'xlrReportOptions';
+  xlrVBAApplyFormatsSubName = 'xlrApplyFormats';
+  xlrVBADeleteSpecialRowsSubName = 'xlrDeleteSpecialRows';
+  xlrVBAGotoA1 = 'xlrGotoA1';
+  xlrVBAModuleLevel =
+    'Rem XL Report VBA Code' + vbCR +
+    'OPTION BASE 1';
+  xlrVBAProcs =
+    'Public Function xlrRowsHeight(RangeName As Variant) as Variant' + vbCR +
+    '  Dim R As Range, i As Integer' + vbCR +
+    '  Dim RowsHeight() As Variant' + vbCR +
+    '  Set R = Range(RangeName)' + vbCR +
+    '  ReDim RowsHeight(R.Rows.Count)' + vbCR +
+    '  For i = 1 To R.Rows.Count' + vbCR +
+    '    RowsHeight(i) = R.Rows(i).RowHeight' + vbCR+
+    '  Next' + vbCR +
+    '  xlrRowsHeight = RowsHeight' + vbCR +
+    'End Function' + vbCR +
+
+    'Sub xlrCopyFormats(UnMerged As Range, Merged As Range, C As Range)' + vbCR +
+    '  UnMerged.Copy' + vbCR +
+    '  C.PasteSpecial xlPasteFormulas, xlPasteSpecialOperationNone, True, False' + vbCR +
+    '  Merged.Copy' + vbCR +
+    '  C.PasteSpecial xlPasteFormats, xlPasteSpecialOperationNone, False, False' + vbCR +
+    'End Sub' +  vbCR +
+
+    'Public Sub xlrCopyFormats2(UnMerged As Range, Merged As Range, C As Range)' +  vbCR +
+    '  Dim CurrentRange As Range' +  vbCR +
+    '  Dim i As Long, j As Long, StartRow As Long, EndRow As Long' +  vbCR +
+    '  Dim RowCount As Long, EstRowCount As Long, RowsOnRec As Long, MaxSelectedRows As Long' +  vbCR +
+    '  i = 0' +  vbCR +
+    '  j = 0' +  vbCR +
+    '  RowCount = C.Rows.Count' +  vbCR +
+    '  RowsOnRec = UnMerged.Rows.Count' +  vbCR +
+    '  MaxSelectedRows = (1024 \ RowsOnRec) * RowsOnRec' +  vbCR +
+    '  EstRowCount = RowCount' +  vbCR +
+    '  While i < (EstRowCount)' +  vbCR +
+    '    StartRow = j * MaxSelectedRows + 1' +  vbCR +
+    '    If StartRow > (EstRowCount) Then StartRow = EstRowCount' +  vbCR +
+    '    EndRow = StartRow + MaxSelectedRows - 1' +  vbCR +
+    '    If EndRow > (EstRowCount) Then EndRow = EstRowCount' +  vbCR +
+    '    Set CurrentRange = C.Parent.Range(C.Rows(StartRow), C.Rows(EndRow))' +  vbCR +
+    '    UnMerged.Copy' +  vbCR +
+    '    CurrentRange.PasteSpecial xlPasteFormulas, xlPasteSpecialOperationNone, True, False' +  vbCR +
+    '    Merged.Copy' +  vbCR +
+    '    CurrentRange.PasteSpecial xlPasteFormats, xlPasteSpecialOperationNone, False, False' +  vbCR +
+    '    j = j + 1' +  vbCR +
+    '    i = EndRow' +  vbCR +
+    '  Wend' +  vbCR +
+    'End Sub' +  vbCR +
+
+    'Public Sub xlrApplyFormats(MergedAddr As String, UnMergedAddr As String, DstAddr As String, Rows, Heights, SpRowDelete, PreserveHeight)' + vbCR +
+    '  Dim Merged As Range, UnMerged As Range, Dst As Range, C As Range, C1 As Range, V As Variant' + vbCR +
+    '  Dim DstRow As Long, CurrRow As Long' + vbCR +
+    '  Dim DstRowCount As Long, RowCount As Long, i As Long' + vbCR +
+    '  Set Dst = Range(DstAddr)' + vbCR +
+    '  Set Merged = Range(MergedAddr)' + vbCR +
+    '  Set UnMerged = Range(UnMergedAddr)' + vbCR +
+    '  If IsArray(Rows) Then' + vbCR +
+    '    DstRowCount = UBound(Rows)' + vbCR +
+    '    If DstRowCount = 1 Then' + vbCR +
+    '      V = Rows(1)' + vbCR +
+    '      Set Merged = Merged.Parent.Range(Merged.Rows(1), Merged.Rows(V(3)))' + vbCR +
+    '      Set UnMerged = UnMerged.Parent.Range(UnMerged.Rows(1), UnMerged.Rows(V(3)))' + vbCR +
+    '      Set C = Dst.Rows(V(1))' + vbCR +
+    '      Set C1 = Dst.Rows(V(2))' + vbCR +
+    '      Set C = Dst.Parent.Range(C, C1)' + vbCR +
+    '      Dst.Rows(1).Delete xlShiftUp' + vbCR +
+    '      xlrCopyFormats2 UnMerged, Merged, C' + vbCR +
+    '      If PreserveHeight = True Then' + vbCR +
+    '        For i = 1 To V(2) - 1 Step V(3)' + vbCR +
+    '          For DstRow = 1 to V(3)' + vbCR +
+    '            C.Rows(i + DstRow - 1).RowHeight = Heights(DstRow)' + vbCR +
+    '          Next' + vbCR +
+    '        Next' + vbCR +
+    '      End If' + vbCR +
+    '      If SpRowDelete = True Then Dst.Rows(Dst.Rows.Count).Delete xlShiftUp' + vbCR +
+    '    Else' + vbCR +
+    '      Dst.Rows(1).Delete xlShiftUp' + vbCR +
+    '      Dst.Rows(Dst.Rows.Count).Delete xlShiftUp' + vbCR +
+    '      For DstRow = 1 To DstRowCount' + vbCR +
+    '        V = Rows(DstRow)' + vbCR +
+    '        RowCount = UBound(V) - 1' + vbCR +
+    '        i = 0' + vbCR +
+    '        For CurrRow = 1 To RowCount' + vbCR +
+    '          If i = 0 Then' + vbCR +
+    '            Set C = Dst.Rows(V(CurrRow))' + vbCR +
+    '            i = i + 1' + vbCR +
+    '          Else' + vbCR +
+    '            Set C1 = Dst.Rows(V(CurrRow))' + vbCR +
+    '            Set C = Union(C, C1)' + vbCR +
+    '            i = i + 1' + vbCR +
+    '          End If' + vbCR +
+    '          If i >= 1024 Then' + vbCR +
+    '            xlrCopyFormats UnMerged.Rows(DstRow), Merged.Rows(DstRow), C' + vbCR +
+    '            If PreserveHeight = True Then C.RowHeight = Heights(DstRow)' + vbCR +
+    '            i = 0' + vbCR +
+    '          End If' + vbCR +
+    '        Next' + vbCR +
+    '        If i > 0 Then' + vbCR +
+    '          xlrCopyFormats UnMerged.Rows(DstRow), Merged.Rows(DstRow), C' + vbCR +
+    '          If PreserveHeight = True Then C.RowHeight = Heights(DstRow)' + vbCR +
+    '        End If' + vbCR +
+    '      Next' + vbCR +
+    '    End If' + vbCR +
+    '  End If' + vbCR +
+    'End Sub' + vbCR +
+
+    'Public Sub xlrDeleteSpecialRows(RootRangeName As String, SpecialRows As Variant)' + vbCR +
+    '  Dim Root As range, SpRow As range' + vbCR +
+    '  Dim i As Long, Count As Long, Offset As Long' + vbCR +
+    '  Count = UBound(SpecialRows)' + vbCR +
+    '  Set Root = range(RootRangeName)' + vbCR +
+    '  Offset = 0' + vbCR +
+    '  For i = 1 To Count' + vbCR +
+    '    Set SpRow = Root.Rows(SpecialRows(i) - Offset)' + vbCR +
+    '    SpRow.Delete xlShiftUp' + vbCR +
+    '    Offset = Offset + 1' + vbCR +
+    '  Next' + vbCR +
+    'End Sub' + vbCR +
+
+    'Public Sub xlrGetRanges(Args As Variant, ByRef Ranges As Variant)' + vbCR +
+    '  Dim V As Variant, Level As Long, IndexOfLevel As Long' + vbCR +
+    '  V = Args(4)' + vbCR +
+    '  Level = V(1)' + vbCR +
+    '  IndexOfLevel = V(2)' + vbCR +
+    '  Ranges = Args(3)' + vbCR +
+    '  Ranges = Ranges(Level + 1)' + vbCR +
+    '  Ranges = Ranges(IndexOfLevel + 1)' + vbCR +
+    'End Sub' + vbCR +
+
+    'Public Sub xlrGotoA1()' + vbCR +
+    '  Dim Sheet As Worksheet' + vbCR +
+    '  For Each Sheet In Worksheets' + vbCR +
+    '    If Sheet.Visible = xlSheetVisible Then' + vbCR +
+    '      Application.Goto Sheet.Cells(1, 1), True' + vbCR +
+    '    End If' + vbCR +
+    '  Next' + vbCR +
+    'End Sub' + vbCR +
+
+{    'Public Sub xlrReportParamsBuild(PNames As Variant, PValues As Variant, IsDebug As Variant)' + vbCR +
+    '  Dim Count As Integer, i As Integer, j As Integer' + vbCR +
+    '  Dim R As Range, Sheet As Worksheet' + vbCR +
+    '  Dim N As Name, Addr As String, NameStr As String' + vbCR +
+    '  Count = UBound(PNames)' + vbCR +
+    '  If Count > 0 Then' + vbCR +
+    '    Set Sheet = Worksheets("' + xlrTempSheetName +'")' + vbCR +
+    '    Set R = Sheet.Cells(2, 2)' + vbCR +
+    '    Set R = Sheet.Range(R, Sheet.Cells(2, Count + 1))' + vbCR +
+    '    R.Value = PValues' + vbCR +
+    '    For i = 1 To Count' + vbCR +
+    '      NameStr = "' + xlrParam + '_" & PNames(i)' + vbCR +
+    '      For j = 1 To Names.Count' + vbCR +
+    '        If Names(j).Name = NameStr Then' + vbCR +
+    '          Names(j).Delete' + vbCR +
+    '          Exit For' + vbCR +
+    '        End If' + vbCR +
+    '      Next' + vbCR +
+    '      Set R = Sheet.Cells(2, i + 1)' + vbCR +
+    '      Addr = "=' + xlrTempSheetName + '!" & R.Address(True, True, xlA1, False)' + vbCR +
+    '      Set N = Names.Add(NameStr, Addr, True)' + vbCR +
+    '    Next' + vbCR +
+    '  End If' + vbCR +
+    'End Sub' + vbCR +          }
+
+    'Public Function xlrPutNoRangeData(ADebug As Variant, StartRow As Variant, ABuff As Variant, AAddrs As Variant, ANames As Variant, Alias As String) As Object' + vbCR +
+    '  Dim ColCount As Integer, RowCount As Integer, Col As Integer, Row As Integer, i As Integer' + vbCR +
+    '  Dim Sheet As Worksheet, Ns As Names, N As Name, s As String' + vbCR +
+    '  Set Sheet = Worksheets("XLRpt_TempSheet")' + vbCR +
+    '  Set Ns = Sheet.Parent.Names' + vbCR +
+    '  ColCount = UBound(ABuff)' + vbCR +
+    '  RowCount = ColCount \ 250 + 1' + vbCR +
+    '  Row = StartRow' + vbCR +
+    '  For i = 1 To ColCount' + vbCR +
+    '    If (i Mod 250) = 1 Then' + vbCR +
+    '      If i <> 1 Then Row = Row + 1' + vbCR +
+    '      Sheet.Cells(Row, 1).Value = Alias' + vbCR +
+    '      if i <> 1 Then Col = 2 Else Col = 1' + vbCR +
+    '    End If' + vbCR +
+    '    If (ANames(i) <> "") and (i <> 1) Then' + vbCR +
+    '      Set N = Ns.Add(Name:=ANames(i), RefersTo:=AAddrs(i), Visible:=ADebug)' + vbCR +
+    '      If VarType(ABuff(i)) = vbString Then' + vbCR +
+    '        s = ABuff(i)' + vbCR +
+    '        Sheet.Cells(Row, Col).NumberFormat = "@"' + vbCR +
+    '        Sheet.Cells(Row, Col).Value = s' + vbCR +
+    '      Else' + vbCR +
+    '        Sheet.Cells(Row, Col).Value = ABuff(i)' + vbCR +
+    '      End If' + vbCR +
+    '    End If' + vbCR +
+    '    Col = Col + 1' + vbCR +
+    '  Next' + vbCR +
+    '  Set xlrPutNoRangeData = Sheet.Range(Sheet.Cells(StartRow, 1), Sheet.Cells(Row, 250))' + vbCR +
+    'End Function';
+
+var
+  xlrOptionMap: TxlOptionMap;
+
+{ Global OptionsMap }
+
+function xlrVersionStr: string;
+begin
+  if xlrVersionAddStr <> '' then
+    Result := IntToStr(xlrVersionHi) + '.' + IntToStr(xlrVersionLo) + '-' + xlrIDEVer +
+      ' (' + xlrVersionAddStr + ') ' + xlrProductID
+  else
+    Result := IntToStr(xlrVersionHi) + '.' + IntToStr(xlrVersionLo) + xlrProductID;
+end;
+
+{ File utils }
+
+procedure DeleteFiles(const Path, FileMask, Specifier: string);
+var
+  i: integer;
+  FileRec: TSearchRec;
+  s: string;
+begin
+  s := Path;
+  if trim(s) = '' then begin
+    s := ExtractFilePath(ParamStr(0));
+  end;
+  i := SysUtils.FindFirst(s + FileMask, faAnyFile, FileRec);
+  while i = 0 do begin
+    if Trim(Specifier) <> '' then begin
+      if Pos(Specifier, FileRec.Name) <> 0 then
+        SysUtils.DeleteFile(PChar(s + FileRec.Name))
+    end;
+    i := SysUtils.FindNext(FileRec);
+  end;
+  SysUtils.FindClose(FileRec);
+end;
+
+function GetFullFileName(const FileName, DefaultPath: string; const Verify: boolean): string;
+begin
+  Result := FileName;
+  if Pos('\\', Result) = 1 then
+    Result := ExpandUNCFileName(Result)
+  else
+    if (Pos('..\', Result) = 1) or (Pos('.\', Result) = 1) or (Pos('\', Result) <> 0) then
+      Result := ExpandFileName(Result)
+    else
+      if DefaultPath <> '' then
+        if DefaultPath[Length(DefaultPath)] = '\' then
+          Result := DefaultPath + FileName
+        else
+          Result := DefaultPath + '\' + FileName;
+  if Verify then
+    if not FileExists(Result) then
+      {$IFDEF XLR_AX}
+      raise ExlReportError.CreateResFmt2(ecFileNotFound, ecFileNotFound, [FileName]);
+      {$ELSE}
+      raise ExlReportError.CreateResFmt(ecFileNotFound, [FileName]);
+      {$ENDIF}
+end;
+
+{ Copy to clipboard }
+
+function WideStringToClipboard(WStr: WideString): THandle;
+var
+  DataPtr: Pointer;
+  Size: integer;
+begin
+  Result := 0;
+  if WStr <> '' then begin
+    Size := Length(WStr) * SizeOf(WideChar);
+    Result := GlobalAlloc(GMEM_MOVEABLE + GMEM_DDESHARE + GMEM_ZEROINIT, Size + SizeOf(WideChar));
+    try
+      DataPtr := GlobalLock(Result);
+      try
+        Move(PWideChar(WStr)^, DataPtr^, Size);
+      finally
+        GlobalUnlock(Result);
+      end;
+      Clipboard.SetAsHandle(CF_UNICODETEXT, Result);
+    except
+      GlobalFree(Result);
+    end;
+  end;
+end;
+
+{ Cells utils }
+
+function CellA1Str(ColumnModifier: string; Column: integer; RowModifier: string; Row: integer): string;
+begin
+  Result := '';
+  if Column > 26 then Result := Char(ord('A') + (Column - 1) div 26 - 1);
+  Result := ColumnModifier + Result + Char(ord('A') +(Column-1) mod 26) +
+    RowModifier + IntToStr(Row);
+end;
+
+function A1(const Row, Column: integer): string;
+begin
+  Result := CellA1Str('', Column, '', Row);
+end;
+
+function A1Abs(const Row, Column: integer): string;
+begin
+  Result := CellA1Str('$', Column, '$', Row);
+end;
+
+function R1C1(const Row, Column: integer): string;
+begin
+  Result := xlrLocaleR + IntToStr(Row) + xlrLocaleC + IntToStr(Column);
+end;
+
+function R1C1OfRange(IRange: IxlRange): string;
+begin
+  Result := IRange.AddressLocal[true, true, TOLEEnum(xlR1C1), false, false];
+end;
+
+{ Range utils }
+
+procedure ClearRangeContents(IRange: IxlRange);
+var
+  R: IxlRange;
+begin
+  if IRange.MergeCells then begin
+    R := IRange.MergeArea;
+    R.UnMerge;
+    IRange.ClearContents;
+    R.Merge(false);
+    R.ClearContents;
+  end
+  else
+    IRange.ClearContents;
+end;
+
+function InsertBlankRows(const StartRow, RowCount, ColCount: integer; IBlankSheet: IxlWorksheet; IRange: IxlRange): IxlRange;
+begin
+  IBlankSheet.Range[A1(xlrMaxRowCount - RowCount + 1, 1), A1(xlrMaxRowCount, ColCount) ].Copy(EmptyParam);
+  IRange.Rows.Item[StartRow, EmptyParam].Insert(TOLEEnum(xlShiftDown));
+  Result := IRange.Range[A1(StartRow, 1), A1(StartRow + RowCount - 1, ColCount)];
+end;
+
+procedure BeforeRunMacro(IXLApp: IxlApplication; const Hidden: boolean);
+begin
+  if not Hidden then
+    {$IFDEF XLR_BCB}
+    IXLApp.Visible := true;
+    {$ELSE}
+    IXLApp.Visible[xlrLCID] := true;
+    {$ENDIF}
+end;
+
+procedure VBACopyFormats(Source: TxlExcelDataSource;
+  Rows, Heights, SpRowDelete, PreserveHeight: OLEVariant; Hidden: boolean);
+var
+  DstAddr, MergedAddr, UnMergedAddr: string;
+begin
+  DstAddr := Source.IRange.Address[true, true, TOLEEnum(xlA1), true, EmptyParam];
+  MergedAddr := Source.FIMergedRows.Address[true, true, TOLEEnum(xlA1), true, EmptyParam];
+  UnMergedAddr := Source.FIUnMergedRows.Address[true, true, TOLEEnum(xlA1), true, EmptyParam];
+  BeforeRunMacro(Source.IXLSApp, Hidden);
+  OLEVariant(Source.IXLSApp).Run('''' + Source.IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + xlrVBAApplyFormatsSubName,
+    MergedAddr, UnMergedAddr, DstAddr, Rows, Heights, SpRowDelete, PreserveHeight);
+end;
+
+{ Excel utils }
+
+procedure ShowExcel(IXLApp: IxlApplication; Contained, SetPos: boolean; LastWinState: TOLEEnum; Left, Top: double);
+begin
+  {$IFDEF XLR_BCB}
+  if _Assigned(IXLApp) then begin
+    IXLApp.Interactive := true;
+    if SetPos then begin
+      if IXLApp.WindowState <> TOLEEnum(xlMaximized) then begin
+        IXLApp.Left := Left;
+        IXLApp.Top := Top;
+      end;
+      IXLApp.WindowState := LastWinState;
+    end;
+    if not Contained then begin
+      IXLApp.Visible := true;
+      if LastWinState = TOLEEnum(xlMinimized) then
+        IXLApp.WindowState := TOLEEnum(xlNormal);
+    end;
+    IXLApp.ScreenUpdating := true;
+    if not Contained then
+      IXLApp.DisplayAlerts := true;
+  end;
+  {$ELSE}
+  if _Assigned(IXLApp) then begin
+    IXLApp.Interactive[xlrLCID] := true;
+    if SetPos then begin
+      if IXLApp.WindowState[xlrLCID] <> TOLEEnum(xlMaximized) then begin
+        IXLApp.Left[xlrLCID] := Left;
+        IXLApp.Top[xlrLCID] := Top;
+      end;
+      IXLApp.WindowState[xlrLCID] := LastWinState;
+    end;
+    if not Contained then begin
+      IXLApp.Visible[xlrLCID] := true;
+      if LastWinState = TOLEEnum(xlMinimized) then
+        IXLApp.WindowState[xlrLCID] := TOLEEnum(xlNormal);
+    end;
+    IXLApp.ScreenUpdating[xlrLCID] := true;
+    if not Contained then
+      IXLApp.DisplayAlerts[xlrLCID] := true;
+  end;
+  {$ENDIF}
+end;
+
+function ConnectToExcelApp(NewInstance: boolean): IxlApplication;
+begin
+  _Clear(Result);
+  if not NewInstance then
+    {$IFDEF XLR_BCB}
+    Result := _GetActiveOLEObject(xlrProgID);
+    {$ELSE}
+    Result := _GetActiveOLEObject(xlrProgID) as IxlApplication;
+    {$ENDIF}
+  if not _Assigned(Result) then
+    {$IFDEF XLR_BCB}
+    Result := _CreateOLEObject(xlrProgID);
+    {$ELSE}
+    Result := _CreateOLEObject(xlrProgID) as IxlApplication;
+    {$ENDIF}
+end;
+
+{ Localization }
+
+procedure GetExcelLocaleSettings(IApp: IxlApplication);
+var
+  A1ToR1C1: string;
+  s: string;
+begin
+  xlrLCID := LOCALE_USER_DEFAULT;
+  {$IFDEF XLR_BCB}
+  A1ToR1C1 := IApp.ConvertFormula('A1', TOLEEnum(xlA1), TOLEEnum(xlR1C1),
+    TOLEEnum(xlAbsolute), EmptyParam);
+  xlrLocaleR := copy(A1ToR1C1, 1, 1);
+  xlrLocaleC := copy(A1ToR1C1, 3, 1);
+  if IApp.IgnoreRemoteRequests then
+    IApp.IgnoreRemoteRequests := false;
+  s := IApp.Version;
+  {$ELSE}
+  A1ToR1C1 := IApp.ConvertFormula('A1', TOLEEnum(xlA1), TOLEEnum(xlR1C1),
+    TOLEEnum(xlAbsolute), EmptyParam, xlrLCID);
+  xlrLocaleR := copy(A1ToR1C1, 1, 1);
+  xlrLocaleC := copy(A1ToR1C1, 3, 1);
+  if IApp.IgnoreRemoteRequests[xlrLCID] then
+    IApp.IgnoreRemoteRequests[xlrLCID] := false;
+  s := IApp.Version[xlrLCID];
+  {$ENDIF}
+  s := CutSubstring('.', s);
+  xlrExcelVer := StrToInt(s);
+end;
+
+{$IFDEF XLR_TRIAL}
+{$I xlDoRestrict1.inc}
+{$ENDIF XLR_TRIAL}
+
+{ Excel DDE Client - Fast Table Format (xlTable) support                         }
+{      DDE not supported field types:                                            }
+{        ftBytes, ftVarBytes, ftBlob, ftTypedBinary, ftGraphic, ftParadoxOle,    }
+{        ftDBaseOle, ftCursor, ftADT, ftArray, ftReference, ftDataSet,           }
+{        ftOraBlob, ftOraClob, ftInterface, ftIDispatch, ftGuid                  }
+{      length(strings) <= 255                                                    }
+
+type
+
+  TxlDDEClient = class(TDDEClientConv)
+  private
+    FStream: TMemoryStream;
+  protected
+    function xlPokeData(const Item: string; Data: Pointer; Size: integer): Boolean; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure OpenBuffer(const ColumnsCount: word);
+    procedure CloseBuffer;
+    function CheckBufferSize: boolean;
+    procedure WriteBlank;
+    // procedure WriteSkip;
+    procedure WriteString(const s: ShortString);
+    procedure WriteNumber(const n: double);
+    procedure WriteBool(const b: boolean);
+    procedure Poke(IRange: OLEVariant);
+  end;
+
+{ xlTable consts }
+
+const
+  // Fast table format name
+  xddeFastTableFormatName = 'XLTABLE';
+  // tdtTable
+  xddetdtTable: word = $0010;
+  xddetdtTableSize: word = $0004;
+  xddeRowCountPos = 4;
+  xddeColumnCountCount = 6;
+  // tdtFloat
+  xddetdtFloat: word = $0001;
+  xddetdtFloatSize: word = $0008;
+  // tdtString
+  xddetdtString: word = $0002;
+  // tdtBool
+  xddetdtBool: word = $0003;
+  xddetdtBoolSize: word = $0002;
+  // tdtError
+  // xddetdtError: word = $0004;
+  // tdtBlank
+  xddetdtBlank: word = $0005;
+  xddetdtBlankSize: word = $0002;
+  xddetdtBlankData: word = $0001;
+  // tdtInt
+  //  xddetdtInt: word = $0006;
+  // tdtSkip
+  //  xddetdtSkip: word =$0007;
+  //  xddetdtSkipSize: word =$0002;
+  //  xddetdtSkipData: word =$0001;
+  // DDE Transaction timeout
+  xddeTransactionTimeOut = 100000;
+  // Win9x DDE limits
+  xlrDDEBufSize = $F000;
+
+{ TxlDDEClient }
+
+constructor TxlDDEClient.Create(AOwner: TComponent);
+begin
+  inherited;
+  FStream := TMemoryStream.Create;
+end;
+
+destructor TxlDDEClient.Destroy;
+begin
+  CloseBuffer;
+  FStream.Free;
+  inherited;
+end;
+
+function TxlDDEClient.xlPokeData(const Item: string; Data: Pointer; Size: Longint): Boolean;
+var
+  hszDat: HDDEData;
+  hdata: HDDEData;
+  CF_XLTABLE: word;
+  hszItem: HSZ;
+begin
+  hdata := 0;
+  Result := False;
+  if (Conv = 0) or WaitStat then Exit;
+  hszItem := DdeCreateStringHandle(ddeMgr.DdeInstId, PChar(Item), CP_WINANSI);
+  if hszItem = 0 then Exit;
+  try
+    CF_XLTABLE := RegisterClipboardFormat(xddeFastTableFormatName);
+    if CF_XLTABLE = 0 then Exit;
+    hszDat := DdeCreateDataHandle(ddeMgr.DdeInstId, Data, Size, 0, hszItem, CF_XLTABLE, HDATA_APPOWNED);
+    {$IFNDEF XLR_AX}
+      if hszDat <> 0 then
+        if IsLibrary and (xlrOS > xosWinMe) then begin
+          hdata := DdeClientTransaction(Pointer(hszDat), DWORD(-1), Conv, hszItem,
+            CF_XLTABLE, XTYP_POKE, TIMEOUT_ASYNC, nil);
+        end
+        else
+          hdata := DdeClientTransaction(Pointer(hszDat), DWORD(-1), Conv, hszItem,
+            CF_XLTABLE, XTYP_POKE, xddeTransactionTimeOut, nil);
+    {$ELSE}
+      if hszDat <> 0 then begin
+        hdata := DdeClientTransaction(Pointer(hszDat), DWORD(-1), Conv, hszItem,
+          CF_XLTABLE, XTYP_POKE, TIMEOUT_ASYNC, nil);
+        sleep(25);
+      end;
+    {$ENDIF XLR_AX}
+    Result := hdata <> 0;
+  finally
+    {$IFDEF XLR_AX}
+    if xlrOS in [xosWin2000, xosWinXP] then // Fix for Win9x
+      DdeFreeStringHandle(ddeMgr.DdeInstId, hszItem);
+    {$ELSE}
+    if not(IsLibrary) and (xlrOS in [xosWin2000, xosWinXP]) then
+      DdeFreeStringHandle(ddeMgr.DdeInstId, hszItem);
+    {$ENDIF}
+  end;
+end;
+
+procedure TxlDDEClient.OpenBuffer(const ColumnsCount: word);
+begin
+  FStream.Clear;
+  // tdtTable
+  FStream.WriteBuffer( xddeTdtTable, SizeOf(xddeTdtTable) );
+  FStream.WriteBuffer( xddeTdtTableSize, SizeOf(xddeTdtTableSize) );
+  FStream.WriteBuffer( ColumnsCount, SizeOf(ColumnsCount) );
+  FStream.WriteBuffer( ColumnsCount, SizeOf(ColumnsCount) );
+end;
+
+procedure TxlDDEClient.CloseBuffer;
+begin
+  FStream.Clear;
+end;
+
+function TxlDDEClient.CheckBufferSize: boolean;
+begin
+  Result := FStream.Position > xlrDDEBufSize;
+end;
+
+procedure TxlDDEClient.WriteBlank;
+begin
+  FStream.WriteBuffer(xddetdtBlank, SizeOf(xddetdtBlank));
+  FStream.WriteBuffer(xddetdtBlankSize, SizeOf(xddetdtBlankSize));
+  FStream.WriteBuffer(xddetdtBlankData, SizeOf(xddetdtBlankData));
+end;
+
+{
+procedure TxlDDEClient.WriteSkip;
+begin
+  FStream.WriteBuffer(xddetdtSkip, SizeOf(xddetdtSkip));
+  FStream.WriteBuffer(xddetdtSkipSize, SizeOf(xddetdtSkipSize));
+  FStream.WriteBuffer(xddetdtSkipData, SizeOf(xddetdtSkipData));
+end;
+}
+
+procedure TxlDDEClient.WriteString(const s: ShortString);
+var w: word;
+    b: byte;
+    c: ShortString;
+    ss: string;
+begin
+  ss := s;
+  DeleteChars(#$0D, ss);
+  c := ss;
+  if c <> '' then begin
+    b := length(c);
+    w := b + 1;
+    FStream.WriteBuffer(xddetdtString, SizeOf(xddetdtString));
+    FStream.WriteBuffer(w, SizeOf(w));
+    FStream.WriteBuffer(b, SizeOf(b));
+    FStream.WriteBuffer(c[1], b);
+  end
+  else WriteBlank;
+end;
+
+procedure TxlDDEClient.WriteNumber(const n: double);
+begin
+  FStream.WriteBuffer(xddetdtFloat, SizeOf(xddetdtFloat));
+  FStream.WriteBuffer(xddetdtFloatSize, SizeOf(xddetdtFloatSize));
+  FStream.WriteBuffer(n, SizeOf(n));
+end;
+
+procedure TxlDDEClient.WriteBool(const b: boolean);
+var
+  w: word;
+begin
+  FStream.WriteBuffer(xddetdtBool, SizeOf(xddetdtBool));
+  FStream.WriteBuffer(xddetdtBoolSize, SizeOf(xddetdtBoolSize));
+  if b then w := 1  else w := 0;
+  FStream.WriteBuffer(w, SizeOf(w));
+end;
+
+procedure TxlDDEClient.Poke(IRange: OLEVariant);
+var
+  {$IFNDEF XLR_BCB}
+  Rng: IxlRange;
+  {$ENDIF}
+  r: word;
+  tpc, addr: string;
+begin
+  r := IRange.Rows.Count;
+  FStream.Seek(xddeRowCountPos, soFromBeginning);
+  FStream.WriteBuffer(r, SizeOf(r));
+  tpc := IRange.Parent.Parent.Name;
+  tpc := '[' + tpc + ']' + IRange.Parent.Name;
+  if not SetLink('EXCEL', tpc) then
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateRes2(ecExcelDDENotAvailable, ecExcelDDENotAvailable);
+    {$ELSE}
+    raise ExlReportError.CreateRes(ecExcelDDENotAvailable);
+    {$ENDIF}
+  tpc := IRange.Parent.Name;
+  try
+    {$IFDEF XLR_BCB}
+    addr := R1C1OfRange(IRange);
+    {$ELSE}
+    IDispatch(Rng) := IRange;
+    addr := R1C1OfRange(Rng);
+    {$ENDIF}
+    xlPokeData(addr, FStream.Memory, FStream.Size);
+  finally
+    CloseLink;
+  end;
+end;
+
+{ Internal data buffers }
+
+type
+
+  TxlBuffer = class(TObject)
+  private
+    FRoot: TxlExcelDataSource;
+    FTotalRowCount: integer;
+    FRowCount: integer;
+  protected
+    procedure StartBuffer; virtual;
+    procedure GetRecord(Source: TxlExcelDataSource; var RowsArr: OLEVariant); virtual;
+    procedure GetRow(Source: TxlExcelDataSource; const Row: integer; var RowsArr: OLEVariant); virtual;
+    procedure GetData(Source: TxlExcelDataSource); virtual;
+    procedure GetRowData(Source: TxlExcelDataSource; const Row: integer); virtual;
+    function CheckLimits(Immediately: boolean): boolean; virtual;
+  public
+    constructor Create(ARoot: TxlExcelDataSource); virtual;
+    destructor Destroy; override;
+    property Root: TxlExcelDataSource read FRoot;
+    property RowCount: integer read FRowCount;
+  end;
+
+  TxlVarBuffer = class(TxlBuffer)
+  private
+    FBuff: OLEVariant;
+  protected
+    procedure StartBuffer; override;
+    procedure GetData(Source: TxlExcelDataSource); override;
+    procedure GetRowData(Source: TxlExcelDataSource; const Index: integer); override;
+    function CheckLimits(Immediately: boolean): boolean; override;
+  end;
+
+  TxlCSVBuffer = class(TxlBuffer)
+  private
+    FBuff: WideString;
+  protected
+    procedure StartBuffer; override;
+    procedure GetData(Source: TxlExcelDataSource); override;
+    procedure GetRowData(Source: TxlExcelDataSource; const Index: integer); override;
+    function CheckLimits(Immediately: boolean): boolean; override;
+  end;
+
+  TxlDDEBuffer = class(TxlBuffer)
+  private
+    FxlDDE: TxlDDEClient;
+  protected
+    procedure StartBuffer; override;
+    procedure GetData(Source: TxlExcelDataSource); override;
+    procedure GetRowData(Source: TxlExcelDataSource; const Index: integer); override;
+    function CheckLimits(Immediately: boolean): boolean; override;
+    procedure AddCellValue(Cell: TxlAbstractCell);
+  public
+    constructor Create(ARoot: TxlExcelDataSource); override;
+    destructor Destroy; override;
+  end;
+
+{ TxlBuffer }
+
+constructor TxlBuffer.Create(ARoot: TxlExcelDataSource);
+begin
+  inherited Create;
+  FRoot := ARoot;
+end;
+
+destructor TxlBuffer.Destroy;
+begin
+  CheckLimits(true);
+  inherited;
+end;
+
+function TxlBuffer.CheckLimits(Immediately: boolean): boolean;
+begin
+  Result := false;
+end;
+
+procedure TxlBuffer.GetRecord;
+var
+  i, HighBound: integer;
+  V: OLEVariant;
+begin
+  Inc(FRowCount, Source.RowCount);
+  Inc(FTotalRowCount, Source.RowCount);
+  GetData(Source);
+  if not _VarIsEmpty(RowsArr) then begin
+    for i := 1 to Source.RowCount do begin
+      V := RowsArr[Source.FRowOffset + i];
+      HighBound := VarArrayHighBound(V, 1);
+      V[HighBound] := FTotalRowCount - Source.RowCount + i;
+      VarArrayReDim(V, HighBound + 1);
+      RowsArr[Source.FRowOffset + i] := V;
+    end;
+  end;
+  if CheckLimits(false) then
+    FRowCount := 0;
+end;
+
+procedure TxlBuffer.GetRow(Source: TxlExcelDataSource; const Row: integer; var RowsArr: OLEVariant);
+var
+  i, j, Index, HighBound: integer;
+  V: OLEVAriant;
+begin
+  j := 0;
+  Index := -1;
+  for i := 0 to Source.Cells.Count - 1 do
+    if j = (Row - 1) then begin
+      Index := i;
+      Break;
+    end
+    else
+      if Source.Cells[i].CellType = ctCR then
+        Inc(j);
+  if Index <> -1 then begin
+    Inc(FRowCount);
+    Inc(FTotalRowCount);
+    if not _VarIsEmpty(RowsArr) then begin
+      V := RowsArr[Source.FRowOffset + Row];
+      HighBound := VarArrayHighBound(V, 1);
+      V[HighBound] := FTotalRowCount;
+      VarArrayReDim(V, HighBound + 1);
+      RowsArr[Source.FRowOffset + Row] := V;
+    end;
+    GetRowData(Source, Index);
+  end;
+  if CheckLimits(false) then
+    FRowCount := 0;
+end;
+
+procedure TxlBuffer.StartBuffer;
+begin
+  // Delphi hiht stub
+end;
+
+procedure TxlBuffer.GetData(Source: TxlExcelDataSource);
+begin
+  // Delphi hint stub
+end;
+
+procedure TxlBuffer.GetRowData(Source: TxlExcelDataSource; const Row: integer);
+begin
+  // Delphi hint stub
+end;
+
+{ TxlVarBuffer }
+
+function TxlVarBuffer.CheckLimits(Immediately: boolean): boolean;
+var
+  IRange: IxlRange;
+  Formulas: OLEVariant;
+  i, j: integer;
+begin
+  Result := (RowCount >= xlrMaxVarRowCount) or Immediately;
+  if Result and (RowCount > 0) and (not _VarIsEmpty(FBuff)) then begin
+    IRange := InsertBlankRows(Root.IRange.Rows.Count,
+      RowCount, Root.ColCount, Root.ITempSheet, Root.IRange);
+    Formulas := VarArrayCreate([1, RowCount, 1, Root.ColCount], varVariant);
+    for i := 1 to RowCount do
+      for j := 1 to Root.ColCount do
+        Formulas[i, j] := FBuff[j, i];
+    IRange.Value := Formulas; // replace IRange.Formula := Formulas (rc1)
+    Formulas := UnAssigned;
+    FBuff := UnAssigned;
+    if not Immediately then
+      StartBuffer;
+  end;
+end;
+
+procedure TxlVarBuffer.StartBuffer;
+begin
+  FBuff := VarArrayCreate([1, Root.ColCount, 1, 1], varVariant)
+end;
+
+procedure TxlVarBuffer.GetData;
+var
+  i, Row, Column: integer;
+begin
+  VarArrayRedim(FBuff, RowCount);
+  Row := -Source.RowCount + 1;
+  Column := 1;
+  for i := 0 to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then begin
+      Inc(Row);
+      Column := 1;
+      if Row = 1 then
+        Break;
+    end
+    else begin
+      FBuff[Column, RowCount + Row] := Source.Cells[i].AsVariant;
+      Inc(Column);
+    end;
+end;
+
+procedure TxlVarBuffer.GetRowData(Source: TxlExcelDataSource; const Index: integer);
+var
+  i, Column: integer;
+begin
+  VarArrayRedim(FBuff, RowCount);
+  Column := 1;
+  for i := Index to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then
+      Break
+    else begin
+      FBuff[Column, RowCount] := Source.Cells[i].AsVariant;
+      Inc(Column);
+    end;
+end;
+
+{ TxlCSVBuffer }
+
+procedure AddWithDelimiter(var Buffer: WideString; const AStr, Delimiter: WideString);
+begin
+  if Buffer <> '' then
+    if Buffer[Length(Buffer)] = #$0A then
+      Buffer := Buffer + AStr
+    else
+      Buffer := Buffer + Delimiter + AStr
+  else
+    Buffer := AStr;
+end;
+
+function TxlCSVBuffer.CheckLimits(Immediately: boolean): boolean;
+var
+  IRange: IxlRange;
+  Data: THandle;
+begin
+  Result := (RowCount >= xlrMaxCSVRowCount) or Immediately;
+  if Result and (RowCount > 0) and (FBuff <> '') then begin
+    IRange := InsertBlankRows(Root.IRange.Rows.Count,
+      RowCount, Root.ColCount, Root.ITempSheet, Root.IRange);
+    Data := WideStringToClipboard(FBuff);
+    if Data <> 0 then
+      try
+        OLEVariant(IRange).PasteSpecial;
+      finally
+        FBuff := '';
+        GlobalFree(Data);
+      end;
+  end;
+end;
+
+procedure TxlCSVBuffer.StartBuffer;
+begin
+  FBuff := '';
+end;
+
+procedure TxlCSVBuffer.GetData;
+var
+  i, Row: integer;
+  s: string;
+begin
+  Row := 0;
+  for i := 0 to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then begin
+      FBuff := FBuff + #$0A;
+      Inc(Row);
+      if Row = Source.RowCount then
+        Break;
+    end
+    else
+      if Source.Cells[i].CellType in [ctSpecialColumn, ctSpecialRow, ctField] then
+        if Source.Cells[i].IsEmpty then
+          FBuff := FBuff + #$09
+        else begin
+          s := Source.Cells[i].AsString;
+          if (FRoot.Report as TxlExcelReport).DataExportMode = xdmCSV then
+            s := '"' + s + '"';
+          AddWithDelimiter(FBuff, s, #09)
+        end
+      else
+        FBuff := FBuff + #$09;
+end;
+
+procedure TxlCSVBuffer.GetRowData(Source: TxlExcelDataSource; const Index: integer);
+var
+  i: integer;
+  s: string;
+begin
+  for i := Index to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then begin
+      Break;
+    end
+    else
+      if Source.Cells[i].CellType in [ctSpecialColumn, ctSpecialRow, ctField] then
+        if Source.Cells[i].IsEmpty then
+          FBuff := FBuff + #$09
+        else begin
+          s := Source.Cells[i].AsString;
+          if (FRoot.Report as TxlExcelReport).DataExportMode = xdmCSV then
+            s := '"' + s + '"';
+          AddWithDelimiter(FBuff, s, #09)
+        end
+      else
+        FBuff := FBuff + #$09;
+  FBuff := FBuff + #$0A;
+end;
+
+{ TxlDDEBuffer }
+
+constructor TxlDDEBuffer.Create(ARoot: TxlExcelDataSource);
+begin
+  inherited Create(ARoot);
+  FxlDDE := TxlDDEClient.Create(nil);
+end;
+
+destructor TxlDDEBuffer.Destroy;
+begin
+  FxlDDE.Free;
+  FxlDDE := nil;
+  inherited;
+end;
+
+function TxlDDEBuffer.CheckLimits(Immediately: boolean): boolean;
+var
+  IRange: IxlRange;
+begin
+  Result := true;
+  if not Assigned(FxlDDE) then
+    Exit;
+  Result := FxlDDE.CheckBufferSize or Immediately;
+  if Result and (RowCount > 0) then begin
+    IRange := InsertBlankRows(Root.IRange.Rows.Count,
+      RowCount, Root.ColCount, Root.ITempSheet, Root.IRange);
+    FxlDDE.Poke(IRange);
+    FxlDDE.CloseBuffer;
+    if not Immediately then
+      StartBuffer;
+  end;
+end;
+
+procedure TxlDDEBuffer.StartBuffer;
+begin
+  FxlDDE.OpenBuffer(Root.ColCount);
+end;
+
+procedure TxlDDEBuffer.GetData;
+var
+  i, Row: integer;
+begin
+  Row := 0;
+  for i := 0 to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then begin
+      Inc(Row);
+      if Row = Source.RowCount then
+        Break;
+    end
+    else
+      AddCellValue(Source.Cells[i]);
+end;
+
+procedure TxlDDEBuffer.GetRowData(Source: TxlExcelDataSource; const Index: integer);
+var
+  i: integer;
+begin
+  for i := Index to Source.Cells.Count - 1 do
+    if Source.Cells[i].CellType = ctCR then
+      Break
+    else
+      AddCellValue(Source.Cells[i]);
+end;
+
+procedure TxlDDEBuffer.AddCellValue(Cell: TxlAbstractCell);
+begin
+  if Cell.IsEmpty then
+    FxlDDE.WriteBlank
+  else
+  case Cell.CellType of
+    ctSpecialColumn, ctSpecialRow:
+      FxlDDE.WriteString(Cell.AsString);
+    ctField:
+      if Cell.IsEmpty then
+        FxlDDE.WriteBlank
+      else
+        case Cell.DataType of
+          xdInteger, xdFloat, xdDateTime: FxlDDE.WriteNumber(Cell.AsFloat);
+          xdBoolean: FxlDDE.WriteBool(Cell.AsBoolean);
+          xdString: FxlDDE.WriteString(Cell.AsString);
+          else FxlDDE.WriteBlank;
+        end;
+    else
+      FxlDDE.WriteBlank;
+  end;
+end;
+
+{$IFNDEF XLR_AX}
+
+{ Internal Excel Event Sink }           
+
+type
+
+  IxlAppEvents = interface(IDispatch)
+    ['{00024413-0000-0000-C000-000000000046}']
+  end;
+
+  TxlEventsSink = class(TInterfacedObject, IDispatch, IxlAppEvents)
+  private
+    FOLEContainer: TOLEContainer;
+    FDesignTime: boolean;
+    FExcelAuto: boolean;
+    FTemps: TStrings;
+    FConnected: boolean;
+    FOptions: TxlReportOptionsSet;
+    // used interfaces
+    FIXLApp: IxlApplication;
+    FIDispatch: IDispatch;
+    FIConnPoint: IConnectionPoint;
+    FCookieXL: LongInt;
+  protected
+    { IDispatch }
+    function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
+    function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult; stdcall;
+    function GetIDsOfNames(const IID: TGUID; Names: Pointer;
+      NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
+    function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
+      Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
+    { EventsSink }
+    function GetEventsSink: IxlAppEvents;
+    { properties }
+    function GetCanClose: boolean;
+    function GetCanDisconnect: boolean;
+    function CanShow: boolean;
+  public
+    constructor Create(XLSApp: IxlApplication; AExcelAuto: boolean);
+    destructor Destroy; override;
+    procedure DisconnectXL;
+    procedure AddReport(Report: TxlExcelReport; OLEContainer: TOLEContainer);
+    procedure DoShow;
+    property IXLApp: IxlApplication read FIXLApp;
+    property Connected: boolean read FConnected;
+    property CanDisconnect: boolean read GetCanDisconnect;
+    property CanClose: boolean read GetCanClose;
+  end;
+
+var
+  XLEvents: TxlEventsSink;
+
+const
+  xlrWorkbookBeforeCloseEventID = 1570;
+
+
+{ TxlEventsSink }
+
+constructor TxlEventsSink.Create(XLSApp: IxlApplication; AExcelAuto: boolean);
+var
+  CPC: IConnectionPointContainer;
+begin
+  inherited Create;
+  FConnected := false;
+  FIXLApp := XLSApp;
+  FTemps := TStringList.Create;
+  try
+    if _Assigned(FIXLApp) then begin
+      FIDispatch := FIXLApp;
+      if SUCCEEDED(FIDispatch.QueryInterface(IConnectionPointContainer, CPC)) then
+        if SUCCEEDED(CPC.FindConnectionPoint(DIID_AppEvents, FIConnPoint)) then begin
+          FIConnPoint.Advise( GetEventsSink as IUnknown, FCookieXL);
+          FConnected := Assigned(FIConnPoint) and (FCookieXL <> 0);
+        end;
+     end;
+     FExcelAuto := AExcelAuto;
+  finally
+    CPC := nil;
+  end;
+  if not Connected then
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateRes2(ecExcelConnectionPointError, ecExcelConnectionPointError);
+    {$ELSE}
+    raise ExlReportError.CreateRes(ecExcelConnectionPointError);
+    {$ENDIF}
+end;
+
+destructor TxlEventsSink.Destroy;
+var
+  i: integer;
+  b: boolean;
+begin
+  DisconnectXL;
+  // Release excel
+  if Assigned(FIDispatch) then begin
+    FIConnPoint := nil;
+    FCookieXL := 0;
+    b := Assigned(Application);
+    if b then
+      b := not (csDestroying in Application.ComponentState);
+    if b or FDesignTime then
+      if CanClose then FIXLApp.Quit
+      else DoShow;
+    _Clear(FIXLApp);
+    FIDispatch := nil;
+  end;
+  // Delete all temporary files
+  for i := 0 to FTemps.Count - 1 do
+    try
+      DeleteFiles(FTemps.Strings[i], xlrFileExtention, xlrTempFileSign);
+    except
+    end;
+  FTemps.Free;
+  inherited;
+  XLEvents := nil;
+end;
+
+function TxlEventsSink.GetCanClose: boolean;
+begin
+  Result := _Assigned(FIXLApp);
+  if Result then
+    Result := (FIXLApp.Workbooks.Count = 0) and FExcelAuto;
+end;
+
+function TxlEventsSink.GetCanDisconnect: boolean;
+begin
+  Result := (not (xroOptimizeLaunch in FOptions) ) or FDesignTime or IsLibrary;
+end;
+
+function TxlEventsSink.CanShow: boolean;
+begin
+  Result := not( (xroHideExcel in FOptions) and FExcelAuto );
+end;
+
+procedure TxlEventsSink.AddReport(Report: TxlExcelReport; OLEContainer: TOLEContainer);
+var
+  i: integer;
+begin
+  if Assigned(Report) then begin
+    FOLEContainer := OLEContainer;
+    FDesignTime := FDesignTime or (csDesigning in Report.ComponentState);
+    FOptions := FOptions + Report.Options;
+    i := FTemps.IndexOf(Report.TempPath);
+    if i = -1 then FTemps.Add(Report.TempPath);
+  end;
+end;
+
+procedure TxlEventsSink.DisconnectXL;
+begin
+  if FConnected then begin
+    FConnected := false;
+    FIConnPoint.Unadvise(FCookieXL);
+  end;
+end;
+
+function TxlEventsSink.GetEventsSink: IxlAppEvents;
+begin
+  if not GetInterface(DIID_AppEvents, Result) then Result := nil;
+end;
+
+function TxlEventsSink.GetIDsOfNames(const IID: TGUID; Names: Pointer;
+  NameCount, LocaleID: Integer; DispIDs: Pointer): HResult;
+begin
+  Result := S_OK;
+  if Connected then
+    Result := FIDispatch.GetIDsOfNames(IID, Names, NameCount, LocaleID, DispIDs);
+end;
+
+function TxlEventsSink.GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult;
+begin
+  Result := S_OK;
+  if Connected then
+    Result := FIDispatch.GetTypeInfo(Index, LocaleID, TypeInfo);
+end;
+
+function TxlEventsSink.GetTypeInfoCount(out Count: Integer): HResult;
+begin
+  Result := S_OK;
+  if Connected then
+    Result := FIXLApp.GetTypeInfoCount(Count);
+end;
+
+function TxlEventsSink.Invoke(DispID: Integer; const IID: TGUID;
+  LocaleID: Integer; Flags: Word; var Params; VarResult, ExcepInfo,
+  ArgErr: Pointer): HResult;
+begin
+  Result := S_OK;
+  if Connected and (DispID = xlrWorkbookBeforeCloseEventID) then
+    if CanDisconnect then
+      DisconnectXL;
+end;
+
+procedure TxlEventsSink.DoShow;
+begin
+  if CanShow and Assigned(FIDispatch) then
+    ShowExcel(FIXLApp, Assigned(FOLEContainer), false, TOLEEnum(xlNormal), -1, -1);
+end;
+
+{$ENDIF XLR_AX}
+
+{$IFNDEF XLR_AX}
+
+{ VCL TDataSet wrapper class }
+
+type
+
+  TxlVCLDataSet = class(TxlAbstractDataSet)
+  private
+    FDataSet: TDataSet;
+    FBookmark: TBookmarkStr;
+    FFilterField: string;
+    FFilterValue: Variant;
+  public
+    // Connect/disconnect to DataSet
+    procedure Open; override;
+    procedure Close; override;
+    procedure GetFields; override;
+    procedure GetFieldsType; override;
+    function Flags: DWORD; override;
+    // DataSet state
+    function Name: string; override;
+    function Active: boolean;  override;
+    procedure EnableControls; override;
+    procedure DisableControls; override;
+    function BOF: boolean; override;
+    function EOF: boolean; override;
+    // DataSet navigate
+    procedure First; override;
+    procedure Next; override;
+    procedure SetBookmark; override;
+    procedure GotoBookmark; override;
+    procedure SetFilter(const FieldIndex: integer); override;
+    // DataSet fields
+    function FieldIsEmpty(const Index: integer): boolean; override;
+    function FieldAsInteger(const Index: integer): integer; override;
+    function FieldAsFloat(const Index: integer): extended; override;
+    function FieldAsDateTime(const Index: integer): TDateTime; override;
+    function FieldAsString(const Index: integer): string; override;
+    function FieldAsBoolean(const Index: integer): boolean; override;
+    function FieldAsOLEVariant(const Index: integer): OLEVariant; override;
+    // Properties
+    property Fields;
+    property DataSet: TDataSet read FDataSet write FDataSet;
+  end;
+
+{ TxlVCLDataSet }
+
+// Connect/disconnect to DataSet
+procedure TxlVCLDataSet.Open;
+begin
+  if Assigned(FDataSet) then
+    DataSet.Open;
+end;
+
+procedure TxlVCLDataSet.Close;
+begin
+  if Active then
+    DataSet.Close;
+end;
+
+procedure TxlVCLDataSet.GetFields;
+var i: integer;
+begin
+  if Active then
+    for i := 0 to DataSet.Fields.Count - 1 do
+      Fields.Add(UpperCase(DataSet.Fields[i].FieldName));
+end;
+
+// DataSet state
+function TxlVCLDataSet.Name: string;
+begin
+  Result := '';
+  if Assigned(DataSet) then
+    Result := DataSet.Name;
+end;
+
+function TxlVCLDataSet.Active: boolean;
+begin
+  Result := false;
+  if Assigned(DataSet) then
+    Result := DataSet.Active;
+end;
+
+procedure TxlVCLDataSet.EnableControls;
+begin
+  if Active then
+    DataSet.EnableControls;
+end;
+
+procedure TxlVCLDataSet.DisableControls;
+begin
+  if Active then
+    DataSet.DisableControls;
+end;
+
+function TxlVCLDataSet.BOF: boolean;
+begin
+  Result := true;
+  if Active then
+    Result := DataSet.BOF;
+end;
+
+function TxlVCLDataSet.EOF: boolean;
+begin
+  Result := true;
+  if Active then
+    Result := DataSet.EOF;
+end;
+
+// DataSet navigate
+procedure TxlVCLDataSet.First;
+begin
+  if Assigned(DataSet) then
+    DataSet.First;
+end;
+
+procedure TxlVCLDataSet.Next;
+begin
+  if Assigned(DataSet) then
+    DataSet.Next;
+end;
+
+procedure TxlVCLDataSet.SetBookmark;
+begin
+  if Active and (not DataSet.Filtered) then
+    FBookmark := DataSet.Bookmark;
+end;
+
+procedure TxlVCLDataSet.GotoBookmark;
+begin
+  if Active and (not DataSet.Filtered) then
+    DataSet.Bookmark := FBookmark;
+end;
+
+procedure TxlVCLDataSet.SetFilter(const FieldIndex: integer);
+
+  function CheckFilterStr(const AStr: string): string;
+  var
+    i: integer;
+  begin
+    Result := '';
+    for i := 1 to Length(AStr) do
+      if AStr[i] = '''' then
+        Result := Result + AStr[i] + ''''
+      else
+        Result := Result + AStr[i];
+  end;
+
+var
+  s: string;
+begin
+  if FieldIndex < 0 then begin
+    if EOF then
+      DataSet.Prior;
+    DataSet.Filter := '';
+    DataSet.Filtered := false;
+    DataSet.Locate(FFilterField, FFilterValue,[]);
+    FFilterField := '';
+    FFilterValue := UnAssigned;
+  end
+  else begin
+    FFilterField := Fields[FieldIndex];
+    FFilterValue := FieldAsOLEVariant(FieldIndex);
+    s := Fields[FieldIndex] + '=';
+    if FieldType[FieldIndex] in [xdInteger, xdFloat, xdBoolean] then
+      s := s + FieldAsString(FieldIndex)
+    else
+      s := s + '''' + CheckFilterStr(FieldAsString(FieldIndex)) + '''';
+    DataSet.Filter := s;
+    DataSet.Filtered := true;
+  end;
+end;
+
+// DataSet fields
+procedure TxlVCLDataSet.GetFieldsType;
+var
+  i: integer;
+begin
+  for i := 0 to Fields.Count - 1 do begin
+    FieldType[i] := xdNotSupported;
+    if Active and IsValidFieldName(DataSet.Fields[i].FieldName) then begin
+      if Assigned(DataSet.Fields[i].OnGetText) then
+        FieldType[i] := xdString
+      else
+        case DataSet.Fields[i].DataType of
+          // strings
+          ftString, ftFixedChar, ftWideString, ftMemo, ftFmtMemo:  FieldType[i] := xdString;
+          // integer
+          ftSmallint, ftInteger, ftWord, ftLargeint, ftAutoInc: FieldType[i] := xdInteger;
+          // float
+          ftFloat, ftCurrency, ftBCD: FieldType[i] := xdFloat;
+          // boolean
+          ftBoolean: FieldType[i] := xdBoolean;
+          // date and time
+          ftDate, ftTime, ftDateTime: FieldType[i] := xdDateTime;
+        end;
+    end;
+  end;
+end;
+
+function TxlVCLDataSet.Flags: DWORD;
+begin
+  Result := xlrMultisheet or xlrSetFilter;
+end;
+
+function TxlVCLDataSet.FieldIsEmpty(const Index: integer): boolean;
+begin
+  Result := true;
+  if Active then
+    Result := DataSet.Fields[Index].IsNull;
+end;
+
+function TxlVCLDataSet.FieldAsInteger(const Index: integer): integer;
+begin
+  Result := 0;
+  if Active then
+    Result := DataSet.Fields[Index].AsInteger;
+end;
+
+function TxlVCLDataSet.FieldAsFloat(const Index: integer): extended;
+begin
+  Result := 0;
+  if Active then
+    Result := DataSet.Fields[Index].AsFloat;
+end;
+
+function TxlVCLDataSet.FieldAsDateTime(const Index: integer): TDateTime;
+begin
+  Result := 0;
+  if Active then
+    Result := DataSet.Fields[Index].AsDateTime;
+end;
+
+function TxlVCLDataSet.FieldAsString(const Index: integer): string;
+var
+  MaxStrLen: integer;
+begin
+  MaxStrLen := xlrDDEMaxStrlen;
+  Result := '';
+  if Active then
+    if Assigned(DataSet.Fields[Index].OnGetText) then
+      Result := DataSet.Fields[Index].DisplayText
+    else
+      Result := DataSet.Fields[Index].AsString;
+  Result := Trim(Result);
+  if Result <> '' then begin
+    DeleteChars(#$0D, Result);
+    if TxlExcelDataSource(DataSource).Report.DataExportMode = xdmCSV then
+      ReplaceChars('"', '''', Result);
+    case TxlExcelDataSource(DataSource).Report.DataExportMode of
+      xdmCSV: MaxStrLen := xlrCSVMaxStrLen;
+      xdmVariant: MaxStrLen := xlrVarMaxStrLen;
+    end;
+    if Length(Result) > MaxStrLen then
+      Result := Copy(Result, 1, MaxStrLen);
+  end;
+end;
+
+function TxlVCLDataSet.FieldAsBoolean(const Index: integer): boolean;
+begin
+  Result := false;
+  if Active then
+    Result := DataSet.Fields[Index].AsBoolean;
+end;
+
+function TxlVCLDataSet.FieldAsOLEVariant(const Index: integer): OLEVariant;
+var
+  s: string;
+begin
+  Result := NULL;
+  if Active and (not FieldIsEmpty(Index)) then
+    case FieldType[Index] of
+      xdInteger: Result := DataSet.Fields[Index].AsInteger;
+      xdBoolean: Result := DataSet.Fields[Index].AsBoolean;
+      xdFloat: Result := DataSet.Fields[Index].AsFloat;
+      xdDateTime: Result := DataSet.Fields[Index].AsDateTime;
+      xdString: begin
+        s := DataSet.Fields[Index].AsString;
+        DeleteChars(#$0D, s);
+        Result := s;
+      end;
+    end;
+  if VarType(Result) = varOLEStr then
+    if Length(Result) > xlrVarMaxStrLen then
+      Result := Copy(Result, 1, xlrVarMaxStrLen);
+end;
+
+{ Unbound Dataset wrapper class }
+
+type
+
+  TxlUnboundDataSet = class(TxlAbstractDataSet)
+  private
+    FFldTypes: TList;
+    FBuff: OLEVariant;
+    FRecNo: integer;
+    FEOF: boolean;
+  public
+    // Connect/disconnect to DataSet
+    procedure Open; override;
+    procedure Close; override;
+    procedure GetFields; override;
+    procedure GetFieldsType; override;
+    // DataSet state
+    function Name: string; override;
+    function Active: boolean;  override;
+    procedure EnableControls; override;
+    procedure DisableControls; override;
+    function BOF: boolean; override;
+    function EOF: boolean; override;
+    // DataSet navigate
+    procedure First; override;
+    procedure Next; override;
+    procedure SetBookmark; override;
+    procedure GotoBookmark; override;
+    procedure SetFilter(const FieldIndex: integer); override;
+    // DataSet fields
+    function FieldIsEmpty(const Index: integer): boolean; override;
+    function FieldAsInteger(const Index: integer): integer; override;
+    function FieldAsFloat(const Index: integer): extended; override;
+    function FieldAsDateTime(const Index: integer): TDateTime; override;
+    function FieldAsString(const Index: integer): string; override;
+    function FieldAsBoolean(const Index: integer): boolean; override;
+    function FieldAsOLEVariant(const Index: integer): OLEVariant; override;
+    // Properties
+    property Fields;
+  end;
+
+{ TxlUnboundDataSet }
+
+procedure TxlUnboundDataSet.Open;
+begin
+  FBuff := UnAssigned;
+  FEOF := false;
+  FRecNo := 0;
+  FFldTypes := TList.Create;
+end;
+
+procedure TxlUnboundDataSet.Close;
+begin
+  FFldTypes.Free;
+  FRecNo := 0;
+  FEOF := false;
+  FBuff := UnAssigned;
+end;
+
+procedure TxlUnboundDataSet.GetFields;
+var
+  i, FldCount: integer;
+  FldName: string;
+  FldType: TxlDataType;
+begin
+  (DataSource as TxlDataSource).FOnGetDataSourceInfo(DataSource as TxlDataSource, FldCount);
+  for i := 0 to FldCount - 1 do begin
+    (DataSource as TxlDataSource).FOnGetFieldInfo(DataSource as TxlDataSource, i,
+      FldName, FldType);
+    Fields.Add(FldName);
+    FFldTypes.Add(Pointer(FldType));
+  end;
+  if Fields.Count > 0 then
+    FBuff := VarArrayCreate([0, Fields.Count - 1], varVariant);
+end;
+
+procedure TxlUnboundDataSet.GetFieldsType;
+var
+  i: integer;
+begin
+  for i := 0 to Fields.Count - 1 do
+    FieldType[i] := TxlDataType(FFldTypes[i]);
+  if DataSource.RangeType = rtNoRange then begin
+    for i := 0 to Fields.Count - 1 do
+      FBuff[i] := UnAssigned;
+    (DataSource as TxlDataSource).FOnGetRecord(DataSource as TxlDataSource, FRecNo, FBuff, FEOF);
+    if FEOF then
+      for i := 0 to Fields.Count - 1 do
+        FBuff[i] := UnAssigned;
+  end;
+end;
+
+function TxlUnboundDataSet.Name: string;
+begin
+  // not supported
+end;
+
+function TxlUnboundDataSet.Active: boolean;
+begin
+  Result := (Fields.Count > 0) and (not _VarIsEmpty(FBuff));
+end;
+
+procedure TxlUnboundDataSet.EnableControls;
+begin
+  // not supported
+end;
+
+procedure TxlUnboundDataSet.DisableControls;
+begin
+  // not supported
+end;
+
+function TxlUnboundDataSet.BOF: boolean;
+begin
+  Result := FRecNo = 0;
+end;
+
+function TxlUnboundDataSet.EOF: boolean;
+begin
+  Result := FEOF;
+end;
+
+procedure TxlUnboundDataSet.First;
+begin
+  Inc(FRecNo);
+  (DataSource as TxlDataSource).FOnGetRecord(DataSource as TxlDataSource, FRecNo, FBuff, FEOF);
+  if EOF then
+    FRecNo := 0;
+end;
+
+procedure TxlUnboundDataSet.Next;
+var
+  i: integer;
+begin
+  Inc(FRecNo);
+  for i := 0 to Fields.Count - 1 do
+    FBuff[i] := UnAssigned;
+  (DataSource as TxlDataSource).FOnGetRecord(DataSource as TxlDataSource, FRecNo, FBuff, FEOF);
+  if FEOF then
+    for i := 0 to Fields.Count - 1 do
+      FBuff[i] := UnAssigned;
+end;
+
+procedure TxlUnboundDataSet.SetBookmark;
+begin
+  // not supported
+end;
+
+procedure TxlUnboundDataSet.GotoBookmark;
+begin
+  // not supported
+end;
+
+procedure TxlUnboundDataSet.SetFilter(const FieldIndex: integer);
+begin
+  // not supported
+end;
+
+function TxlUnboundDataSet.FieldIsEmpty(const Index: integer): boolean;
+begin
+  Result := _VarIsEmpty(FBuff[Index]);
+end;
+
+function TxlUnboundDataSet.FieldAsInteger(const Index: integer): integer;
+begin
+  Result := FBuff[Index];
+end;
+
+function TxlUnboundDataSet.FieldAsFloat(const Index: integer): extended;
+begin
+  Result := FBuff[Index];
+end;
+
+function TxlUnboundDataSet.FieldAsDateTime(const Index: integer): TDateTime;
+begin
+  Result := FBuff[Index];
+end;
+
+function TxlUnboundDataSet.FieldAsString(const Index: integer): string;
+var
+  MaxStrLen: integer;
+begin
+  MaxStrLen := xlrDDEMaxStrLen;
+  Result := FBuff[Index];
+  Result := Trim(Result);
+  if Result <> '' then begin
+    DeleteChars(#$0D, Result);
+    if TxlExcelDataSource(DataSource).Report.DataExportMode = xdmCSV then
+      ReplaceChars('"', '''', Result);
+    case TxlExcelDataSource(DataSource).Report.DataExportMode of
+      xdmCSV: MaxStrLen := xlrCSVMaxStrLen;
+      xdmVariant: MaxStrLen := xlrVarMaxStrLen;
+    end;
+    if Length(Result) > MaxStrLen then
+      Result := Copy(Result, 1, MaxStrLen);
+  end;
+end;
+
+function TxlUnboundDataSet.FieldAsBoolean(const Index: integer): boolean;
+begin
+  Result := FBuff[Index];
+end;
+
+function TxlUnboundDataSet.FieldAsOLEVariant(const Index: integer): OLEVariant;
+begin
+  Result := FBuff[Index];
+  if VarType(Result) = varOLEStr then
+    if Length(Result) > xlrVarMaxStrLen then
+      Result := Copy(Result, 1, xlrVarMaxStrLen);
+end;
+
+{$ENDIF XLR_AX}
+
+{ TxlExcelDataSource }
+
+constructor TxlExcelDataSource.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+  FOptions := [xrgoAutoOpen, xrgoPreserveRowHeight];
+end;
+
+function TxlExcelDataSource.GetReport: TxlExcelReport;
+begin
+  Result := (inherited Report) as TxlExcelReport;
+end;
+
+function TxlExcelDataSource.GetMasterSource: TxlExcelDataSource;
+begin
+  Result := (inherited MasterSource) as TxlExcelDataSource;
+end;
+
+procedure TxlExcelDataSource.SetMasterSource(const Value: TxlExcelDataSource);
+begin
+  inherited SetMasterSource(TxlAbstractDataSource(Value));
+end;
+
+procedure TxlExcelDataSource.SetOptions(const Value: TxlRangeOptionsSet);
+begin
+  FOptions := Value;
+  AutoOpen := xrgoAutoOpen in Options;
+  AutoClose := xrgoAutoClose in Options;
+end;
+
+function TxlExcelDataSource.GetRoot: TxlExcelDataSource;
+begin
+  Result := Self;
+  while Assigned(Result.MasterSource) do
+    Result := Result.MasterSource;
+end;
+
+function TxlExcelDataSource.GetLevel: integer;
+var Source: TxlExcelDataSource;
+begin
+  Result := 1;
+  Source := Self;
+  while Assigned(Source.MasterSource) do begin
+    Inc(Result);
+    Source := Source.MasterSource;
+  end;
+end;
+
+function TxlExcelDataSource.GetMaxLevel: integer;
+var
+  Root: TxlExcelDataSource;
+  Level, i: integer;                                     
+begin
+  Result := 1;
+  Root := GetRoot;
+  for i := 0 to Report.DataSources.Count - 1 do
+    if Report.DataSources[i].GetRoot = Root then begin
+      Level := Report.DataSources[i].GetLevel;
+      if Result < Level then
+        Result := Level;
+    end;
+end;
+
+function TxlExcelDataSource.GetDataSources: TxlExcelDataSources;
+begin
+  Result := (inherited DataSources) as TxlExcelDataSources;
+end;
+
+// Events
+procedure TxlExcelDataSource.DoOnAfterDataTransfer;
+begin
+end;
+
+procedure TxlExcelDataSource.DoOnBeforeDataTransfer;
+begin
+end;
+
+procedure TxlExcelDataSource.DoOnMacro(const MacroType: TxlMacroType;
+  const MacroName: string; var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7,
+  Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17,
+  Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27,
+  Arg28, Arg29, Arg30: OLEVariant);
+begin
+end;
+
+procedure TxlExcelDataSource.Connect;
+begin
+  // Field initialization
+  FRowOffset := 0;
+  FRows := UnAssigned;
+  FRanges := UnAssigned;
+  FRangesCount := 0;
+  FDeleteSpecialRow := true;
+  if RangeType in rtRoots then begin
+    case Report.DataExportMode of
+      xdmCSV: FBuff := TxlCSVBuffer.Create(Self);
+      xdmDDE: FBuff := TxlDDEBuffer.Create(Self);
+      else FBuff := TxlVarBuffer.Create(Self);
+    end;
+  end;
+  // Connect to range
+  FIXLSApp := Report.IXLSApp;
+  FIWorkbooks := Report.IWorkbooks;
+  FIWorkbook := Report.IWorkbook;
+  FIWorksheets := FIWorkbook.Worksheets;
+  FINames := Report.INames;
+  FITempSheet := Report.ITempSheet;
+  // NoRange
+  if RangeType = rtNoRange then begin
+    {$IFDEF XLR_BCB}
+    FIRange := ITempSheet.Cells.Item[Report.FNoRangeRow, 1];
+    {$ELSE}
+    IDispatch(FIRange) := ITempSheet.Cells.Item[Report.FNoRangeRow, 1];
+    {$ENDIF}
+    FISheet := ITempSheet;
+  end
+  // Range
+  else begin
+    try
+      FIName := IWorkbook.Names.Item(EmptyParam, Range, EmptyParam);
+      FIRange := IName.RefersToRange;
+      {$IFDEF XLR_BCB}
+      FISheet := IRange.Parent;
+      {$ELSE}
+      FISheet := IRange.Parent as IxlWorksheet;
+      {$ENDIF}
+      if IRange.Rows.Count = 1 then
+        {$IFDEF XLR_AX}
+        raise ExlReportError.CreateResFmt2(ecIncorrectRangeFormat, ecIncorrectRangeFormat, [Range]);
+        {$ELSE}
+        raise ExlReportError.CreateResFmt(ecIncorrectRangeFormat, [Range]);
+        {$ENDIF}
+    except
+      {$IFDEF XLR_AX}
+      raise ExlReportError.CreateResFmt2(ecRangeNotFound, ecRangeNotFound, [Range] );
+      {$ELSE}
+      raise ExlReportError.CreateResFmt(ecRangeNotFound, [Range] );
+      {$ENDIF}
+    end;
+  end;
+end;
+
+procedure TxlExcelDataSource.Disconnect;
+begin
+  _Clear(FIMergedRows);
+  _Clear(FIUnMergedRows);
+  _Clear(FIRange);
+  _Clear(FISheet);
+  _Clear(FITempSheet);
+  _Clear(FIName);
+  _Clear(FINames);
+  _Clear(FIWorksheets);
+  _Clear(FIWorkbook);
+  _Clear(FIWorkbooks);
+  _Clear(FIXLSApp);
+  if RangeType = rtNoRange then
+    Inc(Report.FNoRangeRow)
+  else
+    if RangeType in rtRoots then
+      FBuff.Free;
+  FHeights := UnAssigned;
+  FRows := UnAssigned;
+  FRangesCount := 0;
+  FRanges := UnAssigned;
+  FRootRanges := UnAssigned;
+  FBuff := nil;
+end;
+
+procedure TxlExcelDataSource.MacroProcessing(const MacroType: TxlMacroType; const MacroName: string);
+var
+  vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+  vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+  vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30: OLEVariant;
+begin
+  if MacroName <> '' then
+  try
+    try
+      vArg1:= EmptyParam; vArg2:= EmptyParam; vArg3:= EmptyParam; vArg4:= EmptyParam;
+      vArg5:= EmptyParam; vArg6:= EmptyParam; vArg7:= EmptyParam; vArg8:= EmptyParam;
+      vArg9:= EmptyParam; vArg10:= EmptyParam; vArg11:= EmptyParam; vArg12:= EmptyParam;
+      vArg13:= EmptyParam; vArg14:= EmptyParam; vArg15:= EmptyParam; vArg16:= EmptyParam;
+      vArg17:= EmptyParam; vArg18:= EmptyParam; vArg19:= EmptyParam; vArg20:= EmptyParam;
+      vArg21:= EmptyParam; vArg22:= EmptyParam; vArg23:= EmptyParam; vArg24:= EmptyParam;
+      vArg25:= EmptyParam; vArg26:= EmptyParam; vArg27:= EmptyParam; vArg28:= EmptyParam;
+      vArg29:= EmptyParam; vArg30:= EmptyParam;
+      DoOnMacro(MacroType, MacroName,
+        vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+        vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+        vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30);
+      BeforeRunMacro(IXLSApp, xroHideExcel in Report.Options);
+      IXLSApp.Run(MacroName,
+        vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+        vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+        vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30);
+    finally
+      vArg1 := UnAssigned; vArg2 := UnAssigned; vArg3 := UnAssigned; vArg4 := UnAssigned;
+      vArg5 := UnAssigned; vArg6 := UnAssigned; vArg7 := UnAssigned; vArg8 := UnAssigned;
+      vArg9 := UnAssigned; vArg10 := UnAssigned; vArg11 := UnAssigned; vArg12 := UnAssigned;
+      vArg13 := UnAssigned; vArg14 := UnAssigned; vArg15 := UnAssigned; vArg16 := UnAssigned;
+      vArg17 := UnAssigned; vArg18 := UnAssigned; vArg19 := UnAssigned; vArg20 := UnAssigned;
+      vArg21 := UnAssigned; vArg22 := UnAssigned; vArg23 := UnAssigned; vArg24 := UnAssigned;
+      vArg25 := UnAssigned; vArg26 := UnAssigned; vArg27 := UnAssigned; vArg28 := UnAssigned;
+      vArg29 := UnAssigned; vArg30 := UnAssigned;
+    end;
+  except
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateResFmt2(ecMacroRuntimeError, ecMacroRuntimeError, [MacroName] );
+    {$ELSE}
+    raise ExlReportError.CreateResFmt(ecMacroRuntimeError, [MacroName] );
+    {$ENDIF}
+  end;
+end;
+
+// Template parsing
+procedure TxlExcelDataSource.GetRangeInfo(var ARow, AColumn, ARowCount, AColCount: integer; var Formulas, RowCaptions: OLEVariant);
+var
+  i, NameCount: integer;
+  s, FieldName: string;
+  IR: IxlRange;
+  ITmpName: IxlName;
+begin
+  // Range
+  if RangeType <> rtNoRange then begin
+    // Get formulas
+    ARow := IRange.Row;
+    AColumn := IRange.Column;
+    ARowCount := IRange.Rows.Count;
+    AColCount := IRange.Columns.Count;
+    if RangeType in rtRoots then
+      IR := IRange.Range[A1(1, 1), A1(ARowCount, AColCount)]
+    else
+      IR := IRange;
+    Formulas := IR.FormulaLocal;
+    if Assigned(MasterSource) then
+      FRowOffset := ARow - GetRoot.Row;
+    if RangeType in rtRoots then begin
+      FIMergedRows := ITempSheet.Range[A1(Report.FTemplateRow + 1, 1),
+        A1(Report.FTemplateRow + ARowCount, AColCount)];
+      IR.Copy(FIMergedRows);
+      Inc(Report.FTemplateRow, ARowCount + 2);
+      FIUnMergedRows := ITempSheet.Range[A1(Report.FTemplateRow + 1, 1),
+        A1(Report.FTemplateRow + ARowCount, AColCount)];
+      IR.Copy(FIUnMergedRows);
+      FIUnMergedRows.UnMerge;
+      Inc(Report.FTemplateRow, ARowCount + 2);
+      _Clear(IR);
+    end
+    else begin
+      FIMergedRows := GetRoot.FIMergedRows.Range[A1(FRowOffset + 1, 1), A1(FRowOffset + ARowCount, AColCount)];
+      FIUnMergedRows := GetRoot.FIUnMergedRows.Range[A1(FRowOffset + 1, 1), A1(FRowOffset + ARowCount, AColCount)];
+    end;
+    // Get captions
+    if ARow > 1 then begin
+      IR := IWorksheet.Range[A1(ARow - 1, AColumn), A1(ARow - 1, AColumn + AColCount - 1)];
+      RowCaptions := IR.Value;
+      _Clear(IR);
+    end;
+  end
+  // NoRange
+  else begin
+    // Get customized fields
+    s := '';
+    NameCount := INames.Count;
+    for i := 1 to NameCount do begin
+      ITmpName := INames.Item(i, EmptyParam, EmptyParam);
+      if UpperCase(ITmpName.Name) = UpperCase(Alias) then begin
+        s := ITmpName.RefersToRange.Value;
+        ClearRangeContents(ITmpName.RefersToRange);
+        AColCount := 2;
+        while CutSubString2(delOption, FieldName, s) do
+          if FieldName <> '' then begin
+            if AColCount = 2 then
+              Formulas := VarArrayCreate([1, 2, 1, 2], varVariant)
+            else
+              VarArrayRedim(Formulas, AColCount + 1);
+            Formulas[1, AColCount] := '=' + Alias + delFldFormula + FieldName;
+            Inc(AColCount);
+          end;
+        ITmpName.Delete;
+        Break;
+      end;
+    end;
+    // Range emulation
+    if _VarIsEmpty(Formulas) then begin
+      AColCount := 2;
+      for i := 0 to XLDataSet.Fields.Count - 1 do
+        if (XLDataSet.FieldType[i] <> xdNotSupported) then begin
+          if AColCount = 2 then
+            Formulas := VarArrayCreate([1, 2, 1, 2], varVariant)
+          else
+            VarArrayRedim(Formulas, AColCount + 1);
+          Formulas[1, AColCount] := '=' + Alias + delFldFormula + XLDataSet.Fields[i];
+          Formulas[2, AColCount] := '';
+          Inc(AColCount);
+        end;
+    end;
+    Dec(AColCount);
+    ARow := IRange.Row;
+    AColumn := 1;
+    ARowCount := 2;
+  end;
+end;
+
+procedure TxlExcelDataSource.ScanParsedCells(Formulas: OLEVariant);
+var
+  i: integer;
+  a: TxlSpecialRowAction;
+  b: TxlSpecialRowActions;
+  IsDelete: boolean;
+  UnMergedFormulas, MergedFormulas: OLEVariant;
+  OptStr: string;
+begin
+  IsDelete := true;
+  // Scan cells
+  if RangeType <> rtNoRange then begin
+    b := [saDeleteIsEmpty];
+    UnMergedFormulas := FIUnMergedRows.FormulaLocal;
+    MergedFormulas := FIMergedRows.FormulaLocal;
+    for i := 0 to Cells.Count - 1 do begin
+      if Cells[i].CellType = ctField then begin
+        Formulas[Cells[i].Row, Cells[i].Column] := NULL;
+        MergedFormulas[Cells[i].Row, Cells[i].Column] := NULL;
+        UnMergedFormulas[Cells[i].Row, Cells[i].Column] := NULL;
+      end;
+      if Cells[i].CellType in [ctField, ctEmpty, ctFormula] then begin
+        // Parse column options
+        OptStr := Formulas[RowCount + 1, Cells[i].Column];
+        {$IFDEF XLR_BCB}
+        Cells[i].OptionFound := Report.OptionItems.ParseOptionsStr2(Cells[i], UnAssigned, xoColumn, OptStr, a);
+        {$ELSE}
+        Cells[i].OptionFound := Report.OptionItems.ParseOptionsStr2(Cells[i], nil, xoColumn, OptStr, a);
+        {$ENDIF}
+        Include(b, a);
+        if Cells[i].OptionFound then
+          Formulas[RowCount + 1, Cells[i].Column] := '';
+        IsDelete := IsDelete and
+          ( ( (not Cells[i].OptionFound) and (Formulas[RowCount + 1, Cells[i].Column] = '') ) or
+           ( (Cells[i].OptionFound) and (a = saDeleteIsEmpty) ) );
+      end;
+    end;
+    {$IFDEF XLR_BCB}
+    Self.OptionFound := Report.OptionItems.ParseOptionsStr2(Self, UnAssigned, xoRange, Formulas[RowCount + 1, 1], a);
+    {$ELSE}
+    Self.OptionFound := Report.OptionItems.ParseOptionsStr2(Self, nil, xoRange, Formulas[RowCount + 1, 1], a);
+    {$ENDIF}
+    Include(b, a);
+    FDeleteSpecialRow := IsDelete or (saAbsoluteDelete in b);
+    if saCompleteDelete in b then
+      FDeleteSpecialRow := false;
+    if Self.OptionFound then
+      Formulas[RowCount + 1, 1] := NULL;
+    IRange.FormulaLocal := Formulas;
+    FIMergedRows.FormulaLocal := Formulas;
+    FIUnMergedRows.FormulaLocal := Formulas;
+    IRange.Copy(EmptyParam);
+    FIMergedRows.PasteSpecial(TOLEEnum(xlPasteFormulas),
+      TOLEEnum(xlPasteSpecialOperationNone), true, false);
+    FIUnMergedRows.PasteSpecial(TOLEEnum(xlPasteFormulas),
+      TOLEEnum(xlPasteSpecialOperationNone), true, false);
+  end;
+end;
+
+// Data transfer
+procedure TxlExcelDataSource.PutNoRange;
+var
+  Buff, Addrs, Names: OLEVariant;
+  r, c, i: integer;
+begin
+  _Clear(FIRange);
+  Buff := VarArrayCreate([1, ColCount], varVariant);
+  Addrs := VarArrayCreate([1, ColCount], varVariant);
+  Names := VarArrayCreate([1, ColCount], varVariant);
+  try
+    Names[1] := '';
+    Addrs[1] := '';
+    r := Row;
+    c := 2;
+    for i := 2 to ColCount do begin
+      if i mod 250 = 1 then begin
+        Inc(r);
+        c := 2;
+      end;
+      Buff[i] := Cells[i - 1].AsVariant;
+      Addrs[i] := '=' + xlrTempSheetName + '!' + A1Abs(r, c);
+      Names[i] := copy(Cells[i-1].Formula, 2, Length(Cells[i-1].Formula) - 1);
+      Inc(c);
+    end;
+    BeforeRunMacro(IXLSApp, xroHideExcel in Report.Options);
+    {$IFDEF XLR_BCB}
+    FIRange := OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + 'xlrPutNoRangeData', xlrDebug, Report.FNoRangeRow, Buff, Addrs, Names, Alias);
+    {$ELSE}
+    IDispatch(FIRange) := OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + 'xlrPutNoRangeData', xlrDebug, Report.FNoRangeRow, Buff, Addrs, Names, Alias);
+    {$ENDIF}
+    FAllowOptions := false;
+    Report.FNoRangeRow := Report.FNoRangeRow + ColCount div 250;
+  finally
+    Buff := UnAssigned;
+    Addrs := UnAssigned;
+    Names := UnAssigned;
+  end;
+end;
+
+procedure TxlExcelDataSource.PutRange;
+
+  procedure MakeRootRanges;
+  var V: OLEVariant;
+  begin
+    FRootRanges := VarArrayCreate([1, 2], varVariant);
+    FRootRanges[1] := 1;
+    // Root
+    V := VarArrayCreate([1, 2], varVariant);
+    V[1] := 1;
+    V[2] := FRanges;
+    FRootRanges[2] := V;
+  end;
+
+var
+  s: string;
+  V: OLEVariant;
+begin
+  FRows := UnAssigned;
+  if xrgoPreserveRowHeight in Options then begin
+    BeforeRunMacro(IXLSApp, xroHideExcel in Report.Options);
+    FHeights := OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.xlrRowsHeight', Range)
+  end
+  else
+    FHeights := UnAssigned;
+  // Add empty row
+  IRange.Rows.Item[1, EmptyParam].Insert(TOLEEnum(xlShiftDown));
+  s := '=' + '''' + IWorksheet.Name + '''' + '!' +
+    R1C1(IRange.Row - 1, IRange.Column) + ':' +
+    R1C1(IRange.Row + IRange.Rows.Count - 1, IRange.Column + IRange.Columns.Count - 1);
+  _Clear(FIRange);
+  // Reconnect IName
+  IName.Delete;
+  _Clear(FIName);
+  {$IFDEF XLR_BCB}
+  FIName := OLEVariant(INames).Add(Name := Range, RefersToR1C1 := s);
+  {$ELSE}
+  IDispatch(FIName) := OLEVariant(INames).Add(Name := Range, RefersToR1C1 := s);
+  {$ENDIF}
+  // Reconnect IRange
+  FIRange := IWorksheet.Range[Range, EmptyParam];
+  // Delete template rows
+  IRange.Range[A1(IRange.Rows.Count - RowCount, 1), A1(IRange.Rows.Count - 1, ColCount)].Delete(TOLEEnum(xlShiftUp));
+  // Put data
+  XLDataSet.First;
+  (FBuff as TxlBuffer).StartBuffer;
+  FAllowOptions := not XLDataSet.EOF;
+  while not XLDataSet.EOF do begin
+    (FBuff as TxlBuffer).GetRecord(Self, FRows);
+    XLDataSet.Next;
+  end;
+  (FBuff as TxlBuffer).CheckLimits(true);
+  // Copy cells format
+  if IRange.Rows.Count > (RowCount + 1) then begin
+    FRows := varArrayCreate([1, 1], varVariant);
+    V := VarArrayCreate([1, 3], varVariant);
+    V[1] := 2;
+    V[2] := (FBuff as TxlBuffer).FTotalRowCount + 1;
+    V[3] := RowCount;
+    FRows[1] := V;
+    VBACopyFormats(Self, FRows, FHeights, FDeleteSpecialRow,
+      xrgoPreserveRowHeight in Options, xroHideExcel in Report.Options);
+  end
+  else begin
+    IRange.Rows.Item[1, EmptyParam].Delete(xlShiftUp);
+  end;
+  // FRanges emulation
+  FRanges := VarArrayCreate([1, 2], varVariant);
+  FRangesCount := 0;
+  FRanges[1] := 1;
+  if FDeleteSpecialRow then
+    FRanges[2] := FIRange.Rows.Count
+  else
+    FRanges[2] := FIRange.Rows.Count - 1;
+  MakeRootRanges;
+end;
+
+procedure TxlExcelDataSource.PutRoot;
+
+  procedure SetAllowOptions(Source: TxlExcelDataSource; Value: boolean);
+  var
+    i: integer;
+  begin
+    Source.FAllowOptions := Value;
+    for i := 0 to Source.Details.Count - 1 do
+      if TxlExcelDataSource(Source.Details[i]).RangeType = rtRangeDetail then
+        TxlExcelDataSource(Source.Details[i]).FAllowOptions := Value
+      else
+        SetAllowOptions(TxlExcelDataSource(Source.Details[i]), Value);
+  end;
+
+  function SourceOfRow(RootRow: integer): TxlExcelDataSource;
+  var
+    i: integer;
+  begin
+    Result := Self;
+    for i := 0 to Details.Count - 1 do
+      if (RootRow >= (TxlExcelDataSource(Details[i]).FRowOffset + 1)) and
+         (RootRow <= (TxlExcelDataSource(Details[i]).FRowOffset + 1 + TxlExcelDataSource(Details[i]).RowCount)) then begin
+        Result := TxlExcelDataSource(Details[i]);
+        Break;
+      end;
+  end;
+
+  procedure AddRowToRanges(Source: TxlExcelDataSource; const AStartRow, AEndRow: integer);
+  begin
+    if _VarIsEmpty(Source.FRanges) then begin
+      Source.FRanges := VarArrayCreate([1, 2], varVariant);
+      Source.FRangesCount := 1;
+    end
+    else begin
+      Inc(Source.FRangesCount);
+      VarArrayReDim(Source.FRanges, Source.FRangesCount * 2);
+    end;
+    Source.FRanges[Source.FRangesCount * 2 - 1] := AStartRow;
+    Source.FRanges[Source.FRangesCount * 2] := AEndRow;
+  end;
+
+  procedure MakeRootRanges;
+  var V: OLEVariant;
+      i, j, CountRanges: integer;
+  begin
+    FRootRanges := VarArrayCreate([1, GetMaxLevel + 1], varVariant);
+    FRootRanges[1] := GetMaxLevel;
+    for i := 2 to GetMaxLevel + 1 do begin
+      V := VarArrayCreate([1, 1], varVariant);
+      V[1] := 0;
+      FRootRanges[i] := V;
+    end;
+    // Root
+    V := VarArrayCreate([1, 2], varVariant);
+    V[1] := 1;
+    V[2] := FRanges;
+    FRootRanges[2] := V;
+    // Levels
+    for i := 2 to GetMaxLevel do begin
+      V := FRootRanges[i + 1];
+      for j := 0 to Report.DataSources.Count - 1 do
+        if (Self = Report.DataSources[j].GetRoot) and (i = Report.DataSources[j].GetLevel) then begin
+          CountRanges := V[1];
+          Inc(CountRanges);
+          VarArrayRedim(V, CountRanges + 1);
+          V[CountRanges + 1] := Report.DataSources[j].FRanges;
+          V[1] := CountRanges;
+        end;
+      FRootRanges[i+1] := V;
+    end;
+  end;
+
+var
+  i, MasterRecCount, DetailRecCount: integer;
+  Source: TxlExcelDataSource;
+  s: string;
+  V: OLEVariant;
+begin
+  // Get format rows
+  if RangeType = rtRangeRoot then begin
+    FRows := varArrayCreate([1, RowCount + 1], varVariant);
+    for i := 1 to RowCount + 1 do begin
+      V := VarArrayCreate([1, 1], varVariant);
+      FRows[i] := V;
+      V := UnAssigned;
+    end;
+    SetAllowOptions(Self, true);
+    if xrgoPreserveRowHeight in Options then begin
+      BeforeRunMacro(IXLSApp, xroHideExcel in Report.Options);
+      FHeights := OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.xlrRowsHeight', Range)
+    end
+    else
+      FHeights := UnAssigned;
+  end
+  else begin
+    FRows := MasterSource.FRows;
+  end;
+  try
+    // Init RootSource
+    if RangeType = rtRangeRoot then begin
+      // Start Buffer
+      (GetRoot.FBuff as TxlBuffer).StartBuffer;
+      // Add first empty row
+      IRange.Rows.Item[1, EmptyParam].Insert(TOLEEnum(xlShiftDown));
+      s := '=' + '''' + IWorksheet.Name + '''' + '!' +
+        R1C1(IRange.Row - 1, IRange.Column) + ':' +
+        R1C1(IRange.Row + IRange.Rows.Count - 1, IRange.Column + IRange.Columns.Count - 1);
+      _Clear(FIRange);
+      // Reconnect IName
+      IName.Delete;
+      _Clear(FIName);
+      {$IFDEF XLR_BCB}
+      FIName := OLEVariant(INames).Add(Name := Range, RefersToR1C1 := s);
+      {$ELSE}
+      IDispatch(FIName) := OLEVariant(INames).Add(Name := Range, RefersToR1C1 := s);
+      {$ENDIF}
+      // Reconnect IRange
+      FIRange := IWorksheet.Range[Range, EmptyParam];
+      // Delete template rows
+      IRange.Range[A1(2, 1), A1(IRange.Rows.Count - 1, ColCount)].Delete(TOLEEnum(xlShiftUp));
+    end;
+
+    // Data transfer
+    XLDataSet.First;
+    {$IFDEF XLR_AX}
+    if RangeType <> rtRangeRoot then
+      DoRelation;
+    {$ENDIF XLR_AX}
+    MasterRecCount := 0;
+    FSR := 0;
+    if not XLDataSet.EOF then
+      FSR := (Self.GetRoot.FBuff as TxlBuffer).FTotalRowCount + 1;
+    if (RangeType = rtRangeRoot) and XLDataSet.EOF then
+      SetAllowOptions(Self, false);
+    while not XLDataSet.EOF do begin
+      i := FRowOffset + 1;
+      while i <= FRowOffset + RowCount do begin
+        Source := SourceOfRow(i);
+        if Source = Self then begin
+          (Source.GetRoot.FBuff as TxlBuffer).GetRow(Self, i - FRowOffset, FRows);
+          Inc(i);
+        end
+        else
+          if Source.RangeType = rtRangeDetail then begin
+            Source.XLDataSet.First;
+            DetailRecCount := 0;
+            // AddStartRow
+            Source.FSR := 0;
+            if not Source.XLDataSet.EOF then
+              Source.FSR := (Source.GetRoot.FBuff as TxlBuffer).FTotalRowCount + 1;
+            while not Source.XLDataSet.EOF do begin
+              (Source.GetRoot.FBuff as TxlBuffer).GetRecord(Source, FRows);
+              Source.XLDataSet.Next;
+              Inc(DetailRecCount);
+            end;
+            // AddEndRow
+            if (Source.FSR > 0) and (DetailRecCount > 0) then
+              AddRowToRanges(Source, Source.FSR, (Source.GetRoot.FBuff as TxlBuffer).FTotalRowCount);
+            if not Source.FDeleteSpecialRow then
+              (Source.GetRoot.FBuff as TxlBuffer).GetRow(Source, Source.RowCount + 1, FRows);
+            Inc(i, Source.RowCount + 1);
+          end
+          else begin
+            Source.PutRoot;
+            Inc(i, Source.RowCount + 1);
+          end;
+      end;
+      XLDataSet.Next;
+      {$IFDEF XLR_AX}
+      if not XLDataSet.EOF then
+        DoRelation;
+      {$ENDIF XLR_AX}
+      Inc(MasterRecCount);
+    end;
+    // Add EndRow
+    if (FSR > 0) and (MasterRecCount > 0) then
+      AddRowToRanges(Self, Self.FSR, (Self.GetRoot.FBuff as TxlBuffer).FTotalRowCount);
+    if RangeType in rtMasters then
+      if not FDeleteSpecialRow then
+        (GetRoot.FBuff as TxlBuffer).GetRow(Self, RowCount + 1, FRows);
+
+    // RootSource
+    if RangeType = rtRangeRoot then begin
+      // Send buffer
+      (GetRoot.FBuff as TxlBuffer).CheckLimits(true);
+      // Copy all formats
+      VBACopyFormats(Self, FRows, FHeights, False, xrgoPreserveRowHeight in Options,
+        xroHideExcel in Report.Options);
+      // Make root ranges
+      MakeRootRanges;
+    end;
+  finally
+    if RangeType = rtRangeRoot then begin
+      for i := 1 to RowCount + 1 do
+        FRows[i] := UnAssigned;
+      FRows := UnAssigned;
+    end
+    else begin
+      MasterSource.FRows := Self.FRows;
+      for i := 1 to RowCount + 1 do
+        FRows[i] := UnAssigned;
+      FRows := UnAssigned;
+    end;
+  end;
+end;
+
+// Options processing
+procedure TxlExcelDataSource.OptionsProcessing;
+
+  function GetIndexOfLevel(Level: integer): integer;
+  var
+    i: integer;
+    Root: TxlExcelDataSource;
+  begin
+    Result := 1;
+    Root := GetRoot;
+    for i := 0 to Report.DataSources.Count - 1 do
+      if (Root = Report.DataSources[i].GetRoot) and (Level = Report.DataSources[i].GetLevel) then begin
+        if Self = Report.DataSources[i] then
+          Break
+        else
+          Inc(Result);
+      end;
+  end;
+
+var
+  Args: TxlOptionArgs;
+  i, Indx: integer;
+  IColumn: IxlRange;
+  V: OLEVariant;
+begin
+    { Args = Params passing to Optopn.DoOption:
+        varString       - for NoRange-DataSets
+        VarArray[1, 4]  - for Range-DataSets
+           [1] = Root.Range
+           [2] = DataSource.Alias
+           [3] = Ranges
+           [4] = RangesXY
+        RangeXY =VarArray[1..2] of varVariant
+           [1] = Level
+           [2] = IndexOfLevel
+        Ranges = VarArray[1..MaxLevel + 1] of varVariant
+           [1] = MaxLevel
+           [2..MaxLevel + 1] = RangesOfLevel
+        RangesOfLevel = VarArray[1..DataSourceCountPerLevel + 1] of varVariant
+           [1] = DataSourceCountPerlevel
+           [2..DataSourceCountPerLevel + 1] = DataSource.FRows
+
+        i.e. Params[2][Level + 1][IndexOfLevel + 1] = DataSource.FRows }
+
+  if FAllowOptions then begin
+    Args := VarArrayCreate([1, 4], varVariant);
+    Args[1] := GetRoot.Range;
+    Args[2] := Self.Alias;
+    Args[3] := GetRoot.FRootRanges;
+    V := VarArrayCreate([1, 2], varVariant);
+    V[1] := GetLevel;
+    V[2] := GetIndexOfLevel(V[1]);
+    Args[4] := V;
+    try
+      // Link to ranges
+      for i := 0 to Report.OptionItems.Count - 1 do
+        if (Report.OptionItems.Items[i].xlObject = xoRange) and (Report.OptionItems.Items[i].Obj = Self) then
+          Report.OptionItems.Items[i].IUnk := IRange
+        else
+          if Report.OptionItems.Items[i].xlObject = xoColumn then begin
+            Indx := Cells.IndexOf(Report.OptionItems[i].Obj);
+            if (Indx <> -1) and (RangeType = rtRange) and (Cells[Indx].CellType in [ctFormula, ctField]) then begin
+              {$IFDEF XLR_BCB}
+              IColumn := FIRange.Columns.Item[Cells[Indx].Column, EmptyParam];
+              {$ELSE}
+              IDispatch(IColumn) := FIRange.Columns.Item[Cells[Indx].Column, EmptyParam];
+              {$ENDIF}
+              Report.OptionItems.Items[i].IUnk := IColumn;
+            end;
+          end;
+      Report.OptionItems.DoOptions(Self, [xoRange, xoColumn], Args);
+    finally
+      Args := UnAssigned;
+    end;
+  end;
+  // Clear special column
+  if (RangeType in rtRoots) and ((FBuff as TxlBuffer).FTotalRowCount > 0) then
+    FIRange.Columns.Item[1, EmptyParam].Value := '';
+end;
+
+{ TxlExcelDataSources }
+
+function TxlExcelDataSources.GetItem(Index: integer): TxlExcelDataSource;
+begin
+  Result := TxlExcelDataSource( inherited GetItem(Index) );
+end;
+
+procedure TxlExcelDataSources.SetItem(Index: integer; const Value: TxlExcelDataSource);
+begin
+  inherited Setitem(Index, Value);
+end;
+
+function TxlExcelDataSources.Add: TxlExcelDataSource;
+begin
+  Result := TxlExcelDataSource( inherited Add );
+end;
+
+function TxlExcelDataSources.GetReport: TxlExcelReport;
+begin
+  Result := (inherited Report) as TxlExcelReport;
+end;
+
+{ TxlExcelReportParam }
+
+function TxlExcelReportParam.GetReport: TxlExcelReport;
+begin
+  Result := TxlExcelReportParams(Collection).Report as TxlExcelReport;
+end;
+
+{ TxlExcelReportParams }
+
+function TxlExcelReportParams.Add: TxlExcelReportParam;
+begin
+  Result := TxlExcelReportParam(inherited Add);
+end;
+
+function TxlExcelReportParams.GetReport: TxlExcelReport;
+begin
+  Result := TxlExcelReport(inherited Report);
+end;
+
+function TxlExcelReportParams.GetItem(Index: integer): TxlExcelReportParam;
+begin
+  Result := TxlExcelReportParam(inherited Items[Index]);
+end;
+
+procedure TxlExcelReportParams.SetItem(Index: integer; const Value: TxlExcelReportParam);
+begin
+  inherited SetItem(Index, Value);
+end;
+
+procedure TxlExcelReportParams.Build;
+var
+  Rng, Names, Buff, Addrs: OLEVariant;
+  r, c, i: integer;
+begin
+  if Count = 0 then
+    Exit;
+  Buff := VarArrayCreate([1, Count + 1], varVariant);
+  Names := VarArrayCreate([1, Count + 1], varVariant);
+  Addrs := VarArrayCreate([1, Count + 1], varVariant);
+  Buff[1] := 'xlrParams';
+  Names[1] := '';
+  Addrs[1] := '';
+  try
+    r := Report.FNoRangeRow;
+    c := 2;
+    for i := 0 to Count - 1 do begin
+      if (i + 2) mod 250 = 1 then begin
+        Inc(r);
+        c := 2;
+      end;
+      Buff[i + 2] := Items[i].Value;
+      Names[i + 2] := xlrParam + '_' + Items[i].Name;
+      Addrs[i + 2] := '=' + xlrTempSheetName + '!' + A1Abs(r, c);
+      Inc(c);
+    end;
+    BeforeRunMacro(Report.IXLSApp, xroHideExcel in Report.Options);
+    Rng := OLEVariant(Report.IXLSApp).Run('''' + Report.IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + 'xlrPutNoRangeData', xlrDebug, Report.FNoRangeRow, Buff, Addrs, Names, 'xlrParams');
+  finally
+    Report.FNoRangeRow := Report.FNoRangeRow + Count div 250 + 1;
+    Names := UnAssigned;
+    Buff := UnAssigned;
+    Rng := UnAssigned;
+  end;
+end;
+
+{ TxlExcelReport }
+
+constructor TxlExcelReport.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FOptions := [xroDisplayAlerts, xroAutoOpen];
+  FDataMode := xdmDDE;
+  {$IFDEF XLR_AX}
+    FTempPath := xlrTempPath;
+  {$ENDIF XLR_AX}
+end;
+
+function TxlExcelReport.CreateParams: TxlAbstractParameters;
+begin
+  Result := TxlExcelReportParams.Create(TxlExcelReportParam, Self);
+end;
+
+// Properties
+
+procedure TxlExcelReport.SetOptions(const Value: TxlReportOptionsSet);
+var
+  i: integer;
+begin
+  if FOptions <> Value then begin
+    if (xroAutoOpen in (FOptions - Value) ) or (xroAutoOpen in (Value - FOptions)) then
+      for i := 0 to DataSources.Count - 1 do
+        if xroAutoOpen in Value then
+          DataSources[i].Options := DataSources[i].Options + [xrgoAutoOpen]
+        else
+          DataSources[i].Options := DataSources[i].Options - [xrgoAutoOpen];
+    if (xroAutoClose in (FOptions - Value) ) or (xroAutoClose in (Value - FOptions)) then
+      for i := 0 to DataSources.Count - 1 do
+        if xroAutoClose in Value then
+          DataSources[i].Options := DataSources[i].Options + [xrgoAutoClose]
+        else
+          DataSources[i].Options := DataSources[i].Options - [xrgoAutoClose];
+    FOptions := Value;
+    IsRefreshParams := xroRefreshParams in Options;
+  end;
+end;
+
+procedure TxlExcelReport.SetTempPath(const Value: string);
+begin
+{$IFNDEF XLR_AX}
+  if FTempPath <> Value then begin
+    DeleteFiles(FTempPath, xlrFileExtention, xlrTempFileSign);
+    FTempPath := Value;
+    DeleteFiles(FTempPath, xlrFileExtention, xlrTempFileSign);
+  end;
+{$ELSE}
+  FTempPath := Value;
+{$ENDIF}
+end;
+
+procedure TxlExcelReport.SetDataSources(const Value: TxlExcelDataSources);
+begin
+  inherited DataSources := Value;
+end;
+
+function TxlExcelReport.GetDataSources: TxlExcelDataSources;
+begin
+  Result := (inherited DataSources) as TxlExcelDataSources;
+end;
+
+procedure TxlExcelReport.SetParams(const Value: TxlExcelReportParams);
+begin
+  inherited Params := Value;
+end;
+
+function TxlExcelReport.GetParams: TxlExcelReportParams;
+begin
+  Result := TxlExcelReportParams(inherited Params);
+end;
+
+function TxlExcelReport.GetParamByName(Name: string): TxlExcelReportParam;
+begin
+  Result := TxlExcelReportParam(inherited ParamByName[Name]);
+end;
+
+procedure TxlExcelReport.SetMSAlias(const Value: string);
+var
+  DS: TxlExcelDataSource;
+  i: integer;
+begin
+  if not(csLoading in ComponentState) then begin
+    DS := nil;
+    if Trim(Value) <> '' then begin
+      for i := 0 to DataSources.Count - 1 do
+        if UpperCase(Value) = UpperCase(DataSources[i].Alias) then begin
+          DS := DataSources[i];
+          Break;
+        end;
+      if Assigned(DS) then
+        if (DS.Report = Self) and
+          not(DS.RangeType in [rtNoRange, rtRange]) then
+          {$IFDEF XLR_AX}
+          raise ExlReportError.CreateResFmt2(ecCannotUsMSDataSource, ecCannotUsMSDataSource, [Value]);
+          {$ELSE}
+          raise ExlReportError.CreateResFmt(ecCannotUsMSDataSource, [Value]);
+          {$ENDIF}
+    end;
+  end;
+  FMSAlias := Trim(Value);
+end;
+
+// Events
+procedure TxlExcelReport.DoOnAfterBuild;
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.DoOnBeforeBuild;
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.DoOnBeforeWorkbookSave(var WorkbookFileName,
+  WorkbookFilePath: string; Save: boolean);
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.DoOnProgress(const Position, Max: integer);
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.DoOnMacro(const MacroType: TxlMacroType; const MacroName: string;
+  var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13,
+  Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25,
+  Arg26, Arg27, Arg28, Arg29, Arg30: OLEVariant);
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.DoOnTargetBookSheetName(
+  ISourceSheet: IxlWorksheet; ITargetWorkbook: IxlWorkbook;
+  var SheetName: string);
+begin
+  // abstract stub
+end;
+
+procedure TxlExcelReport.Connect;
+var
+  Ctnr: boolean;
+  ExcelAuto: boolean;
+  IUnk: IUnknown;
+  FullFileName, ShortFileName: string;
+  i, iCount: integer;
+begin
+  inherited;
+  if (DataExportMode <> xdmCSV) and (xroSaveClipboard in Options) then
+    Clipboard.Open;
+//  FullFileName := GetFullFileName(XLSTemplate, ExtractFilePath(ParamStr(0)), false);
+  FullFileName := AlgExpandRelativePath(XLSTemplate); (*ÏÐÈÂßÇÊÀ Ê DbProjectDirectory*)
+
+  ShortFileName := ExtractFileName(XLStemplate);
+  if (State = rsReport) then begin
+    if (FullFileName = '') or (not FileExists(FullFileName)) then
+      {$IFDEF XLR_AX}
+      raise ExlReportError.CreateResFmt2(ecTemplateNotFound, ecTemplateNotFound, [FullFileName])
+      {$ELSE}
+      raise ExlReportError.CreateResFmt(ecTemplateNotFound, [FullFileName])
+      {$ENDIF}
+  end
+  else
+    if State in [rsEdit] then
+      if not(FileExists(FullFileName)) and (Trim(XLSTemplate)<>'') then
+        {$IFDEF XLR_AX}
+        raise ExlReportError.CreateResFmt2(ecTemplateNotFound, ecTemplateNotFound, [FullFileName]);
+        {$ELSE}
+        raise ExlReportError.CreateResFmt(ecTemplateNotFound, [FullFileName]);
+        {$ENDIF}
+  IUnk := nil;
+  Ctnr := Assigned(OLEContainer);
+  {$IFDEF XLR_BCB}
+  FIXLApp := _GetActiveOLEObject(xlrProgID);
+  {$ELSE}
+  FIXLApp := _GetActiveOLEObject(xlrProgID) as IxlApplication;
+  {$ENDIF}
+  ExcelAuto := (xroNewInstance in Options) or (not _Assigned(FIXLApp));
+  if Ctnr then
+    // To OLEContainer
+    try
+      if (OLEContainer.State = osEmpty) then
+        OLEContainer.CreateObjectFromFile(FullFileName, false);
+      if OLEContainer.State <> osInplaceActive then
+        OLEContainer.DoVerb(ovInPlaceActivate);
+      IUnk := OLEContainer.OLEObjectInterface;
+      OleCheck(IUnk.QueryInterface(IID__Workbook, FIWorkbook));
+      FIXLApp := IWorkbook.Application_;
+      {$IFNDEF XLR_AX}
+        if not Assigned(XLEvents) then begin
+          XLEvents := TxlEventsSink.Create(IXLSApp, ExcelAuto);
+        end;
+      {$ENDIF XLR_AX}
+      GetExcelLocaleSettings(IXLSApp);
+      {$IFDEF XLR_BCB}
+      IXLSApp.ScreenUpdating := xlrDebug;
+      {$ELSE}
+      IXLSApp.ScreenUpdating[xlrLCID] := xlrDebug;
+      {$ENDIF}
+      FIWorkbooks := IXLSApp.Workbooks;
+    except
+      {$IFDEF XLR_AX}
+      raise ExlReportError.CreateRes2(ecOLEContainerError, ecOLEContainerError);
+      {$ELSE}
+      raise ExlReportError.CreateRes(ecOLEContainerError);
+      {$ENDIF}
+    end
+  else begin
+    // To separate Excel process
+    {$IFNDEF XLR_AX}
+      if not Assigned(XLEvents) then begin
+        if ExcelAuto then
+          {$IFDEF XLR_BCB}
+          FIXLApp := _CreateOLEObject(xlrProgID);
+          {$ELSE}
+          FIXLApp := _CreateOLEObject(xlrProgID) as IxlApplication;
+          {$ENDIF}
+        XLEvents := TxlEventsSink.Create(IXLSApp, ExcelAuto);
+      end
+      else FIXLApp := XLEvents.IXLApp;
+    {$ELSE}
+      if ExcelAuto then
+        FIXLApp := _CreateOLEObject(xlrProgID) as IxlApplication;
+    {$ENDIF XLR_AX}
+    GetExcelLocaleSettings(IXLSApp);
+    //
+    if xlrDebug then
+      ShowExcel(FIXLApp, Assigned(FOLEContainer), false, FLastWindowState, FLastLeft, FLastTop)
+    else
+      {$IFDEF XLR_BCB}
+      if (State = rsReport) and not(xroHideExcel in Options) then begin
+        FLastWindowState := IXLSApp.WindowState;
+        FLastLeft := IXLSApp.Left;
+        FLastTop := IXLSApp.Top;
+        if IXLSApp.Visible then
+          IXLSApp.Visible := false;
+        IXLSApp.WindowState := TOLEEnum(xlMinimized);
+        if IXLSApp.WindowState <> TOLEEnum(xlMaximized) then begin
+          IXLSApp.Left := 10000;
+          IXLSApp.Top := 10000;
+        end;
+        IXLSApp.Visible := true;
+        IXLSApp.ScreenUpdating := True;
+      end;
+      {$ELSE}
+      if (State = rsReport) and not(xroHideExcel in Options) then begin
+        FLastWindowState := IXLSApp.WindowState[xlrLCID];
+        FLastLeft := IXLSApp.Left[xlrLCID];
+        FLastTop := IXLSApp.Top[xlrLCID];
+        if IXLSApp.Visible[xlrLCID] then
+          IXLSApp.Visible[xlrLCID] := false;
+        IXLSApp.WindowState[xlrLCID] := TOLEEnum(xlMinimized);
+        if IXLSApp.WindowState[xlrLCID] <> TOLEEnum(xlMaximized) then begin
+          IXLSApp.Left[xlrLCID] := 10000;
+          IXLSApp.Top[xlrLCID] := 10000;
+        end;
+        IXLSApp.Visible[xlrLCID] := true;
+        IXLSApp.ScreenUpdating[xlrLCID] := True;
+      end;
+      {$ENDIF}
+    //
+    {$IFDEF XLR_BCB}
+    IXLSApp.Interactive := false;
+    IXLSApp.ScreenUpdating := xlrDebug;
+    IXLSApp.DisplayAlerts := xroDisplayAlerts in FOptions;
+    {$ELSE}
+    IXLSApp.Interactive[xlrLCID] := false;
+    IXLSApp.ScreenUpdating[xlrLCID] := xlrDebug;
+    IXLSApp.DisplayAlerts[xlrLCID] := xroDisplayAlerts in FOptions;
+    {$ENDIF}
+    FIWorkbooks := IXLSApp.Workbooks;
+    iCount := IWorkbooks.Count;
+    for i := 1 to iCount do
+      if UpperCase(IWorkbooks.Item[i].Name) = UpperCase(ShortFileName) then
+        if State = rsReport then
+          {$IFDEF XLR_AX}
+          raise ExlReportError.CreateResFmt2(ecTemplateAlreadyOpen, ecTemplateAlreadyOpen, [ShortFileName])
+          {$ELSE}
+          raise ExlReportError.CreateResFmt(ecTemplateAlreadyOpen, [ShortFileName])
+          {$ENDIF}
+        else begin
+          FIWorkbook := IWorkbooks.Item[i];
+          MessageDlg(Format(LoadStr(ecTemplateAlreadyOpen), [ShortFileName]), mtInformation, [mbOk], 0);
+        end;
+    case State of
+      {$IFDEF XLR_BCB}
+      rsReport: FIWorkbook := IWorkbooks.Add(FullFileName);
+      rsEdit: if not _Assigned(IWorkbook) then
+                if XLSTemplate = '' then
+                  FIWorkbook := IWorkbooks.Add(EmptyParam)
+                else
+                  FIWorkbook := IWorkbooks.Open(FullFileName, EmptyParam, EmptyParam,
+                    EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
+                    EmptyParam, EmptyParam, EmptyParam, (xroAddToMRU in FOptions));
+      {$ELSE}
+      rsReport: FIWorkbook := IWorkbooks.Add(FullFileName, xlrLCID);
+      rsEdit: if not _Assigned(IWorkbook) then
+                if XLSTemplate = '' then
+                  FIWorkbook := IWorkbooks.Add(EmptyParam, xlrLCID)
+                else
+                  FIWorkbook := IWorkbooks.Open(FullFileName, EmptyParam, EmptyParam,
+                    EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
+                    EmptyParam, EmptyParam, EmptyParam, (xroAddToMRU in FOptions), xlrLCID);
+      {$ENDIF}
+    end;
+  end;
+  // Add report to global ExcelEventSink
+  {$IFNDEF XLR_AX}
+  if Assigned(XLEvents) then
+    XLEvents.AddReport(Self, OLEContainer);
+  {$ENDIF XLR_AX}
+  FNoRangeRow := xlrStartNoRangeRow;
+  FTemplateRow := xlrTemplateRowsStart;
+end;
+
+procedure TxlExcelReport.Disconnect;
+begin
+  // Release used interfaces
+  FIModule := UnAssigned;
+  _Clear(FIWorksheetFunction);
+  _Clear(FINames);
+  _Clear(FIMultiSheet);
+  _Clear(FITempSheet);
+  _Clear(FIWorksheets);
+  if (xroHideExcel in Options) and (not FMerged) and (State <> rsEdit) then
+    {$IFDEF XLR_BCB}
+    IWorkbook.Close(false, EmptyParam, EmptyParam);
+    {$ELSE}
+    IWorkbook.Close(false, EmptyParam, EmptyParam, xlrLCID);
+    {$ENDIF}
+  _Clear(FIWorkbook);
+  _Clear(FIWorkbooks);
+  _Clear(FIXLApp);
+  {$IFNDEF XLR_AX}
+  if Assigned(XLEvents) then
+    if Assigned(OLEContainer) or XLEvents.CanDisconnect then
+      XLEvents.DisconnectXL;
+  {$ENDIF XLR_AX}
+  if (DataExportMode <> xdmCSV) and (xroSaveClipboard in Options) then;
+    Clipboard.Close;
+  inherited Disconnect;
+end;
+
+procedure TxlExcelReport.BeforeBuild;
+var
+  TempSheetNotFound: boolean;
+  i, iCount: integer;
+  IR: IxlRange;
+  IActiveSheet: IxlWorksheet;
+begin
+  // Get used interfaces
+  {$IFDEF XLR_BCB}
+  FIWorksheets := IWorkbook.Worksheets;
+  IActiveSheet := IWorkbook.ActiveSheet;
+  {$ELSE}
+  FIWorksheets := IWorkbook.Worksheets as IxlWorksheets;
+  IActiveSheet := IWorkbook.ActiveSheet as IxlWorksheet;
+  {$ENDIF}
+  FLastActiveSheetName := IActiveSheet.Name;
+  FIWorksheetFunction := IXLSApp.WorksheetFunction;
+  FINames := IWorkbook.Names;
+  if not _Assigned(IWorkbook) then
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateRes2(ecWorkbookNotFound, ecWorkbookNotFound);
+    {$ELSE}
+    raise ExlReportError.CreateRes(ecWorkbookNotFound);
+    {$ENDIF}
+  if State = rsReport then begin
+    // Init environment
+    { NotSupported
+    IXLSApp.PivotTableSelection := roPivotTableSelection in FOptions;
+    }
+    {$IFDEF XLR_BCB}
+    if IXLSApp.IgnoreRemoteRequests then
+      IXLSApp.IgnoreRemoteRequests := false;
+    {$ELSE}
+    if IXLSApp.IgnoreRemoteRequests[xlrLCID] then
+      IXLSApp.IgnoreRemoteRequests[xlrLCID] := false;
+    {$ENDIF}
+    // Create G2Module
+    iCount := OLEVariant(IWorkbook).VBProject.VBComponents.Count;
+    for i := 1 to iCount do
+      if OLEVariant(IWorkbook).VBProject.VBComponents.Item(i).Name = xlrModuleName then begin
+        FIModule := OLEVariant(IWorkbook).VBProject.VBComponents.Item(i);
+      end;
+    if _VarIsEmpty(IModule) then begin
+      FIModule := OLEVariant(IWorkbook).VBProject.VBComponents.Add(TOLEEnum(vbext_ct_StdModule));
+      IModule.Name := xlrModuleName;
+      IModule.CodeModule.AddFromString(xlrVBAModuleLevel);
+      if GetOptionMap.ModuleLevelCode <> '' then
+        IModule.CodeModule.AddFromString(GetOptionMap.ModuleLevelCode);
+      IModule.CodeModule.AddFromString(xlrVBAProcs);
+      if GetOptionMap.LibraryCode <> '' then
+        IModule.CodeModule.AddFromString(GetOptionMap.LibraryCode);
+    end;
+    // Create temporary sheet
+    TempSheetNotFound := true;
+    iCount := IWorksheets.Count;
+    for i := 1 to iCount do begin
+      {$IFDEF XLR_BCB}
+      FITempSheet := IWorksheets.Item[i];
+      {$ELSE}
+      FITempSheet := IWorksheets.Item[i] as IxlWorksheet;
+      {$ENDIF}
+      if UpperCase(ITempSheet.Name) = xlrTempSheetName then begin
+        TempSheetNotFound := false;
+        {$IFDEF XLR_BCB}
+        ITempSheet.UsedRange.Rows.Delete(TOLEEnum(xlShiftUp));
+        {$ELSE}
+        ITempSheet.UsedRange[xlrLCID].Rows.Delete(TOLEEnum(xlShiftUp));
+        {$ENDIF}
+        Break;
+      end;
+    end;
+    if TempSheetNotFound then begin
+      _Clear(FITempSheet);
+      {$IFDEF XLR_BCB}
+      FITempSheet := IWorksheets.Add(EmptyParam,
+        IWorksheets.Item[IWorksheets.Count], EmptyParam, EmptyParam);
+      ITempSheet.Name := xlrTempSheetName;
+      ITempSheet.Visible := IIF(xlrDebug, TOLEEnum(xlSheetHidden), TOLEEnum(xlSheetVeryHidden));
+      {$ELSE}
+      FITempSheet := IWorksheets.Add(EmptyParam,
+        IWorksheets.Item[IWorksheets.Count], EmptyParam, EmptyParam, xlrLCID) as IxlWorkSheet;
+      ITempSheet.Name := xlrTempSheetName;
+      ITempSheet.Visible[xlrLCID] := IIF(xlrDebug, TOLEEnum(xlSheetHidden), TOLEEnum(xlSheetVeryHidden));
+      {$ENDIF}
+      { Create add info }
+      // XLR_VERSION
+      {$IFDEF XLR_BCB}
+      IR := ITempSheet.Cells.Item[FNoRangeRow, 1];
+      {$ELSE}
+      IDispatch(IR) := ITempSheet.Cells.Item[FNoRangeRow, 1];
+      {$ENDIF}
+      IR.Value := '''' + xlrVersionStr;
+      INames.Add( lexXLRVersion, '=' + xlrTempSheetName + '!' + A1Abs(FNoRangeRow, 1),
+        false, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam );
+      Inc(FNoRangeRow);
+    end;
+  end; // if State = rsReport
+end;
+
+procedure TxlExcelReport.AfterBuild;
+{$IFDEF XLR_TRIAL}
+  {$I xlDoRestrict2.inc}
+{$ENDIF XLR_TRIAL}
+begin
+  {$IFDEF XLR_TRIAL}
+  DoRestrict2(true);
+  {$ENDIF XLR_TRIAL}
+  { AfterBuild }
+  // Clear VB-Module
+  if (not _VarIsEmpty(IModule)) and (not xlrDebug) then begin
+    IModule.CodeModule.DeleteLines(1, IModule.CodeModule.CountOfLines);
+    FIModule.Collection.Remove(FIModule);
+  end;
+  // Clear TempSheet
+  if not xlrDebug then
+    ITempSheet.Range[A1(xlrTemplateRowsStart, 1),
+      A1(Self.FTemplateRow + 1, xlrMaxColCount)].Delete(TOLEEnum(xlShiftUp));
+  // Save in temporary file
+  if xroAutoSave in Options then
+    SaveInTempFile;
+  // For merge report support
+  FLastWorkbookName := IWorkbook.Name;
+end;
+
+procedure TxlExcelReport.SaveInTempFile;
+var
+  p: integer;
+  Save: boolean;
+  WorkbookFileName, WorkbookFilePath, timestamp: string;
+  OldWorkbookFileName, OldWorkbookFilePath: string;
+begin
+  Save := true;
+  WorkbookFileName := ExtractFileName(IWorkbook.Name);
+  OldWorkbookFileName := WorkbookFileName;
+  if TempPath <> '' then
+    if TempPath[Length(TempPath)] <> '\' then
+      WorkbookFilePath := TempPath + '\'
+    else
+      WorkbookFilePath := TempPath
+  else
+    WorkbookFilePath := ExtractFilePath(ParamStr(0));
+  {$IFDEF XLR_BCB}
+  OldWorkbookFilePath := IWorkbook.Path;
+  {$ELSE}
+  OldWorkbookFilePath := IWorkbook.Path[xlrLCID];
+  {$ENDIF}
+  try
+    // UseTemp
+    if xroUseTemp in Options then begin
+      timestamp := DatetimeToStr(now);
+      DeleteChars('.', timestamp);
+      DeleteChars(':', timestamp);
+      p := pos('.', WorkbookFileName);
+      if p <> 0 then
+        WorkbookFileName := copy(WorkbookFileName, 1, p-1);
+      WorkbookFileName := WorkbookFileName + '          ' + timestamp + ' ' + xlrTempFileSign;
+    end;
+    // DoEvent
+    DoOnBeforeWorkbookSave(WorkbookFileName, WorkbookFilePath, Save);
+    if Save then begin
+      // Check file path
+      if (WorkbookFilePath[Length(WorkbookFilePath)] <> '\') and
+        (WorkbookFileName[1] <> '\') then
+        if WorkbookFilePath <> '' then
+          WorkbookFilePath := WorkbookFilePath + '\';
+      // Check changes
+      if (UpperCase(OldWorkbookFileName) = UpperCase(WorkbookFileName)) and
+         (UpperCase(OldWorkbookFilePath) = UpperCase(WorkbookFilePath)) then
+        {$IFDEF XLR_BCB}
+        IWorkbook.Save
+        {$ELSE}
+        IWorkbook.Save(xlrLCID)
+        {$ENDIF}
+      else
+        {$IFDEF XLR_BCB}
+        IWorkbook.SaveAs(WorkbookFilePath + WorkbookFileName,
+          EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, xlExclusive,
+          EmptyParam, false, EmptyParam, EmptyParam);
+        {$ELSE}
+        IWorkbook.SaveAs(WorkbookFilePath + WorkbookFileName,
+          EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, xlExclusive,
+          EmptyParam, false, EmptyParam, EmptyParam, xlrLCID);
+        {$ENDIF}
+    end;
+  except
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateRes2(ecSaveInTempError, ecSaveInTempError);
+    {$ELSE}
+    raise ExlReportError.CreateRes(ecSaveInTempError);
+    {$ENDIF}
+  end;
+end;
+
+procedure TxlExcelReport.MacroProcessing(const MacroType: TxlMacroType; const MacroName: string);
+var
+  vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+  vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+  vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30: OLEVariant;
+begin
+  if MacroName <> '' then
+  try
+    try
+      vArg1:= EmptyParam; vArg2:= EmptyParam; vArg3:= EmptyParam; vArg4:= EmptyParam;
+      vArg5:= EmptyParam; vArg6:= EmptyParam; vArg7:= EmptyParam; vArg8:= EmptyParam;
+      vArg9:= EmptyParam; vArg10:= EmptyParam; vArg11:= EmptyParam; vArg12:= EmptyParam;
+      vArg13:= EmptyParam; vArg14:= EmptyParam; vArg15:= EmptyParam; vArg16:= EmptyParam;
+      vArg17:= EmptyParam; vArg18:= EmptyParam; vArg19:= EmptyParam; vArg20:= EmptyParam;
+      vArg21:= EmptyParam; vArg22:= EmptyParam; vArg23:= EmptyParam; vArg24:= EmptyParam;
+      vArg25:= EmptyParam; vArg26:= EmptyParam; vArg27:= EmptyParam; vArg28:= EmptyParam;
+      vArg29:= EmptyParam; vArg30:= EmptyParam;
+      DoOnMacro(MacroType, MacroName,
+        vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+        vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+        vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30);
+      BeforeRunMacro(IXLSApp, xroHideExcel in Options);
+      IXLSApp.Run(MacroName,
+        vArg1, vArg2, vArg3, vArg4, vArg5, vArg6, vArg7, vArg8, vArg9, vArg10,
+        vArg11, vArg12, vArg13, vArg14, vArg15, vArg16, vArg17, vArg18, vArg19, vArg20,
+        vArg21, vArg22, vArg23, vArg24, vArg25, vArg26, vArg27, vArg28, vArg29, vArg30);
+    finally
+      vArg1 := UnAssigned; vArg2 := UnAssigned; vArg3 := UnAssigned; vArg4 := UnAssigned;
+      vArg5 := UnAssigned; vArg6 := UnAssigned; vArg7 := UnAssigned; vArg8 := UnAssigned;
+      vArg9 := UnAssigned; vArg10 := UnAssigned; vArg11 := UnAssigned; vArg12 := UnAssigned;
+      vArg13 := UnAssigned; vArg14 := UnAssigned; vArg15 := UnAssigned; vArg16 := UnAssigned;
+      vArg17 := UnAssigned; vArg18 := UnAssigned; vArg19 := UnAssigned; vArg20 := UnAssigned;
+      vArg21 := UnAssigned; vArg22 := UnAssigned; vArg23 := UnAssigned; vArg24 := UnAssigned;
+      vArg25 := UnAssigned; vArg26 := UnAssigned; vArg27 := UnAssigned; vArg28 := UnAssigned;
+      vArg29 := UnAssigned; vArg30 := UnAssigned;
+    end;
+  except
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateResFmt2(ecMacroRuntimeError, ecMacroRuntimeError, [MacroName] );
+    {$ELSE}
+    raise ExlReportError.CreateResFmt(ecMacroRuntimeError, [MacroName] );
+    {$ENDIF}
+  end;
+end;
+
+procedure TxlExcelReport.Show;
+var
+  LastActiveSheet, Sheet: OLEVariant;
+  i: integer;
+begin
+  if not(xroHideExcel in Options) or (State = rsEdit) then begin
+    if State in [rsReport] then begin
+      if not FMerged then
+        if xlrDebug then
+          ShowExcel(FIXLApp, Assigned(FOLEContainer), false, FLastWindowState, FLastLeft, FLastTop)
+        else
+          ShowExcel(FIXLApp, Assigned(FOLEContainer), State in [rsReport], FLastWindowState, FLastLeft, FLastTop);
+      // Select active object
+      if ActiveSheet <> '' then
+        try
+          {$IFDEF XLR_BCB}
+          Sheet := FIWorkbook.Worksheets.Item[ActiveSheet];
+          Sheet.Activate;
+          {$ELSE}
+          Sheet := FIWorkbook.Worksheets.Item[ActiveSheet] as IxlWorksheet;
+          Sheet.Activate;
+          {$ENDIF}
+          IXLSApp.Range[ 'A1', 'A1'].Select;
+        except
+          on E: Exception do
+            {$IFDEF XLR_AX}
+            raise ExlReportError.CreateResFmt2(ecSheetNotFound, ecSheetNotFound, [ActiveSheet]);
+            {$ELSE}
+            raise ExlReportError.CreateResFmt(ecSheetNotFound, [ActiveSheet]);
+            {$ENDIF}
+        end
+      else begin
+        for i := 1 to IWorksheets.Count do begin
+           Sheet := IWorksheets.Item[i];
+           if Sheet.Name = FLastActiveSheetName then
+             LastActiveSheet := Sheet;
+        end;
+        if not _VarIsEmpty(LastActiveSheet) then begin
+          Sheet := FIWorkbook.ActiveChart;
+          if _VarIsEmpty(Sheet) and (LastActiveSheet.Visible = TOLEEnum(xlSheetVisible)) then begin
+            LastActiveSheet.Select(EmptyParam);
+            IXLSApp.Range[ 'A1', 'A1'].Select;
+            {$IFDEF XLR_BCB}
+            IXLSApp.Goto(xlrLocaleR +'1' + xlrLocaleC + '1', true);
+            {$ELSE}
+            IXLSApp.Goto_(xlrLocaleR +'1' + xlrLocaleC + '1', true, xlrLCID);
+            {$ENDIF}
+          end;
+        end;
+      end;
+      if FPreview then
+        {$IFDEF XLR_BCB}
+        IWorkbook.PrintPreview(false);
+        {$ELSE}
+        IWorkbook.PrintPreview(false, xlrLCID);
+        {$ENDIF}
+    end
+    else
+      {$IFDEF XLR_BCB}
+      if State = rsEdit then begin
+        if _Assigned(IXLSApp) then begin
+          IXLSApp.Interactive := true;
+          if IXLSApp.WindowState = TOLEEnum(xlMinimized) then
+            IXLSApp.WindowState := TOLEEnum(xlNormal);
+          IXLSApp.Visible := true;
+          if IXLSApp.WindowState = TOLEEnum(xlMinimized) then
+            IXLSApp.WindowState := TOLEEnum(xlNormal);
+          IXLSApp.ScreenUpdating := true;
+          IXLSApp.DisplayAlerts := true;
+        end;
+      end;
+      {$ELSE}
+      if State = rsEdit then begin
+        if _Assigned(IXLSApp) then begin
+          IXLSApp.Interactive[xlrLCID] := true;
+          if IXLSApp.WindowState[xlrLCID] = TOLEEnum(xlMinimized) then
+            IXLSApp.WindowState[xlrLCID] := TOLEEnum(xlNormal);
+          IXLSApp.Visible[xlrLCID] := true;
+          if IXLSApp.WindowState[xlrLCID] = TOLEEnum(xlMinimized) then
+            IXLSApp.WindowState[xlrLCID] := TOLEEnum(xlNormal);
+          IXLSApp.ScreenUpdating[xlrLCID] := true;
+          IXLSApp.DisplayAlerts[xlrLCID] := true;
+        end;
+      end;
+      {$ENDIF}
+  end;
+end;
+
+procedure TxlExcelReport.ErrorProcessing(E: Exception; var Raised: boolean);
+{$IFDEF XLR_TRIAL}
+  {$I xlDoRestrict2.inc}
+{$ENDIF XLR_TRIAL}
+begin
+  if Raised then begin
+    if _Assigned(FIXLApp) then begin
+    {$IFDEF XLR_TRIAL}
+    if _Assigned(FIWorkbook) then
+      DoRestrict2(true);
+    {$ENDIF XLR_TRIAL}
+      Show;
+    end;
+    if Application <> nil then
+      if not(csDestroying in Application.ComponentState) then
+        Application.BringToFront;
+  end
+  else begin
+    if Application <> nil then
+      if not(csDestroying in Application.ComponentState) then
+        Application.BringToFront;
+    MessageDlg(E.Message, mtError, [mbCancel], 0);
+    if _Assigned(FIXLApp) then begin
+    {$IFDEF XLR_TRIAL}
+    if _Assigned(FIWorkbook) then
+      DoRestrict2(true);
+    {$ENDIF XLR_TRIAL}
+      Show;
+    end;
+  end;
+end;
+
+procedure TxlExcelReport.Parse;
+var
+  ReportOptions, SheetOptions: string;
+  ISheet: IxlWorksheet;
+  ISheetOptionCell, IReportOptionCell: IxlRange;
+  i, iCount: integer;
+begin
+  { Scan worksheet/report options }
+  iCount := IWorksheets.Count;
+  for i := 1 to iCount do begin
+    {$IFDEF XLR_BCB}
+    ISheet := IWorksheets.Item[i];
+    {$ELSE}
+    ISheet := IWorksheets.Item[i] as IxlWorksheet;
+    {$ENDIF}
+    if ISheet.Name = ITempSheet.Name then
+      Continue;
+    // sheet options
+    {$IFDEF XLR_BCB}
+    ISheetOptionCell :=
+      ISheet.Cells.Item[xlrSheetOptionsRow, xlrSheetOptionsColumn];
+    {$ELSE}
+    IDispatch(ISheetOptionCell) :=
+      ISheet.Cells.Item[xlrSheetOptionsRow, xlrSheetOptionsColumn];
+    {$ENDIF}
+    SheetOptions := ISheetOptionCell.FormulaLocal;
+    if OptionItems.ParseOptionsStr(Self, ISheet, xoWorksheet, SheetOptions) then
+     ClearRangeContents(ISheetOptionCell);
+    // report options
+    {$IFDEF XLR_BCB}
+    IReportOptionCell :=
+      ISheet.Cells.Item[xlrReportOptionsRow, xlrReportOptionsColumn];
+    {$ELSE}
+    IDispatch(IReportOptionCell) :=
+      ISheet.Cells.Item[xlrReportOptionsRow, xlrReportOptionsColumn];
+    {$ENDIF}
+    ReportOptions := IReportOptionCell.FormulaLocal;
+    if OptionItems.ParseOptionsStr(Self, IWorkbook, xoWorkbook, ReportOptions) then
+     ClearRangeContents(IReportOptionCell);
+  end;
+end;
+
+procedure TxlExcelReport.OptionsProcessing;
+var
+  Args: OLEvariant;
+  ProcName: string;
+begin
+  Args := '';
+  try
+    ProcName := GetTempName(xlrVBAReportOptionsSubName);
+    OptionItems.DoOptions(Self, [xoWorksheet], Args);
+    OptionItems.DoOptions(Self, [xoWorkbook], Args);
+    if Trim(Args) <> '' then begin
+      Args :=
+        'SUB ' + ProcName + ' ()' + vbCR +
+          Args + vbCR +
+        'END SUB';
+      IModule.CodeModule.AddFromString(Args);
+      BeforeRunMacro(IXLSApp, xroHideExcel in Options);
+      OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + ProcName);
+    end;
+    BeforeRunMacro(IXLSApp, xroHideExcel in Options);
+    OLEVariant(IXLSApp).Run('''' + IWorkbook.Name + '''' + '!' + xlrModuleName + '.' + xlrVBAGotoA1);
+  finally
+    Args := UnAssigned;
+  end;
+end;
+
+procedure TxlExcelReport.RefreshParams(const ClearParams: boolean);
+
+  procedure UpdateParams(const Formula: string);
+  var
+    CurPos, i: integer;
+    s, p: string;
+    Param: TxlExcelReportParam;
+    AlreadyExists: boolean;
+  begin
+    s := Formula;
+    CurPos := pos(xlrParam + delFldFormula, UpperCase(s));
+    while CurPos > 0 do begin
+      i := CurPos + Length(xlrParam + delFldFormula);
+      while s[i] in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_'] do begin
+        Inc(i);
+        if i > Length(s) then
+          Break;
+      end;
+      p := Copy(s, CurPos, i - CurPos);
+      Delete(p, 1, Length(xlrParam + delFldFormula));
+      Delete(s, CurPos, Length(xlrParam + delFldFormula));
+      AlreadyExists := false;
+      for i := 0 to Params.Count - 1 do begin
+        AlreadyExists := UpperCase(Params[i].Name) = UpperCase(p);
+        if AlreadyExists then
+          Break;
+      end;
+      if not AlreadyExists then begin
+        Param := Params.Add;
+        Param.Name := p;
+      end;
+      CurPos := pos(xlrParam + delFldFormula, UpperCase(s));
+    end;
+  end;
+
+var
+  i, row, col, RowCount, ColCount: integer;
+  ISh: IxlWorksheet;
+  IR: IxlRange;
+  V: OLEVariant;
+begin
+  if ClearParams then
+    Params.Clear;
+  for i := 1 to FIWorkbook.Worksheets.Count do begin
+    {$IFDEF XLR_BCB}
+    ISh := FIWorkbook.Worksheets.Item[i];
+    if ISh.Visible = TOLEEnum(xlSheetVisible) then begin
+      IR := ISh.UsedRange;
+    {$ELSE}
+    ISh := FIWorkbook.Worksheets.Item[i] as IxlWorksheet;
+    if ISh.Visible[xlrLCID] = TOLEEnum(xlSheetVisible) then begin
+      IR := ISh.UsedRange[xlrLCID];
+    {$ENDIF}
+      RowCount := IR.Rows.Count;
+      ColCount := IR.Columns.Count;
+      V := IR.Formula;
+      for row := 1 to RowCount do
+        for col := 1 to ColCount do begin
+          if pos(xlrParam + delFldFormula, UpperCase(V[row, col])) > 0 then
+            UpdateParams(V[row, col]);
+        end;
+    end;
+  end;
+end;
+
+// class methods
+class function TxlExcelReport.GetOptionMap: TxlOptionMap;
+begin
+  Result := xlrOptionMap;
+end;
+
+class procedure TxlExcelReport.ReleaseExcelApplication;
+begin
+  {$IFNDEF XLR_AX}
+    if Assigned(XLEvents) then
+      if _Assigned(XLEvents.IXLApp) then
+        XLEvents.DisconnectXL;
+  {$ENDIF XLR_AX}
+end;
+
+class procedure TxlExcelReport.ConnectToExcelApplication(OLEObject: OLEVariant);
+var
+  IDsp: IDispatch;
+  IXLS: IxlApplication;
+begin
+  ReleaseExcelApplication;
+  if not _VarIsEmpty(OLEObject) then begin
+    IDsp := OLEObject;
+    {$IFDEF XLR_BCB}
+    OleCheck(IDsp.QueryInterface(Excel8G2.IID__Application, IXLS));
+    {$ELSE}
+    OleCheck(IDsp.QueryInterface(IxlApplication, IXLS));
+    {$ENDIF}
+    {$IFNDEF XLR_AX}
+    if not Assigned(XLEvents) then
+      XLEvents := TxlEventsSink.Create(IXLS, false);
+    {$ENDIF XLR_AX}
+  end;
+end;
+
+procedure TxlExcelReport.Report;
+var
+  OLDDebug: boolean;
+begin
+  {$IFDEF XLR_AX}
+  if State <> rsNotActive then
+    Exit;
+  {$ENDIF}
+  if (MultisheetAlias <> '') and (MultisheetField <> '') then
+    MultisheetReport(MultisheetAlias, MultisheetField)
+  else begin
+    OLDDebug := xlrDebug;
+    {$IFNDEF XLR_TRIAL}
+    xlrDebug := Self.Debug or xlrDebug;
+    {$ENDIF}
+    try
+      inherited Report;
+    finally
+      xlrDebug := OLDDebug;
+    end;
+  end;
+end;
+
+procedure TxlExcelReport.ReportTo(const WorkbookName: string; const NewWorkbookName: string = '');
+{$IFDEF XLR_TRIAL}
+  {$I xlDoRestrict2.inc}
+{$ENDIF XLR_TRIAL}
+  procedure AddToWorkbook(const WokbookName: string; const NewWorkbookName: string);
+  var
+    ITmpWorkbook, ITargetWorkbook: IxlWorkbook;
+    ISourceSheet, INewSheet: IxlWorksheet;
+    AlreadyOpen: boolean;
+    i: integer;
+    s, NewSheetName: string;
+  begin
+    if WorkbookName <> '' then begin
+      NewSheetName := '';
+      // Open workbook
+      AlreadyOpen := false;
+      s := ExtractFileName(WorkbookName);
+      for i := 1 to IWorkbooks.Count do begin
+        AlreadyOpen := Uppercase(IWorkbooks.Item[i].Name) = UpperCase(s);
+        if AlreadyOpen then begin
+          ITargetWorkbook := IWorkbooks.Item[i];
+          Break;
+        end;
+      end;
+      if not AlreadyOpen then begin
+        s := GetFullFileName(WorkbookName, ExtractFilePath(ParamStr(0)), false);
+        {$IFDEF XLR_BCB}
+        ITargetWorkbook := IWorkbooks.Open(s, EmptyParam, EmptyParam,
+          EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
+          EmptyParam, EmptyParam, EmptyParam, false);
+        {$ELSE}
+        ITargetWorkbook := IWorkbooks.Open(s, EmptyParam, EmptyParam,
+          EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
+          EmptyParam, EmptyParam, EmptyParam, false, xlrLCID);
+        {$ENDIF}
+      end;
+      // Copy worksheets
+      for i := 1 to IWorksheets.Count do begin
+        {$IFDEF XLR_BCB}                                         
+        ISourceSheet := IWorksheets.Item[i];
+        {$ELSE}
+        ISourceSheet := IWorksheets.Item[i] as IxlWorksheet;
+        {$ENDIF}
+        {$IFDEF XLR_BCB}
+        if (ISourceSheet.Name <> xlrTempSheetName) and
+          (ISourceSheet.Visible = xlSheetVisible) then begin
+          ISourceSheet.UsedRange.Copy(EmptyParam);
+          ISourceSheet.UsedRange.PasteSpecial(TOLEEnum(xlPasteValues),
+            TOLEEnum(xlPasteSpecialOperationNone), false, false);
+          ISourceSheet.Copy(EmptyParam,
+            ITargetWorkbook.Worksheets.Item[ITargetWorkbook.Worksheets.Count]);
+          INewSheet := ITargetWorkbook.Worksheets.
+            Item[ITargetWorkbook.Worksheets.Count];
+          {$ELSE}
+        if (ISourceSheet.Name <> xlrTempSheetName) and
+          (ISourceSheet.Visible[xlrLCID] = TOLEEnum(xlSheetVisible)) then begin
+          ISourceSheet.UsedRange[xlrLCID].Copy(EmptyParam);
+          ISourceSheet.UsedRange[xlrLCID].PasteSpecial(TOLEEnum(xlPasteValues),
+            TOLEEnum(xlPasteSpecialOperationNone), false, false);
+          ISourceSheet.Copy(EmptyParam,
+            ITargetWorkbook.Worksheets.Item[ITargetWorkbook.Worksheets.Count], xlrLCID);
+          INewSheet := ITargetWorkbook.Worksheets.
+            Item[ITargetWorkbook.Worksheets.Count] as IxlWorksheet;
+          {$ENDIF}
+          NewSheetName := INewSheet.Name;
+          DoOnTargetBookSheetName(ISourceSheet, ITargetWorkbook, NewSheetName);
+          if NewSheetName <> '' then
+            INewSheet.Name := NewSheetName;
+        end;
+      end;
+      _Clear(FIWorksheetFunction);
+      _Clear(FINames);
+      _Clear(FIMultiSheet);
+      _Clear(FITempSheet);
+      _Clear(FIWorksheets);
+      {$IFDEF XLR_BCB}
+      IWorkbook.Close(false, EmptyParam, EmptyParam);
+      {$ELSE}
+      IWorkbook.Close(false, EmptyParam, EmptyParam, xlrLCID);
+      {$ENDIF}
+      _Clear(FIWorkbook);
+      _Clear(FIWorkbooks);
+      _Clear(ITmpWorkbook);
+      FIWorkbook := ITargetWorkbook;
+      FLastActiveSheetName := INewSheet.Name;
+      FIWorksheets := IWorkbook.Worksheets;
+      OLEVariant(IXLSApp).CutCopyMode := false;
+      {$IFDEF XLR_BCB}
+      INewSheet.Activate;
+      {$ELSE}
+      INewSheet.Activate(xlrLCID);
+      {$ENDIF}
+    end;
+    if Trim(NewWorkbookName) <> '' then
+        {$IFDEF XLR_BCB}
+        IWorkbook.SaveAs(NewWorkbookName, EmptyParam, EmptyParam, EmptyParam, false,
+        EmptyParam, xlExclusive, xlLocalSessionChanges, false, EmptyParam, EmptyParam);
+        {$ELSE}
+        IWorkbook.SaveAs(NewWorkbookName, EmptyParam, EmptyParam, EmptyParam, false,
+        EmptyParam, xlExclusive, xlLocalSessionChanges, false, EmptyParam, EmptyParam, xlrLCID);
+        {$ENDIF}
+    _Clear(ITargetWorkbook);
+  end;
+
+var
+  OLDDebug: boolean;
+  Raised: boolean;
+  i: integer;
+  FullWorkbookName: string;
+begin
+  {$IFDEF XLR_AX}
+  if State <> rsNotActive then
+    Exit;
+  {$ENDIF}
+  Raised := true;
+  State := rsReport;
+  FMerged := true;
+  OLDDebug := xlrDebug;
+  {$IFNDEF XLR_TRIAL}
+  xlrDebug := Self.Debug or xlrDebug;
+  {$ENDIF}
+  try
+    try
+      ProgressPos := -1;
+      ProgressMax := 0;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType in [rtNoRange, rtRange, rtRangeRoot] then
+          ProgressMax := ProgressMax + 1;
+      ProgressMax := ProgressMax + 14; // Add WorkbookTo step
+      FullWorkbookName := GetFullFileName(WorkbookName, ExtractFilePath(ParamStr(0)), (WorkbookName <> ''));
+      Progress;
+      Connect;
+      if IsRefreshParams then
+        RefreshParams(True);
+      Progress;
+      BeforeBuild;
+      Progress;
+      DoOnBeforeBuild;
+      Progress;
+      MacroProcessing(mtBefore, MacroBefore);
+      Progress;
+      Parse;
+      Progress;
+      Params.Build;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtNoRange then begin
+          DataSources[i].Build;
+          Progress;
+        end;
+      Progress;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtRange then begin
+          DataSources[i].Build;
+          Progress;
+        end;
+      Progress;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtRangeRoot then begin
+          DataSources[i].BuildRoot;
+          Progress;
+        end;
+      Progress;
+      OptionsProcessing;
+      Progress;
+      MacroProcessing(mtAfter, MacroAfter);
+      Progress;
+      DoOnAfterBuild;
+      Progress;
+      AfterBuild;
+      Progress;
+      AddToWorkbook(FullWorkbookName, NewWorkbookName);
+      Progress;
+      FMerged := false;
+      {$IFDEF XLR_TRIAL}
+      DoRestrict2(true);
+      {$ENDIF XLR_TRIAL}
+      FMerged := false;
+      Show;
+    except
+      on E: Exception do begin
+        DoOnError(E, Raised);
+        ErrorProcessing(E, Raised);
+        if Raised then
+          raise;
+      end;
+    end;
+  finally
+    FMerged := false;
+    Disconnect;
+    xlrDebug := OLDDebug;
+    DoOnProgress(0, 0);
+    State := rsNotActive;
+  end;
+end;
+
+procedure TxlExcelReport.MultisheetReport(const MultisheetDataSourceAlias, MultisheetFieldName: string);
+
+  function DataSourceOfAlias(const Alias: string): TxlExcelDataSource;
+  var
+    i: integer;
+  begin
+    Result := nil;
+    for i := 0 to DataSources.Count - 1 do
+      if UpperCase(DataSources[i].Alias) = UpperCase(Alias) then begin
+        Result := DataSources[i];
+        Break;
+      end;
+  end;
+
+var
+  OLDDebug: boolean;
+  MSDataSource: TxlExcelDataSource;
+  MSDataSet: TxlAbstractDataSet;
+  MSFieldIndex: integer;
+  Raised: boolean;
+  NameCount: integer;
+  MSName, s: string;
+  AddedNames: TStrings;
+  MSFieldValues: TStrings;
+
+
+  function SheetName(const NameIndex: integer; const Name: string): string;
+  begin
+    Result := Name;
+    if NameIndex > 1 then
+      Result := Result + ' (' + IntToStr(NameIndex) + ')';
+    if AddedNames.IndexOf(Result) <> - 1 then
+      Result := SheetName(NameIndex + 1, Name);
+  end;
+
+  {$IFDEF XLR_AX}
+  procedure MSDataSourceDoRelation;
+  var
+    i: integer;
+  begin
+    for i := 0 to DataSources.Count - 1 do
+      if MSDataSource <> DataSources[i] then
+        if DataSources[i].RangeType in rtRoots then begin
+          DataSources[i].DoRelationFilter(MSDataSource);
+//          DataSources[i].DoRelation;
+        end;
+  end;
+  {$ENDIF XLR_AX}
+
+  procedure DoNoRangeMultisheet;
+  var
+    i: integer;
+    ProgressInc: integer;
+    // used interfaces
+    ITmpWorkbook: IxlWorkbook;
+    ITmpSheet: IxlWorksheet;
+    IRange: IxlRange;
+    IName: IxlName;
+  begin
+    // Prepare tempworkbook
+    {$IFDEF XLR_BCB}
+    FIMultiSheet := IWorkbook.Worksheets.Item[1];
+    {$ELSE}
+    FIMultiSheet := IWorkbook.Worksheets.Item[1] as IxlWorksheet;
+    {$ENDIF}
+    MSName := FIMultiSheet.Name;
+    {$IFDEF XLR_BCB}
+    ITmpWorkbook := IXLSApp.Workbooks.Add(EmptyParam);
+    ITmpWorkbook.Worksheets.Add(EmptyParam, EmptyParam, 1, EmptyParam);
+    FIMultiSheet.Copy(EmptyParam, ITmpWorkbook.Worksheets.Item[1]);
+    IWorkbook.Activate;
+    ITmpSheet := ITmpWorkbook.Worksheets.Item[2];
+    {$ELSE}
+    ITmpWorkbook := IXLSApp.Workbooks.Add(EmptyParam, xlrLCID);
+    ITmpWorkbook.Worksheets.Add(EmptyParam, EmptyParam, 1, EmptyParam, xlrLCID);
+    FIMultiSheet.Copy(EmptyParam, ITmpWorkbook.Worksheets.Item[1], xlrLCID);
+    IWorkbook.Activate(xlrLCID);
+    ITmpSheet := ITmpWorkbook.Worksheets.Item[2] as IxlWorksheet;
+    {$ENDIF}
+    ProgressInc := 0;
+    for i := 0 to DataSources.Count - 1 do
+      if DataSources[i].RangeType in [rtNoRange, rtRange, rtRangeRoot] then
+        Inc(ProgressInc);
+    while not MSDataSet.EOF do begin
+      ProgressMax := ProgressMax + ProgressInc + 1;
+      // Build all datasources
+      Params.Build;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtNoRange then begin
+          DataSources[i].Build;
+          Progress;
+        end;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtRange then begin
+          DataSources[i].Build;
+          Progress;
+        end;
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].RangeType = rtRangeRoot then begin
+          DataSources[i].BuildRoot;
+          Progress;
+        end;
+      // OnlyValues
+      {$IFDEF XLR_BCB}
+      IRange := FIMultiSheet.UsedRange;
+      {$ELSE}
+      IRange := FIMultiSheet.UsedRange[xlrLCID] as IxlRange;
+      {$ENDIF}
+      IRange.Copy(EmptyParam);
+      IRange.PasteSpecial(TOLEEnum(xlPasteValues),
+        TOLEEnum(xlPasteSpecialOperationNone), false, false);
+      _Clear(IRange);
+      // Delete NoRange names and multisheet names
+      NameCount := INames.Count;
+      for i := NameCount downto 1 do begin
+        {$IFDEF XLR_BCB}
+        IName := INames.Item(i, EmptyParam, EmptyParam);
+        {$ELSE}
+        IName := INames.Item(i, EmptyParam, EmptyParam) as IxlName;
+        {$ENDIF}
+        s := IName.Value;
+        if (pos('''' + xlrTempSheetName + '''' + '!', s) <> 0) or
+          (pos(xlrTempSheetName + '!', s) <> 0) then
+          IName.Delete;
+        if (pos('''' + MSName + '''' + '!', s) <> 0) or
+          (pos(MSName + '!', s) <> 0) then
+          IName.Delete;
+        _Clear(IName);
+      end;
+      // Set sheet name
+      s := SheetName(1, MSDataSet.FieldAsString(MSFieldIndex));
+      FIMultisheet.Name := s;
+      AddedNames.Add(s);
+      // Add new sheet
+      {$IFDEF XLR_BCB}
+      ITmpSheet.Copy(EmptyParam, FIMultisheet);
+      i := FIMultisheet.Index + 1;
+      {$ELSE}
+      ITmpSheet.Copy(EmptyParam, FIMultisheet, xlrLCID);
+      i := FIMultisheet.Index[xlrLCID] + 1;
+      {$ENDIF}
+      _Clear(FIMultisheet);
+      {$IFDEF XLR_BCB}
+      FIMultisheet := IWorksheets.Item[i];
+      {$ELSE}
+      FIMultisheet := IWorksheets.Item[i] as IxlWorksheet;
+      {$ENDIF}
+      FIMultisheet.Name := MSName;
+      // Next MSDataSource record
+      MSDataSet.Next;
+      {$IFDEF XLR_AX}
+      if not MSDataSet.EOF then
+        MSDataSourceDoRelation;
+      {$ENDIF XLR_AX}
+      Progress;
+    end; // while not EOF
+    if AddedNames.Count > 0 then
+      FLastActiveSheetName := AddedNames.Strings[0];
+    { Close temporary workbook }
+    _Clear(ITmpSheet);
+    {$IFDEF XLR_BCB}
+    IWorkbook.Worksheets.Item[1].Activate;
+    IXLSApp.DisplayAlerts := false;
+    FIMultiSheet.Delete;
+    IXLSApp.DisplayAlerts := xroDisplayAlerts in Options;
+    if _Assigned(ITmpWorkbook) then
+      ITmpWorkbook.Close(false, EmptyParam, EmptyParam);
+    {$ELSE}
+    (IWorkbook.Worksheets.Item[1] as IxlWorksheet).Activate(xlrLCID);
+    IXLSApp.DisplayAlerts[xlrLCID] := false;
+    FIMultiSheet.Delete(xlrLCID);
+    IXLSApp.DisplayAlerts[xlrLCID] := xroDisplayAlerts in Options;
+    if _Assigned(ITmpWorkbook) then
+      ITmpWorkbook.Close(false, EmptyParam, EmptyParam, xlrLCID);
+    {$ENDIF}
+    _Clear(ITmpWorkbook);
+  end;
+
+  procedure DoRangeMultisheet;
+  var
+    i: integer;
+    ProgressInc: integer;
+    // used interfaces
+    ITmpWorkbook: IxlWorkbook;
+    ITmpSheet: IxlWorksheet;
+    IRange: IxlRange;
+    IName: IxlName;
+  begin
+    // Prepare tempworkbook
+    {$IFDEF XLR_BCB}
+    FIMultiSheet := IWorkbook.Worksheets.Item[1];
+    {$ELSE}
+    FIMultiSheet := IWorkbook.Worksheets.Item[1] as IxlWorksheet;
+    {$ENDIF}
+    MSName := FIMultiSheet.Name;
+    {$IFDEF XLR_BCB}
+    ITmpWorkbook := IXLSApp.Workbooks.Add(EmptyParam);
+    ITmpWorkbook.Worksheets.Add(EmptyParam, EmptyParam, 1, EmptyParam);
+    FIMultiSheet.Copy(EmptyParam, ITmpWorkbook.Worksheets.Item[1]);
+    IWorkbook.Activate;
+    ITmpSheet := ITmpWorkbook.Worksheets.Item[2];
+    {$ELSE}
+    ITmpWorkbook := IXLSApp.Workbooks.Add(EmptyParam, xlrLCID);
+    ITmpWorkbook.Worksheets.Add(EmptyParam, EmptyParam, 1, EmptyParam, xlrLCID);
+    FIMultiSheet.Copy(EmptyParam, ITmpWorkbook.Worksheets.Item[1], xlrLCID);
+    IWorkbook.Activate(xlrLCID);
+    ITmpSheet := ITmpWorkbook.Worksheets.Item[2] as IxlWorksheet;
+    {$ENDIF}
+    ProgressInc := 0;
+    for i := 0 to DataSources.Count - 1 do
+      if DataSources[i].RangeType in [rtNoRange, rtRange, rtRangeRoot] then
+        Inc(ProgressInc);
+    while not MSDataSet.EOF do begin
+      ProgressMax := ProgressMax + ProgressInc + 1;
+      // Build all datasources
+      if MSFieldValues.IndexOf(MSDataSet.FieldAsString(MSFieldIndex)) = -1 then begin
+        MSFieldValues.Add(MSDataSet.FieldAsString(MSFieldIndex));
+        MSDataSet.SetFilter(MSFieldIndex);
+        Params.Build;
+        for i := 0 to DataSources.Count - 1 do
+          if DataSources[i].RangeType = rtNoRange then begin
+            DataSources[i].Build;
+            Progress;
+          end;
+        for i := 0 to DataSources.Count - 1 do
+          if DataSources[i].RangeType = rtRange then begin
+            DataSources[i].Build;
+            Progress;
+          end;
+        for i := 0 to DataSources.Count - 1 do
+          if DataSources[i].RangeType = rtRangeRoot then begin
+            DataSources[i].BuildRoot;
+            Progress;
+          end;
+        // OnlyValues
+        {$IFDEF XLR_BCB}
+        IRange := FIMultisheet.UsedRange;
+        {$ELSE}
+        IRange := FIMultisheet.UsedRange[xlrLCID] as IxlRange;
+        {$ENDIF}
+        IRange.Copy(EmptyParam);
+        IRange.PasteSpecial(TOLEEnum(xlPasteValues),
+          TOLEEnum(xlPasteSpecialOperationNone), false, false);
+        _Clear(IRange);
+        // Delete NoRange names and multisheet names
+        NameCount := INames.Count;
+        for i := NameCount downto 1 do begin
+          {$IFDEF XLR_BCB}
+          IName := INames.Item(i, EmptyParam, EmptyParam);
+          {$ELSE}
+          IName := INames.Item(i, EmptyParam, EmptyParam) as IxlName;
+          {$ENDIF}
+          s := IName.Value;
+          if UpperCase(IName.Name) = xlrMultisheetCellName then
+            IName.RefersToRange.Value := MSDataSet.FieldAsOLEVariant(MSFieldIndex);
+          if (pos('''' + xlrTempSheetName + '''' + '!', s) <> 0) or
+            (pos(xlrTempSheetName + '!', s) <> 0) then
+            IName.Delete;
+          if (pos('''' + MSName + '''' + '!', s) <> 0) or
+            (pos(MSName + '!', s) <> 0) then
+            IName.Delete;
+          _Clear(IName);
+        end;
+        // Set sheet name
+        s := SheetName(1, MSDataSet.FieldAsString(MSFieldIndex));
+        FIMultisheet.Name := s;
+        AddedNames.Add(s);
+        // Add new sheet
+        {$IFDEF XLR_BCB}
+        ITmpSheet.Copy(EmptyParam, FIMultisheet);
+        i := FIMultisheet.Index + 1;
+        {$ELSE}
+        ITmpSheet.Copy(EmptyParam, FIMultisheet, xlrLCID);
+        i := FIMultisheet.Index[xlrLCID] + 1;
+        {$ENDIF}
+        _Clear(FIMultisheet);
+        {$IFDEF XLR_BCB}
+        FIMultisheet := IWorksheets.Item[i];
+        {$ELSE}
+        FIMultisheet := IWorksheets.Item[i] as IxlWorksheet;
+        {$ENDIF}
+        FIMultisheet.Name := MSName;
+        MSDataSet.SetFilter(-1);
+        // Get next MSDataSource field value
+        while (not MSDataSet.EOF) and
+          (MSFieldValues.IndexOf(MSDataSet.FieldAsString(MSFieldIndex)) <> - 1) do
+          MSDataSet.Next;
+        Progress;
+      end; // if IndexOf
+    end; // while not EOF
+    if AddedNames.Count > 0 then
+      FLastActiveSheetName := AddedNames.Strings[0];
+    { Close temporary workbook }
+    _Clear(ITmpSheet);
+    {$IFDEF XLR_BCB}
+    IWorkbook.Worksheets.Item[1].Activate;
+    IXLSApp.DisplayAlerts := false;
+    FIMultiSheet.Delete;
+    IXLSApp.DisplayAlerts := xroDisplayAlerts in Options;
+    if _Assigned(ITmpWorkbook) then
+      ITmpWorkbook.Close(false, EmptyParam, EmptyParam);
+    {$ELSE}
+    (IWorkbook.Worksheets.Item[1] as IxlWorksheet).Activate(xlrLCID);
+    IXLSApp.DisplayAlerts[xlrLCID] := false;
+    FIMultiSheet.Delete(xlrLCID);
+    IXLSApp.DisplayAlerts[xlrLCID] := xroDisplayAlerts in Options;
+    if _Assigned(ITmpWorkbook) then
+      ITmpWorkbook.Close(false, EmptyParam, EmptyParam, xlrLCID);
+    {$ENDIF}
+    _Clear(ITmpWorkbook);
+  end;
+
+begin
+  {$IFDEF XLR_AX}
+  if State <> rsNotActive then
+    Exit;
+  {$ENDIF}
+  MSDataSource := DataSourceOfAlias(MultisheetDataSourceAlias);
+  if Assigned(MSDataSource) and (MSDataSource.RangeType in [rtNoRange, rtRange, rtRangeRoot]) then begin
+    Raised := true;
+    State := rsReport;
+    AddedNames := TStringList.Create;
+    MSFieldValues := TStringList.Create;
+    OLDDebug := xlrDebug;
+    {$IFNDEF XLR_TRIAL}
+    xlrDebug := Self.Debug or xlrDebug;
+    {$ENDIF}
+    try
+      try
+        ProgressPos := -1;
+        ProgressMax := 13;
+        Progress;
+        Connect;
+        if IsRefreshParams then
+          RefreshParams(True);
+        Progress;
+        BeforeBuild;
+        Progress;
+        DoOnBeforeBuild;
+        Progress;
+        MacroProcessing(mtBefore, MacroBefore);
+        Progress;
+        Parse;
+        Progress;
+        MSDataSet := MSDataSource.XLDataSet;
+        if (MSDataSet.Flags and xlrMultisheet) <> xlrMultisheet then
+          {$IFDEF XLR_AX}
+          raise ExlReportError.CreateRes2(ecMultisheetNotAvailable, ecMultisheetNotAvailable);
+          {$ELSE}
+          raise ExlReportError.CreateRes(ecMultisheetNotAvailable);
+          {$ENDIF}
+        MSDataSet.ExternalDisconnect := true;
+        if (MSDataSource.AutoOpen) and (not MSDataSet.Active) then
+          MSDataSet.Open;
+        Progress;
+        MSDataSet.Connect;
+        MSFieldIndex := MSDataSet.Fields.IndexOf(MultisheetFieldName);
+        if MSFieldIndex = -1 then
+          {$IFDEF XLR_AX}
+          raise ExlReportError.CreateResFmt2(ecMultisheetFieldNotFound, ecMultisheetFieldNotFound, [MultisheetFieldName]);
+          {$ELSE}
+          raise ExlReportError.CreateResFmt(ecMultisheetFieldNotFound, [MultisheetFieldName]);
+          {$ENDIF}
+        MSDataSet.First;
+        {$IFDEF XLR_AX}
+        if MSDataSource.RangeType = rtNoRange then
+          if not MSDataSet.EOF then
+            MSDataSourceDoRelation;
+        {$ENDIF XLR_AX}
+        try
+          Progress;
+          if MSDataSource.RangeType = rtNoRange then
+            DoNoRangeMultisheet
+          else
+            DoRangeMultisheet;
+        finally
+          if MSDataSource.AutoClose then
+            MSDataSet.Close;
+          if MSDataSource.RangeType in [rtRange, rtRangeRoot] then
+            MSDataSet.SetFilter(-1);
+          MSDataSet.Disconnect(MSDataSource.AutoClose);
+        end;
+        Progress;
+        Progress;
+        OptionsProcessing;
+        Progress;
+        MacroProcessing(mtAfter, MacroAfter);
+        Progress;
+        DoOnAfterBuild;
+        Progress;
+        AfterBuild;
+        Progress;
+        Show;
+      except
+        on E: Exception do begin
+          DoOnError(E, Raised);
+          ErrorProcessing(E, Raised);
+          if Raised then
+            raise;
+        end;
+      end;
+    finally
+      MSFieldValues.Free;
+      AddedNames.Free;
+      Disconnect;
+      DoOnProgress(0, 0);
+      State := rsNotActive;
+      xlrDebug := OLDDebug;
+    end;
+  end
+  else
+    {$IFDEF XLR_AX}
+    raise ExlReportError.CreateResFmt2(ecMultisheetDataSourceNotFound, ecMultisheetDataSourceNotFound, [MultisheetDataSourceAlias]);
+    {$ELSE}
+    raise ExlReportError.CreateResFmt(ecMultisheetDataSourceNotFound, [MultisheetDataSourceAlias]);
+    {$ENDIF}
+end;
+
+{$IFNDEF XLR_BCB}
+class procedure TxlExcelReport.MergeReports(Reports: array of TxlExcelReport; SheetPrefixes: array of string);
+var
+  TmpOptions: TxlReportOptionsSet;
+  i, hi, lo: integer;
+  Workbooks, Prefixes: OLEVariant;
+  IXL: IxlApplication;
+  IWbk: IxlWorkbook;
+  IMdl: IxlVBComponent;
+{$IFDEF XLR_TRIAL}
+  {$I xlDoRestrict3.inc}
+{$ENDIF XLR_TRIAL}
+begin
+  IXL := ConnectToExcelApp(false);
+  try
+    lo := Low(Reports);
+    hi := High(Reports);
+    if hi >= lo then begin
+      Workbooks := VarArrayCreate([1, hi - lo + 1], varVariant);
+      Prefixes := VarArrayCreate([1, hi - lo + 1], varVariant);
+    end;
+    for i := lo to hi do begin
+      TmpOptions := Reports[i].Options;
+      Reports[i].Options := Reports[i].Options + [xroHideExcel];
+      try
+        Reports[i].FMerged := true;
+        Reports[i].Report;
+        Workbooks[i - lo + 1] := Reports[i].FLastWorkbookName;
+        Prefixes[i - lo + 1] := SheetPrefixes[i];
+      finally
+        Reports[i].FMerged := false;
+        Reports[i].Options := TmpOptions;
+      end;
+    end;
+    IWbk := IXL.Workbooks.Item[Workbooks[1]];
+    IMdl := OLEVariant(IWbk).VBProject.VBComponents.Add( TOLEEnum(vbext_ct_StdModule) );
+    IMdl.Name := 'xlRpt_MergeWbkModule';
+    IMdl.CodeModule.AddFromString(xlrVBAMergeModule);
+    {$IFDEF XLR_BCB}
+    IWbk.Activate;
+    {$ELSE}
+    IWbk.Activate(xlrLCID);
+    {$ENDIF}
+    BeforeRunMacro(IXL, true);
+    OLEVariant(IXL).Run('xlRpt_MergeWbkModule.' + xlrVBAMergeWorkbooks, Workbooks, Prefixes);
+    {$IFDEF XLR_TRIAL}
+    DoRestrict3;
+    {$ENDIF XLR_TRIAL}
+  finally
+    if (not _VarIsEmpty(IMdl)) and (not xlrDebug) then begin
+      IMdl.CodeModule.DeleteLines(1, IMdl.CodeModule.CountOfLines);
+      IMdl.Collection.Remove(IMdl);
+    end;
+    _Clear(IWbk);
+    ShowExcel(IXL, false, false, TOLEEnum(xlNormal), -1, -1);
+    _Clear(IXL);
+  end;
+end;
+{$ENDIF}
+
+{$IFNDEF XLR_AX}
+
+{ TxlDataSource }
+
+function TxlDataSource.GetReport: TxlReport;
+begin
+  Result := (inherited Report) as TxlReport;
+end;
+
+procedure TxlDataSource.SetDataSet(const Value: TDataSet);
+begin
+  FDataSet := Value;
+  if Assigned(Value) then
+    if Alias = '' then
+      Alias := Value.Name;
+end;
+
+// Create DataSet wrapper
+function TxlDataSource.CreateXLDataSet: TxlAbstractDataSet;
+begin
+  Result := nil;
+  if Assigned(DataSet) then begin
+    Result := TxlVCLDataSet.Create(Self);
+    (Result as TxlVCLDataSet).DataSet := DataSet;
+  end
+  else
+    if Assigned(FOnGetDataSourceInfo) and Assigned(FOnGetFieldInfo) and
+      Assigned(FOnGetRecord) then begin
+      Result := TxlUnboundDataSet.Create(Self);
+    end;
+end;
+
+procedure TxlDataSource.DoOnAfterDataTransfer;
+begin
+  if Assigned(OnAfterDataTransfer) then
+   OnAfterDataTransfer(Self);
+end;
+
+procedure TxlDataSource.DoOnBeforeDataTransfer;
+begin
+  if Assigned(OnBeforeDataTransfer) then
+   OnBeforeDataTransfer(Self);
+end;
+
+procedure TxlDataSource.DoOnMacro(const MacroType: TxlMacroType;
+  const MacroName: string; var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7,
+  Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17,
+  Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27,
+  Arg28, Arg29, Arg30: OLEVariant);
+begin
+  if Assigned(FOnMacro) then
+    FOnMacro(Self.Report, Self, MacroType, MacroName,
+      Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10,
+      Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20,
+      Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30);
+end;
+
+{ TxlDataSources }
+
+function TxlDataSources.Add: TxlDataSource;
+begin
+  Result := (inherited Add) as TxlDataSource;
+end;
+
+function TxlDataSources.GetItem(Index: integer): TxlDataSource;
+begin
+  Result := (inherited Items[Index]) as TxlDataSource;
+end;
+
+procedure TxlDataSources.SetItem(Index: integer; const Value: TxlDataSource);
+begin
+  inherited SetItem(Index, Value);
+end;
+
+function TxlDataSources.GetReport: TxlReport;
+begin
+  Result := (inherited Report) as TxlReport;
+end;
+
+{ TxlReportParam }
+
+function TxlReportParam.GetReport: TxlReport;
+begin
+  Result := (inherited Report) as TxlReport;
+end;
+
+{ TxlReportParams }
+
+function TxlReportParams.Add: TxlReportParam;
+begin
+  Result := TxlReportParam(inherited Add);
+end;
+
+function TxlReportParams.GetItem(Index: integer): TxlReportParam;
+begin
+  Result := TxlReportParam(inherited Items[Index]);
+end;
+
+function TxlReportParams.GetReport: TxlReport;
+begin
+  Result := TxlReport(inherited Report);
+end;
+
+procedure TxlReportParams.SetItem(Index: integer; const Value: TxlReportParam);
+begin
+  inherited SetItem(Index, Value);
+end;
+
+{ TxlReport }
+
+constructor TxlReport.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
+constructor TxlReport.CreateEx(AOwner: TComponent; AXLSTemplate,
+  AActiveSheet, AMacroBefore, AMacroAfter: string;
+  AOptions: TxlReportOptionsSet; ATempPath: string; AOnBeforeBuild,
+  AOnAfterBuild: TxlReportHandleEvent);
+begin
+  Create(AOwner);
+  Options := AOptions;
+  XLSTemplate := AXLSTemplate;
+  ActiveSheet := AActiveSheet;
+  MacroBefore := AMacroBefore;
+  MacroAfter := AMacroAfter;
+  TempPath := ATempPath;
+  OnBeforeBuild := AOnBeforeBuild;
+  OnAfterBuild := AOnAfterBuild;
+end;
+
+function TxlReport.AddDataSet(ADataSet: TDataSet; ARange, AMacroBefore,
+  AMacroAfter: string; AOptions: TxlRangeOptionsSet; AOnMacro: TxlOnMacro;
+  AOnBeforeDataTransfer,
+  AOnAfterDataTransfer: TxlDataTransferHandleEvent): TxlDataSource;
+begin
+  Result := DataSources.Add;
+  Result.DataSet := ADataSet;
+  Result.Options := AOptions;
+  Result.Range := ARange;
+  Result.MacroBefore := AMacroBefore;
+  Result.MacroAfter := AMacroAfter;
+  Result.OnBeforeDataTransfer := AOnBeforeDataTransfer;
+  Result.OnAfterDataTransfer := AOnAfterDataTransfer;
+  Result.OnMacro := AOnMacro;
+end;
+
+function TxlReport.CreateDataSources: TxlAbstractDataSources;
+begin
+  Result := TxlDataSources.Create(TxlDataSource, Self);
+end;
+
+function TxlReport.GetDataSources: TxlDataSources;
+begin
+  Result := (inherited DataSources) as TxlDataSources;
+end;
+
+procedure TxlReport.SetDataSources(const Value: TxlDataSources);
+begin
+  inherited DataSources := Value;
+end;
+
+function TxlReport.CreateParams: TxlAbstractParameters;
+begin
+  Result := TxlReportParams.Create(TxlReportParam, Self);
+end;
+
+function TxlReport.GetParams: TxlReportParams;
+begin
+  Result := (inherited Params) as TxlReportParams;
+end;
+
+procedure TxlReport.SetParams(const Value: TxlReportParams);
+begin
+  inherited Params := Value;
+end;
+
+function TxlReport.GetParamByName(Name: string): TxlReportParam;
+begin
+  Result := TxlReportParam(inherited ParamByName[Name]);
+end;
+
+procedure TxlReport.Notification(AComponent: TComponent; Operation: TOperation);
+var
+  i: integer;
+begin
+  if Operation = opRemove then begin
+    if AComponent is TDataSet then
+      for i := 0 to DataSources.Count - 1 do
+        if DataSources[i].DataSet = AComponent then
+          DataSources[i].DataSet := nil;
+  end;
+  inherited;
+end;
+
+procedure TxlReport.DoOnAfterBuild;
+begin
+  if Assigned(OnAfterBuild) then
+    OnAfterBuild(Self);
+end;
+
+procedure TxlReport.DoOnBeforeBuild;
+begin
+  if Assigned(OnBeforeBuild) then
+    OnBeforeBuild(Self);
+end;
+
+procedure TxlReport.DoOnBeforeWorkbookSave(var WorkbookFileName,
+  WorkbookFilePath: string; Save: boolean);
+begin
+  if Assigned(OnBeforeWorkbookSave) then
+    OnBeforeWorkbookSave(Self, WorkbookFileName, WorkbookFilePath, Save);
+end;
+
+procedure TxlReport.DoOnMacro(const MacroType: TxlMacroType;
+  const MacroName: string; var Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7,
+  Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17,
+  Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27,
+  Arg28, Arg29, Arg30: OLEVariant);
+begin
+  if Assigned(FOnMacro) then
+    FOnMacro(Self, nil, MacroType, MacroName,
+      Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10,
+      Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20,
+      Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30);
+end;
+
+procedure TxlReport.DoOnProgress(const Position, Max: integer);
+begin
+  if Assigned(OnProgress) then
+    OnProgress(Self, Position, Max);
+end;
+
+procedure TxlReport.DoOnTargetBookSheetName(ISourceSheet: IxlWorksheet;
+  ITargetWorkbook: IxlWorkbook; var SheetName: string);
+begin
+  if Assigned(FOnTargetBookSheetName) then
+    FOnTargetBookSheetName(Self as TxlReport, ISourceSheet, ITargetWorkbook, SheetName);
+end;
+
+procedure TxlReport.Report;
+begin
+  inherited Report
+end;
+
+procedure TxlReport.Report(const APreview: boolean);
+var
+  OLDPreview: boolean;
+begin
+  OLDPreview := Preview;
+  Preview := APreview;
+  try
+    Report;
+  finally
+    Preview := OLDPreview;
+  end;
+end;
+
+procedure TxlReport.ReportTo(const WorkbookName: string; const NewWorkbookName: string = '');
+begin
+  inherited;
+end;
+
+procedure TxlReport.Edit;
+begin
+  inherited Edit;
+end;
+
+// class methods
+class function TxlReport.GetOptionMap: TxlOptionMap;
+begin
+  Result := inherited GetOptionMap;
+end;
+
+class procedure TxlReport.ReleaseExcelApplication;
+begin
+  inherited ReleaseExcelApplication;
+end;
+
+class procedure TxlReport.ConnectToExcelApplication(OLEObject: OLEVariant);
+begin
+  inherited ConnectToExcelApplication(OLEObject);
+end;
+
+{$IFNDEF XLR_BCB}
+class procedure TxlReport.MergeReports(Reports: array of TxlExcelReport;
+  SheetPrefixes: array of string);
+begin
+  inherited;
+end;
+{$ENDIF}
+
+{$ENDIF XLR_AX}
+
+var
+  xlrStandardPackage: TxlStandardPackage;
+  {$IFDEF XLR_AX}
+    Buff: PChar;
+    {$IFDEF XLR_DEV}
+      xlrProPackage: TxlProPackage;
+    {$ENDIF XLR_DEV}
+  {$ENDIF XLR_AX}
+
+initialization
+
+  // Create Engine Option Map
+  xlrOptionMap := TxlOptionMap.Create;
+  xlrStandardPackage := TxlStandardPackage.Create(nil);
+  {$IFNDEF XLR_AX}
+  {$IFDEF XLR_TRIAL}
+    TotalEx_Service;
+  {$ENDIF XLR_TRIAL}
+  {$ENDIF}
+  {$IFDEF XLR_AX}
+    GetMem(Buff, 255);
+    GetTempPath(255, Buff);
+    xlrTempPath := Buff;
+    DeleteFiles(xlrTempPath, xlrFileExtention, xlrTempFileSign);
+    FreeMem(Buff);
+    {$IFDEF XLR_DEV}
+      xlrProPackage := TxlProPackage.Create(nil);
+    {$ENDIF XLR_DEV}
+  {$ENDIF XLR_AX}
+
+finalization
+
+  {$IFDEF XLR_AX}
+    DeleteFiles(xlrTempPath, xlrFileExtention, xlrTempFileSign);
+    {$IFDEF XLR_DEV}
+      xlrProPackage.Free;
+    {$ENDIF XLR_DEV}
+  {$ENDIF XLR_AX}
+  xlrStandardPackage.Free;
+  xlrOptionMap.Free;
+
+end.
+

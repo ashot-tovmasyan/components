@@ -1,0 +1,1522 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit dcapp_D3;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  activex,
+  dcscript,
+  dcdreamlib,
+  classes,
+  sysutils,
+  windows,
+  messages,
+  forms,
+  controls,
+  buttons,
+  comctrls,
+  dialogs,
+  menus,
+  typinfo,
+  dcconsts,
+  dcapi,
+  dcsystem,
+  dccommon,
+  dcapp;
+function ConvertTMessageToVariant(var R : TMessage) : OleVariant;
+function ConvertVariantToTMessage(const V : OleVariant) : TMessage;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type __TMessage__Wrapper = class(TDCRecordWrapper)
+private
+fR : TMessage;
+public
+function GetRecordPtr : pointer; override;
+published
+procedure setMsg(const val : Cardinal);
+function getMsg : Cardinal;
+property Msg : Cardinal read getMsg write setMsg;
+procedure setWParam(const val : Longint);
+function getWParam : Longint;
+property WParam : Longint read getWParam write setWParam;
+procedure setLParam(const val : Longint);
+function getLParam : Longint;
+property LParam : Longint read getLParam write setLParam;
+procedure setResult(const val : Longint);
+function getResult : Longint;
+property Result : Longint read getResult write setResult;
+procedure setWParamLo(const val : Word);
+function getWParamLo : Word;
+property WParamLo : Word read getWParamLo write setWParamLo;
+procedure setWParamHi(const val : Word);
+function getWParamHi : Word;
+property WParamHi : Word read getWParamHi write setWParamHi;
+procedure setLParamLo(const val : Word);
+function getLParamLo : Word;
+property LParamLo : Word read getLParamLo write setLParamLo;
+procedure setLParamHi(const val : Word);
+function getLParamHi : Word;
+property LParamHi : Word read getLParamHi write setLParamHi;
+procedure setResultLo(const val : Word);
+function getResultLo : Word;
+property ResultLo : Word read getResultLo write setResultLo;
+procedure setResultHi(const val : Word);
+function getResultHi : Word;
+property ResultHi : Word read getResultHi write setResultHi;
+end;
+type
+_T0 = function (const p0 : String): String of object;
+
+_T1 = procedure (p0 : TStrings) of object;
+
+{_T2 = procedure (p0 : TSaveObjectClass;
+p1 : TIDEObjectClass;
+const p2 : String;
+const p3 : String) of object;}
+
+{_T3 = function (p0 : TOpenObjectClass;
+const p1 : String;
+const p2 : String): TObjectParamListItem of object;}
+
+{_T4 = procedure (p0 : TIDEObjectClass;
+const p1 : String;
+const p2 : String;
+const p3 : String;
+const p4 : String) of object;}
+
+_T5 = function (p0 : TComponent;
+const p1 : String): TFilerID of object;
+
+_T6 = function (const p0 : TFilerID;
+const p1 : TFileName): Boolean of object;
+
+_T7 = procedure (const p0 : TFilerID;
+const p1 : String) of object;
+
+_T8 = function (const p0 : TFilerID): String of object;
+
+{_T9 = function (const p0 : String): TOpenObjectClass of object;}
+
+_T10 = function (p0 : Integer): Char of object;
+
+_T11 = function : TCompoundIDEObject of object;
+
+_T12 = function (const p0): Boolean of object;
+
+_T13 = procedure (p0 : TList;
+p1 : TCodeDesigner) of object;
+
+_T14 = procedure (p0 : TList;
+p1 : TStrings) of object;
+
+_T15 = procedure  of object;
+
+_T16 = procedure (p0 : TList;
+p1 : TList;
+p2 : Boolean) of object;
+
+_T17 = procedure (var p0 : TVerbStates) of object;
+
+_T18 = function (p0 : TIDEProjectItem): Boolean of object;
+
+_T19 = _T17;
+
+_T20 = _T17;
+
+_T21 = procedure (p0 : TPersistent) of object;
+
+_T22 = _T21;
+
+_T23 = _T21;
+
+_T24 = _T21;
+
+_T25 = _T21;
+
+_T26 = _T15;
+
+_T27 = procedure (p0 : Boolean) of object;
+
+_T28 = procedure (p0 : TIDEObject) of object;
+
+_T29 = _T28;
+
+{_T30 = procedure (p0 : TIDEObjectClass;
+p1 : TStrings) of object;}
+
+{_T31 = procedure (p0 : TOpenObjectClass;
+p1 : TStrings) of object;}
+
+_T32 = procedure (p0 : TStrings;
+p1 : TList) of object;
+
+_T33 = function (const p0 : String): TIDEProjectItem of object;
+
+_T34 = function : TIDEObject of object;
+
+_T35 = function (p0 : TCustomIDEProject): TIDEObject of object;
+
+_T36 = _T0;
+
+_T37 = function (const p0 : String): Integer of object;
+
+_T38 = function (p0 : TIDEObject;
+p1 : TCustomIDEProject;
+p2 : Boolean): Boolean of object;
+
+_T39 = procedure (p0 : TIDEObject;
+p1 : Integer) of object;
+
+_T40 = _T28;
+
+_T41 = _T28;
+
+_T42 = _T28;
+
+_T43 = function : Boolean of object;
+
+_T44 = _T15;
+
+_T45 = _T15;
+
+_T46 = function : Integer of object;
+
+{_T47 = function (p0 : TIDEObjectClass): TIDEObject of object;}
+
+_T48 = function (const p0 : String): TIDEObject of object;
+
+_T49 = function (const p0 : TFileName;
+const p1 : TFilerID): TIDEObject of object;
+
+_T50 = function (p0 : TIDEObject): Boolean of object;
+
+_T51 = function (p0 : TObjectParamListItem;
+p1 : Boolean): TIDEObject of object;
+
+{_T52 = function (p0 : TIDEObjectClass;
+const p1 : String;
+p2 : Boolean): TIDEObject of object;}
+
+{_T53 = function (p0 : TIDEObjectClass;
+p1 : Boolean): TIDEObject of object;}
+
+{_T54 = function (const p0 : String;
+const p1 : TFilerID;
+p2 : TOpenObjectClass;
+p3 : Boolean): TIDEObject of object;}
+
+_T55 = _T34;
+
+_T56 = function (const p0 : String;
+const p1 : TFilerID;
+p2 : Boolean): TIDEObject of object;
+
+_T57 = procedure (p0 : TStrings;
+const p1 : TFilerID) of object;
+
+_T58 = _T48;
+
+_T59 = _T1;
+
+_T60 = _T15;
+
+_T61 = function (p0 : TStrings): TIDEObject of object;
+
+{_T62 = function (p0 : TOpenObjectClass): TIDEObject of object;}
+
+{_T63 = function (p0 : TIDEObject;
+p1 : TSaveMethod;
+const p2 : String): Boolean of object;}
+
+_T64 = _T50;
+
+_T65 = _T50;
+
+_T66 = _T50;
+
+_T67 = _T50;
+
+_T68 = function (p0 : TList): Boolean of object;
+
+_T69 = _T50;
+
+_T70 = _T43;
+
+_T71 = _T43;
+
+_T72 = _T43;
+
+_T73 = _T43;
+
+_T74 = _T43;
+
+_T75 = _T43;
+
+_T76 = _T68;
+
+_T77 = _T50;
+
+_T78 = _T50;
+
+_T79 = _T68;
+
+_T80 = _T43;
+
+_T81 = _T43;
+
+_T82 = _T43;
+
+_T83 = _T15;
+
+_T84 = _T43;
+
+_T85 = _T15;
+
+_T86 = _T15;
+
+_T87 = _T43;
+
+_T88 = _T15;
+
+_T89 = procedure (p0 : TList;
+p1 : TCompoundIDEObject) of object;
+
+_T90 = _T33;
+
+_T91 = function (p0 : TCompoundIDEObject;
+p1 : Boolean): Boolean of object;
+
+_T92 = _T15;
+
+_T93 = _T28;
+
+_T94 = _T28;
+
+{_T95 = function : TIDEObjectClass of object;}
+
+_T96 = _T43;
+
+_T97 = procedure (const p0 : TFileName) of object;
+
+_T98 = procedure (const p0 : TFilerID) of object;
+
+_T99 = _T43;
+
+_T100 = function : TIDEObjectParams of object;
+
+_T101 = _T15;
+
+_T102 = procedure (const p0 : TFileName;
+const p1 : TFilerID) of object;
+
+_T103 = function : String of object;
+
+_T104 = _T103;
+
+{_T105 = function : TSaveObjectClass of object;}
+
+_T106 = _T103;
+
+_T107 = _T43;
+
+_T108 = _T43;
+
+_T109 = _T15;
+
+_T110 = _T50;
+
+_T111 = _T43;
+
+_T112 = _T15;
+
+_T113 = _T103;
+
+_T114 = _T15;
+
+_T115 = function : TComponent of object;
+
+_T116 = procedure (p0 : TCompoundIDEObject) of object;
+
+_T117 = _T15;
+
+_T118 = _T15;
+
+_T119 = procedure (p0 : TStream) of object;
+
+_T120 = procedure (p0 : TList) of object;
+
+_T121 = _T50;
+
+_T122 = _T1;
+
+_T123 = _T120;
+
+_T124 = _T116;
+
+_T125 = _T15;
+
+{_T126 = function (const p0 : TFileName;
+const p1 : TFilerID;
+p2 : TSaveObjectClass): Boolean of object;}
+
+{_T127 = function (const p0 : TFileName;
+const p1 : TFilerID;
+p2 : TSaveObjectClass): Boolean of object;}
+
+_T128 = function (const p0 : String): Boolean of object;
+
+_T129 = _T102;
+
+_T130 = procedure (const p0 : TFileName;
+const p1 : TFilerID;
+p2 : Integer) of object;
+
+_T131 = _T43;
+
+_T132 = _T15;
+
+_T133 = _T15;
+
+_T134 = _T15;
+
+_T135 = _T15;
+
+_T136 = _T15;
+
+_T137 = _T15;
+
+_T138 = _T15;
+
+_T139 = _T15;
+
+_T140 = _T43;
+
+_T141 = _T15;
+
+_T142 = function (p0 : TIDEObject): TIDEObjectListItem of object;
+
+_T143 = _T142;
+
+_T144 = procedure (const p0 : String;
+const p1 : String) of object;
+
+_T145 = _T144;
+
+_T146 = function (p0 : TIDEObject): Integer of object;
+
+_T147 = function (const p0 : TFileName;
+const p1 : TFilerID): Integer of object;
+
+_T148 = function (p0 : TIDEObject;
+p1 : Boolean): Integer of object;
+
+_T149 = _T34;
+
+_T150 = procedure (const p0 : IDispatch) of object;
+
+_T151 = _T150;
+
+_T152 = _T150;
+
+_T153 = _T150;
+
+_T154 = _T0;
+
+_T155 = _T15;
+
+_T156 = _T43;
+
+_T157 = _T15;
+
+_T158 = _T15;
+
+_T159 = _T15;
+
+{_T160 = function : TIDEObjectClass of object;}
+
+_T161 = _T116;
+
+_T162 = _T49;
+
+{_T163 = function (p0 : TMenuItem;
+p1 : TRecentInfoKind;
+p2 : TNotifyEvent;
+p3 : Integer): Integer of object;}
+
+_T164 = _T28;
+
+_T165 = _T102;
+
+_T166 = _T119;
+
+function __TMessage__Wrapper.GetRecordPtr : pointer;
+begin
+result := @fR;
+end;
+procedure __TMessage__Wrapper.setMsg(const val : Cardinal);
+begin
+TMessage(GetRecordPtr^).Msg := val;
+end;
+function __TMessage__Wrapper.getMsg : Cardinal;
+begin
+result := TMessage(GetRecordPtr^).Msg;
+end;
+procedure __TMessage__Wrapper.setWParam(const val : Longint);
+begin
+TMessage(GetRecordPtr^).WParam := val;
+end;
+function __TMessage__Wrapper.getWParam : Longint;
+begin
+result := TMessage(GetRecordPtr^).WParam;
+end;
+procedure __TMessage__Wrapper.setLParam(const val : Longint);
+begin
+TMessage(GetRecordPtr^).LParam := val;
+end;
+function __TMessage__Wrapper.getLParam : Longint;
+begin
+result := TMessage(GetRecordPtr^).LParam;
+end;
+procedure __TMessage__Wrapper.setResult(const val : Longint);
+begin
+TMessage(GetRecordPtr^).Result := val;
+end;
+function __TMessage__Wrapper.getResult : Longint;
+begin
+result := TMessage(GetRecordPtr^).Result;
+end;
+procedure __TMessage__Wrapper.setWParamLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).WParamLo := val;
+end;
+function __TMessage__Wrapper.getWParamLo : Word;
+begin
+result := TMessage(GetRecordPtr^).WParamLo;
+end;
+procedure __TMessage__Wrapper.setWParamHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).WParamHi := val;
+end;
+function __TMessage__Wrapper.getWParamHi : Word;
+begin
+result := TMessage(GetRecordPtr^).WParamHi;
+end;
+procedure __TMessage__Wrapper.setLParamLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).LParamLo := val;
+end;
+function __TMessage__Wrapper.getLParamLo : Word;
+begin
+result := TMessage(GetRecordPtr^).LParamLo;
+end;
+procedure __TMessage__Wrapper.setLParamHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).LParamHi := val;
+end;
+function __TMessage__Wrapper.getLParamHi : Word;
+begin
+result := TMessage(GetRecordPtr^).LParamHi;
+end;
+procedure __TMessage__Wrapper.setResultLo(const val : Word);
+begin
+TMessage(GetRecordPtr^).ResultLo := val;
+end;
+function __TMessage__Wrapper.getResultLo : Word;
+begin
+result := TMessage(GetRecordPtr^).ResultLo;
+end;
+procedure __TMessage__Wrapper.setResultHi(const val : Word);
+begin
+TMessage(GetRecordPtr^).ResultHi := val;
+end;
+function __TMessage__Wrapper.getResultHi : Word;
+begin
+result := TMessage(GetRecordPtr^).ResultHi;
+end;
+procedure __TIDEProject__CMIDESAVETO__Wrapper(__Instance : TIDEProject;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+TIDEProject(__Instance).CMIDESAVETO(__p0^);
+end;
+
+procedure __TIDEProject__CMIDEOBJPROPSCHANGED__Wrapper(__Instance : TIDEProject;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+TIDEProject(__Instance).CMIDEOBJPROPSCHANGED(__p0^);
+end;
+
+procedure __TIDEProject__CMIDEADDTO__Wrapper(__Instance : TIDEProject;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+TIDEProject(__Instance).CMIDEADDTO(__p0^);
+end;
+
+procedure __TIDEProject__CMOBJDESTROYED__Wrapper(__Instance : TIDEProject;
+const p0 : IDispatch);
+var
+__p0 : ^TMessage;
+__i0 : IDispatch;
+begin
+if p0 = nil then exit;
+__p0 := (p0 as IDCRecordWrapper).GetRecordPtr;
+TIDEProject(__Instance).CMOBJDESTROYED(__p0^);
+end;
+
+
+type __TMessage__Wrapper__ = class(__TMessage__Wrapper)
+private
+fRPtr : pointer;
+function GetRecordPtr : pointer; override;
+end;
+function __TMessage__Wrapper__.GetRecordPtr : pointer;
+begin
+result := fRPtr;
+end;
+function ConvertTMessageToVariant(var R : TMessage) : OleVariant;
+var
+__rw : __TMessage__Wrapper__;
+begin
+__rw := __TMessage__Wrapper__.Create;
+__rw.fRPtr := @R;
+result := IDispatch(__rw);
+end;
+function ConvertVariantToTMessage(const V : OleVariant) : TMessage;
+var
+_idisp : IDispatch;
+begin
+_idisp := VarToInterface(v);
+if _idisp = nil then exit;
+result := TMessage((_idisp as IDCRecordWrapper).GetRecordPtr^);
+end;
+function __DC__GetTCompoundIDEObject__FixUpList(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).FixUpList);
+end;
+
+function __DC__GetTCompoundIDEObject__Objects(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).Objects[OleVariant(Params^[0])]);
+end;
+
+function __DC__GetTCompoundIDEObject__ObjectCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCompoundIDEObject(Instance).ObjectCount;
+end;
+
+function __DC__GetTCompoundIDEObject__ActiveObject(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).ActiveObject);
+end;
+
+function __DC__GetTCompoundIDEObject__DefaultFileSystem(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCompoundIDEObject(Instance).DefaultFileSystem;
+end;
+
+procedure __DC__SetTCompoundIDEObject__DefaultFileSystem(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).DefaultFileSystem:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTCompoundIDEObject__RecentFilesMenu(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).RecentFilesMenu);
+end;
+
+procedure __DC__SetTCompoundIDEObject__RecentFilesMenu(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).RecentFilesMenu:=TMenuItem(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTCompoundIDEObject__RecentWorkSpacesMenu(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).RecentWorkSpacesMenu);
+end;
+
+procedure __DC__SetTCompoundIDEObject__RecentWorkSpacesMenu(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).RecentWorkSpacesMenu:=TMenuItem(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTCompoundIDEObject__MaxRecentItems(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCompoundIDEObject(Instance).MaxRecentItems;
+end;
+
+procedure __DC__SetTCompoundIDEObject__MaxRecentItems(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).MaxRecentItems:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTCompoundIDEObject__RecentInfos(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).RecentInfos);
+end;
+
+procedure __DC__SetTCompoundIDEObject__RecentInfos(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).RecentInfos:=TRecentInfos(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTCompoundIDEObject__ActiveProject(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCompoundIDEObject(Instance).ActiveProject);
+end;
+
+procedure __DC__SetTCompoundIDEObject__ActiveProject(Instance : TObject; Params : PVariantArgList);
+begin
+TCompoundIDEObject(Instance).ActiveProject:=TCustomIDEProject(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTCustomIDEProject__ProjectItems(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TCustomIDEProject(Instance).ProjectItems);
+end;
+
+procedure __DC__SetTCustomIDEProject__ProjectItems(Instance : TObject; Params : PVariantArgList);
+begin
+TCustomIDEProject(Instance).ProjectItems:=TIDEProjectItems(VarToObject(OleVariant(Params^[0])));
+end;
+
+function __DC__GetTCustomIDEProject__StrictWithNames(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TCustomIDEProject(Instance).StrictWithNames;
+end;
+
+function __DC__GetTIDEObject__ModifiedDuringOpen(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).ModifiedDuringOpen;
+end;
+
+procedure __DC__SetTIDEObject__ModifiedDuringOpen(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).ModifiedDuringOpen:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObject__FilerID(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).FilerID;
+end;
+
+procedure __DC__SetTIDEObject__FilerID(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).FilerID:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObject__FileName(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).FileName;
+end;
+
+procedure __DC__SetTIDEObject__FileName(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).FileName:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObject__DisplayName(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).DisplayName;
+end;
+
+function __DC__GetTIDEObject__ObjectName(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).ObjectName;
+end;
+
+function __DC__GetTIDEObject__FileExt(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).FileExt;
+end;
+
+function __DC__GetTIDEObject__WasSaved(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).WasSaved;
+end;
+
+function __DC__GetTIDEObject__Modified(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).Modified;
+end;
+
+function __DC__GetTIDEObject__Closed(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).Closed;
+end;
+
+procedure __DC__SetTIDEObject__Closed(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).Closed:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObject__Focused(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).Focused;
+end;
+
+procedure __DC__SetTIDEObject__Focused(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).Focused:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObject__RefCount(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).RefCount;
+end;
+
+function __DC__GetTIDEObject__Visible(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObject(Instance).Visible;
+end;
+
+procedure __DC__SetTIDEObject__Visible(Instance : TObject; Params : PVariantArgList);
+begin
+TIDEObject(Instance).Visible:=OleVariant(Params^[0]);
+end;
+
+function __DC__GetTIDEObjectList__Items(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TIDEObjectList(Instance).Items[OleVariant(Params^[0])]);
+end;
+
+function __DC__GetTIDEObjectListItem__ShortName(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := TIDEObjectListItem(Instance).ShortName;
+end;
+
+function __DC__GetTInstantReport__WorkSpace(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TInstantReport(Instance).WorkSpace);
+end;
+
+function __DC__GetTMasteredIDEObject__MasterObject(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TMasteredIDEObject(Instance).MasterObject);
+end;
+
+function __DC__GetTOpenObject__Compound(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TOpenObject(Instance).Compound);
+end;
+
+function __DC__GetTSaveObject__IDEObject(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TSaveObject(Instance).IDEObject);
+end;
+
+procedure __RegisterProps;
+begin
+RegisterProperty(TCompoundIDEObject,'FixUpList',__DC__GetTCompoundIDEObject__FixUpList,nil);
+RegisterIndexedProperty(TCompoundIDEObject,'Objects',1,True,__DC__GetTCompoundIDEObject__Objects,nil);
+RegisterProperty(TCompoundIDEObject,'ObjectCount',__DC__GetTCompoundIDEObject__ObjectCount,nil);
+RegisterProperty(TCompoundIDEObject,'ActiveObject',__DC__GetTCompoundIDEObject__ActiveObject,nil);
+RegisterProperty(TCompoundIDEObject,'DefaultFileSystem',__DC__GetTCompoundIDEObject__DefaultFileSystem,__DC__SetTCompoundIDEObject__DefaultFileSystem);
+RegisterProperty(TCompoundIDEObject,'RecentFilesMenu',__DC__GetTCompoundIDEObject__RecentFilesMenu,__DC__SetTCompoundIDEObject__RecentFilesMenu);
+RegisterProperty(TCompoundIDEObject,'RecentWorkSpacesMenu',__DC__GetTCompoundIDEObject__RecentWorkSpacesMenu,__DC__SetTCompoundIDEObject__RecentWorkSpacesMenu);
+RegisterProperty(TCompoundIDEObject,'MaxRecentItems',__DC__GetTCompoundIDEObject__MaxRecentItems,__DC__SetTCompoundIDEObject__MaxRecentItems);
+RegisterProperty(TCompoundIDEObject,'RecentInfos',__DC__GetTCompoundIDEObject__RecentInfos,__DC__SetTCompoundIDEObject__RecentInfos);
+RegisterProperty(TCompoundIDEObject,'ActiveProject',__DC__GetTCompoundIDEObject__ActiveProject,__DC__SetTCompoundIDEObject__ActiveProject);
+RegisterProperty(TCustomIDEProject,'ProjectItems',__DC__GetTCustomIDEProject__ProjectItems,__DC__SetTCustomIDEProject__ProjectItems);
+RegisterProperty(TCustomIDEProject,'StrictWithNames',__DC__GetTCustomIDEProject__StrictWithNames,nil);
+RegisterProperty(TIDEObject,'ModifiedDuringOpen',__DC__GetTIDEObject__ModifiedDuringOpen,__DC__SetTIDEObject__ModifiedDuringOpen);
+RegisterProperty(TIDEObject,'FilerID',__DC__GetTIDEObject__FilerID,__DC__SetTIDEObject__FilerID);
+RegisterProperty(TIDEObject,'FileName',__DC__GetTIDEObject__FileName,__DC__SetTIDEObject__FileName);
+RegisterProperty(TIDEObject,'DisplayName',__DC__GetTIDEObject__DisplayName,nil);
+RegisterProperty(TIDEObject,'ObjectName',__DC__GetTIDEObject__ObjectName,nil);
+RegisterProperty(TIDEObject,'FileExt',__DC__GetTIDEObject__FileExt,nil);
+RegisterProperty(TIDEObject,'WasSaved',__DC__GetTIDEObject__WasSaved,nil);
+RegisterProperty(TIDEObject,'Modified',__DC__GetTIDEObject__Modified,nil);
+RegisterProperty(TIDEObject,'Closed',__DC__GetTIDEObject__Closed,__DC__SetTIDEObject__Closed);
+RegisterProperty(TIDEObject,'Focused',__DC__GetTIDEObject__Focused,__DC__SetTIDEObject__Focused);
+RegisterProperty(TIDEObject,'RefCount',__DC__GetTIDEObject__RefCount,nil);
+RegisterProperty(TIDEObject,'Visible',__DC__GetTIDEObject__Visible,__DC__SetTIDEObject__Visible);
+RegisterIndexedProperty(TIDEObjectList,'Items',1,True,__DC__GetTIDEObjectList__Items,nil);
+RegisterProperty(TIDEObjectListItem,'ShortName',__DC__GetTIDEObjectListItem__ShortName,nil);
+RegisterProperty(TInstantReport,'WorkSpace',__DC__GetTInstantReport__WorkSpace,nil);
+RegisterProperty(TMasteredIDEObject,'MasterObject',__DC__GetTMasteredIDEObject__MasterObject,nil);
+RegisterProperty(TOpenObject,'Compound',__DC__GetTOpenObject__Compound,nil);
+RegisterProperty(TSaveObject,'IDEObject',__DC__GetTSaveObject__IDEObject,nil);
+end;
+
+function __DC__Getdcapp__NewUniqueNumberStr(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := dcapp.NewUniqueNumberStr;
+end;
+
+procedure __DC__Setdcapp__NewUniqueNumberStr(Instance : TObject; Params : PVariantArgList);
+begin
+dcapp.NewUniqueNumberStr:=OleVariant(Params^[0]);
+end;
+
+function __DC__Getdcapp__RunScriptParameters(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := dcapp.RunScriptParameters;
+end;
+
+procedure __DC__Setdcapp__RunScriptParameters(Instance : TObject; Params : PVariantArgList);
+begin
+dcapp.RunScriptParameters:=OleVariant(Params^[0]);
+end;
+
+var __RegisteredVars : TList;
+procedure __RegisterVars;
+begin
+__RegisteredVars := TList.Create;
+__RegisteredVars.Add(RegisterVar('NewUniqueNumberStr',__DC__Getdcapp__NewUniqueNumberStr,__DC__Setdcapp__NewUniqueNumberStr));
+__RegisteredVars.Add(RegisterVar('RunScriptParameters',__DC__Getdcapp__RunScriptParameters,__DC__Setdcapp__RunScriptParameters));
+end;
+
+procedure __UnregisterVars;
+begin
+__RegisteredVars.Free;
+end;
+
+const __ConstNames0 : array[0..4] of string = (
+'opNoRecentFile'
+,'opNoSmartOpen'
+,'rkWorkSpace'
+,'rkProject'
+,'rkFile'
+);
+var __RegisteredConstsList0 : TList;
+procedure __RegisterConsts0;
+begin
+__RegisteredConstsList0 := TList.Create;
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[0] ,opNoRecentFile));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[1] ,opNoSmartOpen));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[2] ,rkWorkSpace));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[3] ,rkProject));
+__RegisteredConstsList0.Add(RegisterConst(__ConstNames0[4] ,rkFile));
+end;
+
+procedure __UnregisterConsts0;
+var i : integer;
+begin
+__RegisteredConstsList0.Free
+end;
+
+const ClassList : array[0..23] of TClass = (
+TCompoundIDEObject,
+TCustomIDEFormMemoObject,
+TCustomIDEProject,
+TCustomOpenIDEObject,
+TIDEApplication,
+TIDEObject,
+TIDEObjectList,
+TIDEObjectListItem,
+TIDEProject,
+TIDEProjectItem,
+TIDEProjectItems,
+TIDEWorkSpace,
+TInstantReport,
+TMasteredIDEObject,
+TOpenIDEObject,
+TOpenObject,
+TOpenProjectObject,
+TOpenWorkSpaceObject,
+TRecentInfo,
+TRecentInfos,
+TSaveObject,
+TSaveProjectObject,
+TSaveWithBackup,
+TSkipException
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+const MethodNames : array[0..21] of string = (
+'NormalizeExtension'
+,'CommandLineToStrings'
+,'GetPropFileSystemFilerID'
+,'FilerFileExists'
+,'FilerChangeDir'
+,'FilerGetDir'
+,'IntToHotChar'
+,'MainIDEObject'
+,'IsInMainObject'
+,'UseObjectsInCodeDesigner'
+,'ShortNamesToStrings'
+,'OpenParamFiles'
+,'FilterProjects'
+,'HasObjects'
+,'ProjectItemIsCompound'
+,'HasActiveObject'
+,'HasActiveProject'
+,'ActionAddToProject'
+,'ActionSaveObject'
+,'ActionSaveObjectAs'
+,'ActionCloseObject'
+,'ActionActivateProject'
+);
+
+procedure __UnregisterProcs;
+var i : integer;
+begin
+__RegisteredMethods.Free;
+end;
+
+procedure _mreg_0;
+begin
+RegisterProc(nil,MethodNames[0],mtProc,TypeInfo(_T0),[
+TypeInfo(String),TypeInfo(String)],Addr(NormalizeExtension),cRegister);
+
+RegisterProc(nil,MethodNames[1],mtProc,TypeInfo(_T1),[
+TypeInfo(TStrings)],Addr(CommandLineToStrings),cRegister);
+
+RegisterProc(nil,MethodNames[2],mtProc,TypeInfo(_T5),[
+TypeInfo(TComponent),
+TypeInfo(String),TypeInfo(TFilerID)],Addr(GetPropFileSystemFilerID),cRegister);
+
+RegisterProc(nil,MethodNames[3],mtProc,TypeInfo(_T6),[
+TypeInfo(TFilerID),
+TypeInfo(TFileName),TypeInfo(Boolean)],Addr(FilerFileExists),cRegister);
+
+RegisterProc(nil,MethodNames[4],mtProc,TypeInfo(_T7),[
+TypeInfo(TFilerID),
+TypeInfo(String)],Addr(FilerChangeDir),cRegister);
+
+RegisterProc(nil,MethodNames[5],mtProc,TypeInfo(_T8),[
+TypeInfo(TFilerID),TypeInfo(String)],Addr(FilerGetDir),cRegister);
+
+RegisterProc(nil,MethodNames[6],mtProc,TypeInfo(_T10),[
+TypeInfo(Integer),TypeInfo(Char)],Addr(IntToHotChar),cRegister);
+
+RegisterProc(nil,MethodNames[7],mtProc,TypeInfo(_T11),[TypeInfo(TCompoundIDEObject)],Addr(MainIDEObject),cRegister);
+
+RegisterProc(nil,MethodNames[8],mtProc,TypeInfo(_T12),[
+TypeInfoUntyped,TypeInfo(Boolean)],Addr(IsInMainObject),cRegister);
+
+RegisterProc(nil,MethodNames[9],mtProc,TypeInfo(_T13),[
+TypeInfo(TList),
+TypeInfo(TCodeDesigner)],Addr(UseObjectsInCodeDesigner),cRegister);
+
+RegisterProc(nil,MethodNames[10],mtProc,TypeInfo(_T14),[
+TypeInfo(TList),
+TypeInfo(TStrings)],Addr(ShortNamesToStrings),cRegister);
+
+RegisterProc(nil,MethodNames[11],mtProc,TypeInfo(_T15),NoParams,Addr(OpenParamFiles),cRegister);
+
+RegisterProc(nil,MethodNames[12],mtProc,TypeInfo(_T16),[
+TypeInfo(TList),
+TypeInfo(TList),
+TypeInfo(Boolean)],Addr(FilterProjects),cRegister);
+
+RegisterProc(nil,MethodNames[13],mtProc,TypeInfo(_T17),[
+TypeInfo(TVerbStates)],Addr(HasObjects),cRegister);
+
+RegisterProc(nil,MethodNames[14],mtProc,TypeInfo(_T18),[
+TypeInfo(TIDEProjectItem),TypeInfo(Boolean)],Addr(ProjectItemIsCompound),cRegister);
+
+RegisterProc(nil,MethodNames[15],mtProc,TypeInfo(_T19),[
+TypeInfo(TVerbStates)],Addr(HasActiveObject),cRegister);
+
+RegisterProc(nil,MethodNames[16],mtProc,TypeInfo(_T20),[
+TypeInfo(TVerbStates)],Addr(HasActiveProject),cRegister);
+
+RegisterProc(nil,MethodNames[17],mtProc,TypeInfo(_T21),[
+TypeInfo(TPersistent)],Addr(ActionAddToProject),cRegister);
+
+RegisterProc(nil,MethodNames[18],mtProc,TypeInfo(_T22),[
+TypeInfo(TPersistent)],Addr(ActionSaveObject),cRegister);
+
+RegisterProc(nil,MethodNames[19],mtProc,TypeInfo(_T23),[
+TypeInfo(TPersistent)],Addr(ActionSaveObjectAs),cRegister);
+
+RegisterProc(nil,MethodNames[20],mtProc,TypeInfo(_T24),[
+TypeInfo(TPersistent)],Addr(ActionCloseObject),cRegister);
+
+RegisterProc(nil,MethodNames[21],mtProc,TypeInfo(_T25),[
+TypeInfo(TPersistent)],Addr(ActionActivateProject),cRegister);
+
+RegRegisterMethod(TCompoundIDEObject,'SaveWorkSpace',TypeInfo(_T26),NoParams, pointer(204));
+
+RegRegisterMethod(TCompoundIDEObject,'ChangeActiveObject',TypeInfo(_T27),[
+TypeInfo(Boolean)], pointer(208));
+
+RegRegisterMethod(TCompoundIDEObject,'NewObjectAdded',TypeInfo(_T28),[
+TypeInfo(TIDEObject)], pointer(212));
+
+RegRegisterMethod(TCompoundIDEObject,'IDEObjectCreated',TypeInfo(_T29),[
+TypeInfo(TIDEObject)], pointer(216));
+
+RegRegisterMethod(TCompoundIDEObject,'ShortNamesToObjList',TypeInfo(_T32),[
+TypeInfo(TStrings),
+TypeInfo(TList)],Addr(TCompoundIDEObject.ShortNamesToObjList));
+
+RegRegisterMethod(TCompoundIDEObject,'ProjectItemByShortName',TypeInfo(_T33),[
+TypeInfo(String),TypeInfo(TIDEProjectItem)],Addr(TCompoundIDEObject.ProjectItemByShortName));
+
+RegRegisterMethod(TCompoundIDEObject,'AddToActiveProject',TypeInfo(_T34),[TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.AddToActiveProject));
+
+RegRegisterMethod(TCompoundIDEObject,'AddToProject',TypeInfo(_T35),[
+TypeInfo(TCustomIDEProject),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.AddToProject));
+
+RegRegisterMethod(TCompoundIDEObject,'UniqueObjectName',TypeInfo(_T36),[
+TypeInfo(String),TypeInfo(String)],Addr(TCompoundIDEObject.UniqueObjectName));
+
+RegRegisterMethod(TCompoundIDEObject,'UniqueObjectNumber',TypeInfo(_T37),[
+TypeInfo(String),TypeInfo(Integer)],Addr(TCompoundIDEObject.UniqueObjectNumber));
+
+RegRegisterMethod(TCompoundIDEObject,'IsMemberOfProject',TypeInfo(_T38),[
+TypeInfo(TIDEObject),
+TypeInfo(TCustomIDEProject),
+TypeInfo(Boolean),TypeInfo(Boolean)],Addr(TCompoundIDEObject.IsMemberOfProject));
+
+RegRegisterMethod(TCompoundIDEObject,'SetObjectOrder',TypeInfo(_T39),[
+TypeInfo(TIDEObject),
+TypeInfo(Integer)],Addr(TCompoundIDEObject.SetObjectOrder));
+
+RegRegisterMethod(TCompoundIDEObject,'AddRecentInfo',TypeInfo(_T40),[
+TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.AddRecentInfo));
+
+RegRegisterMethod(TCompoundIDEObject,'RemoveRecentInfo',TypeInfo(_T41),[
+TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.RemoveRecentInfo));
+
+RegRegisterMethod(TCompoundIDEObject,'AddObject',TypeInfo(_T42),[
+TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.AddObject));
+
+RegRegisterMethod(TCompoundIDEObject,'IsActiveCompound',TypeInfo(_T43),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.IsActiveCompound));
+
+RegRegisterMethod(TCompoundIDEObject,'CompoundNextObject',TypeInfo(_T44),NoParams,Addr(TCompoundIDEObject.CompoundNextObject));
+
+RegRegisterMethod(TCompoundIDEObject,'CompoundPreviousObject',TypeInfo(_T45),NoParams,Addr(TCompoundIDEObject.CompoundPreviousObject));
+
+RegRegisterMethod(TCompoundIDEObject,'ActiveObjectIndex',TypeInfo(_T46),[TypeInfo(Integer)],Addr(TCompoundIDEObject.ActiveObjectIndex));
+
+RegRegisterMethod(TCompoundIDEObject,'ObjectByName',TypeInfo(_T48),[
+TypeInfo(String),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.ObjectByName));
+
+RegRegisterMethod(TCompoundIDEObject,'ObjectByFileName',TypeInfo(_T49),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.ObjectByFileName));
+
+RegRegisterMethod(TCompoundIDEObject,'IsObjectUsed',TypeInfo(_T50),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.IsObjectUsed));
+
+RegRegisterMethod(TCompoundIDEObject,'NewIDEObject',TypeInfo(_T51),[
+TypeInfo(TObjectParamListItem),
+TypeInfo(Boolean),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.NewIDEObject));
+
+RegRegisterMethod(TCompoundIDEObject,'Open',TypeInfo(_T55),[TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.Open));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenFile',TypeInfo(_T56),[
+TypeInfo(String),
+TypeInfo(TFilerID),
+TypeInfo(Boolean),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.OpenFile));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenFiles',TypeInfo(_T57),[
+TypeInfo(TStrings),
+TypeInfo(TFilerID)],Addr(TCompoundIDEObject.OpenFiles));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenWin32File',TypeInfo(_T58),[
+TypeInfo(String),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.OpenWin32File));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenWin32Files',TypeInfo(_T59),[
+TypeInfo(TStrings)],Addr(TCompoundIDEObject.OpenWin32Files));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenCommandLineFiles',TypeInfo(_T60),NoParams,Addr(TCompoundIDEObject.OpenCommandLineFiles));
+
+RegRegisterMethod(TCompoundIDEObject,'OpenLimited',TypeInfo(_T61),[
+TypeInfo(TStrings),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.OpenLimited));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveWithQuestion',TypeInfo(_T64),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveWithQuestion));
+
+RegRegisterMethod(TCompoundIDEObject,'CanSaveObject',TypeInfo(_T65),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanSaveObject));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveObjectAs',TypeInfo(_T66),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveObjectAs));
+
+RegRegisterMethod(TCompoundIDEObject,'ExportObjectTo',TypeInfo(_T67),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.ExportObjectTo));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveObjectsWithQuestion',TypeInfo(_T68),[
+TypeInfo(TList),TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveObjectsWithQuestion));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveObject',TypeInfo(_T69),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveObject));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveActive',TypeInfo(_T70),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveActive));
+
+RegRegisterMethod(TCompoundIDEObject,'CanSaveActive',TypeInfo(_T71),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanSaveActive));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveActiveAs',TypeInfo(_T72),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveActiveAs));
+
+RegRegisterMethod(TCompoundIDEObject,'ExportActiveTo',TypeInfo(_T73),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.ExportActiveTo));
+
+RegRegisterMethod(TCompoundIDEObject,'CanSaveAll',TypeInfo(_T74),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanSaveAll));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveAll',TypeInfo(_T75),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveAll));
+
+RegRegisterMethod(TCompoundIDEObject,'SaveObjList',TypeInfo(_T76),[
+TypeInfo(TList),TypeInfo(Boolean)],Addr(TCompoundIDEObject.SaveObjList));
+
+RegRegisterMethod(TCompoundIDEObject,'CanCloseObject',TypeInfo(_T77),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanCloseObject));
+
+RegRegisterMethod(TCompoundIDEObject,'CloseObject',TypeInfo(_T78),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TCompoundIDEObject.CloseObject));
+
+RegRegisterMethod(TCompoundIDEObject,'CanCloseObjects',TypeInfo(_T79),[
+TypeInfo(TList),TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanCloseObjects));
+
+RegRegisterMethod(TCompoundIDEObject,'CloseActive',TypeInfo(_T80),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CloseActive));
+
+RegRegisterMethod(TCompoundIDEObject,'CanCloseAll',TypeInfo(_T81),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanCloseAll));
+
+RegRegisterMethod(TCompoundIDEObject,'CloseAll',TypeInfo(_T82),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CloseAll));
+
+RegRegisterMethod(TCompoundIDEObject,'CloseAllWithoutQuestion',TypeInfo(_T83),NoParams,Addr(TCompoundIDEObject.CloseAllWithoutQuestion));
+
+RegRegisterMethod(TCompoundIDEObject,'CanCloseActive',TypeInfo(_T84),[TypeInfo(Boolean)],Addr(TCompoundIDEObject.CanCloseActive));
+
+RegRegisterMethod(TCompoundIDEObject,'PreviousObject',TypeInfo(_T85),NoParams,Addr(TCompoundIDEObject.PreviousObject));
+
+RegRegisterMethod(TCompoundIDEObject,'NextObject',TypeInfo(_T86),NoParams,Addr(TCompoundIDEObject.NextObject));
+
+RegRegisterMethod(TCustomIDEProject,'SaveProjectFiles',TypeInfo(_T87),[TypeInfo(Boolean)],Addr(TCustomIDEProject.SaveProjectFiles));
+
+RegRegisterMethod(TCustomIDEProject,'SetModifiedTrue',TypeInfo(_T88),NoParams,Addr(TCustomIDEProject.SetModifiedTrue));
+
+RegRegisterMethod(TCustomIDEProject,'ObjectsToList',TypeInfo(_T89),[
+TypeInfo(TList),
+TypeInfo(TCompoundIDEObject)],Addr(TCustomIDEProject.ObjectsToList));
+
+RegRegisterMethod(TCustomIDEProject,'ProjectItemByShortName',TypeInfo(_T90),[
+TypeInfo(String),TypeInfo(TIDEProjectItem)],Addr(TCustomIDEProject.ProjectItemByShortName));
+
+RegRegisterMethod(TCustomIDEProject,'OpenProjectItems',TypeInfo(_T91),[
+TypeInfo(TCompoundIDEObject),
+TypeInfo(Boolean),TypeInfo(Boolean)],Addr(TCustomIDEProject.OpenProjectItems));
+
+RegRegisterMethod(TCustomIDEProject,'ClearProject',TypeInfo(_T92),NoParams,Addr(TCustomIDEProject.ClearProject));
+
+RegRegisterMethod(TCustomIDEProject,'AddToProject',TypeInfo(_T93),[
+TypeInfo(TIDEObject)], pointer(204));
+
+RegRegisterMethod(TCustomIDEProject,'RemoveFromProject',TypeInfo(_T94),[
+TypeInfo(TIDEObject)],Addr(TCustomIDEProject.RemoveFromProject));
+
+RegRegisterMethod(TIDEObject,'GetModifiedDuringOpen',TypeInfo(_T96),[TypeInfo(Boolean)], pointer(40));
+
+RegRegisterMethod(TIDEObject,'SetFileName',TypeInfo(_T97),[
+TypeInfo(TFileName)], pointer(44));
+
+RegRegisterMethod(TIDEObject,'SetFilerID',TypeInfo(_T98),[
+TypeInfo(TFilerID)], pointer(48));
+
+RegRegisterMethod(TIDEObject,'GetVisible',TypeInfo(_T99),[TypeInfo(Boolean)], pointer(52));
+
+RegRegisterMethod(TIDEObject,'GetObjectParams',TypeInfo(_T100),[TypeInfo(TIDEObjectParams)], pointer(56));
+
+RegRegisterMethod(TIDEObject,'SetModifiedFalse',TypeInfo(_T101),NoParams, pointer(60));
+
+RegRegisterMethod(TIDEObject,'InternalCreate',TypeInfo(_T102),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID)], pointer(64));
+
+RegRegisterMethod(TIDEObject,'GetFileExt',TypeInfo(_T103),[TypeInfo(String)], pointer(68));
+
+RegRegisterMethod(TIDEObject,'GetDisplayName',TypeInfo(_T104),[TypeInfo(String)], pointer(72));
+
+RegRegisterMethod(TIDEObject,'GetObjectName',TypeInfo(_T106),[TypeInfo(String)], pointer(80));
+
+RegRegisterMethod(TIDEObject,'GetModified',TypeInfo(_T107),[TypeInfo(Boolean)], pointer(84));
+
+RegRegisterMethod(TIDEObject,'GetFocused',TypeInfo(_T108),[TypeInfo(Boolean)], pointer(88));
+
+RegRegisterMethod(TIDEObject,'ObjectCreated',TypeInfo(_T109),NoParams, pointer(92));
+
+RegRegisterMethod(TIDEObject,'HasEqualFileName',TypeInfo(_T110),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)],Addr(TIDEObject.HasEqualFileName));
+
+RegRegisterMethod(TIDEObject,'OldNameIsSame',TypeInfo(_T111),[TypeInfo(Boolean)],Addr(TIDEObject.OldNameIsSame));
+
+RegRegisterMethod(TIDEObject,'FixupReferences',TypeInfo(_T112),NoParams, pointer(96));
+
+RegRegisterMethod(TIDEObject,'GetObjectProps',TypeInfo(_T113),[TypeInfo(String)], pointer(100));
+
+RegRegisterMethod(TIDEObject,'PropsChanged',TypeInfo(_T114),NoParams,Addr(TIDEObject.PropsChanged));
+
+RegRegisterMethod(TIDEObject,'GetInstance',TypeInfo(_T115),[TypeInfo(TComponent)], pointer(104));
+
+RegRegisterMethod(TIDEObject,'RemoveFrom',TypeInfo(_T116),[
+TypeInfo(TCompoundIDEObject)], pointer(108));
+
+RegRegisterMethod(TIDEObject,'Hide',TypeInfo(_T117),NoParams, pointer(112));
+
+RegRegisterMethod(TIDEObject,'Show',TypeInfo(_T118),NoParams,Addr(TIDEObject.Show));
+
+RegRegisterMethod(TIDEObject,'CreateFromStream',TypeInfo(_T119),[
+TypeInfo(TStream)], pointer(116));
+
+RegRegisterMethod(TIDEObject,'UseObjects',TypeInfo(_T120),[
+TypeInfo(TList)], pointer(120));
+
+RegRegisterMethod(TIDEObject,'CanUseObject',TypeInfo(_T121),[
+TypeInfo(TIDEObject),TypeInfo(Boolean)], pointer(124));
+
+RegRegisterMethod(TIDEObject,'GetUsedObjects',TypeInfo(_T122),[
+TypeInfo(TStrings)], pointer(128));
+
+RegRegisterMethod(TIDEObject,'GetReferencedObjects',TypeInfo(_T123),[
+TypeInfo(TList)], pointer(132));
+
+RegRegisterMethod(TIDEObject,'AddTo',TypeInfo(_T124),[
+TypeInfo(TCompoundIDEObject)], pointer(136));
+
+RegRegisterMethod(TIDEObject,'SetFocused',TypeInfo(_T125),NoParams, pointer(140));
+
+RegRegisterMethod(TIDEObject,'ValidObjectName',TypeInfo(_T128),[
+TypeInfo(String),TypeInfo(Boolean)], pointer(148));
+
+RegisterProc(TIDEObject,'CreateFrom',mtConstructor,TypeInfo(_T129),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID)], pointer(152),cRegister);
+
+RegisterProc(TIDEObject,'CreateNew',mtConstructor,TypeInfo(_T130),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),
+TypeInfo(Integer)], pointer(156),cRegister);
+
+RegRegisterMethod(TIDEObject,'CanClose',TypeInfo(_T131),[TypeInfo(Boolean)], pointer(160));
+
+RegRegisterMethod(TIDEObject,'CutToClipboard',TypeInfo(_T132),NoParams, pointer(164));
+
+RegRegisterMethod(TIDEObject,'PasteFromClipboard',TypeInfo(_T133),NoParams, pointer(168));
+
+RegRegisterMethod(TIDEObject,'CopyToClipboard',TypeInfo(_T134),NoParams, pointer(172));
+
+RegRegisterMethod(TIDEObject,'DeleteSelection',TypeInfo(_T135),NoParams, pointer(176));
+
+RegRegisterMethod(TIDEObject,'SelectAll',TypeInfo(_T136),NoParams, pointer(180));
+
+RegRegisterMethod(TIDEObject,'Undo',TypeInfo(_T137),NoParams, pointer(184));
+
+RegRegisterMethod(TIDEObject,'Redo',TypeInfo(_T138),NoParams, pointer(188));
+
+RegRegisterMethod(TIDEObject,'Print',TypeInfo(_T139),NoParams, pointer(192));
+
+RegRegisterMethod(TIDEObject,'CanPrint',TypeInfo(_T140),[TypeInfo(Boolean)], pointer(196));
+
+RegRegisterMethod(TIDEObject,'BrowseProperties',TypeInfo(_T141),NoParams, pointer(200));
+
+RegRegisterMethod(TIDEObjectList,'AddObject',TypeInfo(_T142),[
+TypeInfo(TIDEObject),TypeInfo(TIDEObjectListItem)], pointer(24));
+
+RegRegisterMethod(TIDEObjectList,'RemoveObject',TypeInfo(_T143),[
+TypeInfo(TIDEObject),TypeInfo(TIDEObjectListItem)], pointer(28));
+
+RegRegisterMethod(TIDEObjectList,'MakePathsRelative',TypeInfo(_T144),[
+TypeInfo(String),
+TypeInfo(String)],Addr(TIDEObjectList.MakePathsRelative));
+
+RegRegisterMethod(TIDEObjectList,'MakePathsAbsolute',TypeInfo(_T145),[
+TypeInfo(String),
+TypeInfo(String)],Addr(TIDEObjectList.MakePathsAbsolute));
+
+RegRegisterMethod(TIDEObjectList,'IndexOfOldObject',TypeInfo(_T146),[
+TypeInfo(TIDEObject),TypeInfo(Integer)],Addr(TIDEObjectList.IndexOfOldObject));
+
+RegRegisterMethod(TIDEObjectList,'IndexOfFileName',TypeInfo(_T147),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),TypeInfo(Integer)],Addr(TIDEObjectList.IndexOfFileName));
+
+RegRegisterMethod(TIDEObjectList,'IndexOfObject',TypeInfo(_T148),[
+TypeInfo(TIDEObject),
+TypeInfo(Boolean),TypeInfo(Integer)],Addr(TIDEObjectList.IndexOfObject));
+
+RegRegisterMethod(TIDEObjectListItem,'RelatedObject',TypeInfo(_T149),[TypeInfo(TIDEObject)],Addr(TIDEObjectListItem.RelatedObject));
+
+RegRegisterMethod(TIDEProject,'CMIDESAVETO',TypeInfo(_T150),[
+TypeInfo(IDispatch)],Addr(__TIDEProject__CMIDESAVETO__Wrapper));
+
+RegRegisterMethod(TIDEProject,'CMIDEOBJPROPSCHANGED',TypeInfo(_T151),[
+TypeInfo(IDispatch)],Addr(__TIDEProject__CMIDEOBJPROPSCHANGED__Wrapper));
+
+RegRegisterMethod(TIDEProject,'CMIDEADDTO',TypeInfo(_T152),[
+TypeInfo(IDispatch)],Addr(__TIDEProject__CMIDEADDTO__Wrapper));
+
+RegRegisterMethod(TIDEProject,'CMOBJDESTROYED',TypeInfo(_T153),[
+TypeInfo(IDispatch)],Addr(__TIDEProject__CMOBJDESTROYED__Wrapper));
+
+RegRegisterMethod(TIDEProjectItem,'GetPropValue',TypeInfo(_T154),[
+TypeInfo(String),TypeInfo(String)],Addr(TIDEProjectItem.GetPropValue));
+
+RegRegisterMethod(TIDEProjectItems,'UpdateObjectProps',TypeInfo(_T155),NoParams,Addr(TIDEProjectItems.UpdateObjectProps));
+
+RegRegisterMethod(TIDEProjectItems,'AllObjectsOpened',TypeInfo(_T156),[TypeInfo(Boolean)],Addr(TIDEProjectItems.AllObjectsOpened));
+
+RegRegisterMethod(TInstantReport,'OpenWorkSpace',TypeInfo(_T157),NoParams,Addr(TInstantReport.OpenWorkSpace));
+
+RegRegisterMethod(TInstantReport,'SaveWorkSpaceAs',TypeInfo(_T158),NoParams,Addr(TInstantReport.SaveWorkSpaceAs));
+
+RegRegisterMethod(TInstantReport,'OpenDefaultWorkSpace',TypeInfo(_T159),NoParams,Addr(TInstantReport.OpenDefaultWorkSpace));
+
+RegisterProc(TOpenObject,'Create',mtConstructor,TypeInfo(_T161),[
+TypeInfo(TCompoundIDEObject)], pointer(0),cRegister);
+
+RegRegisterMethod(TOpenObject,'OpenFrom',TypeInfo(_T162),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),TypeInfo(TIDEObject)], pointer(4));
+
+RegisterProc(TSaveObject,'Create',mtConstructor,TypeInfo(_T164),[
+TypeInfo(TIDEObject)], pointer(0),cRegister);
+
+RegRegisterMethod(TSaveObject,'SaveProc',TypeInfo(_T165),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID)], pointer(4));
+
+RegRegisterMethod(TSaveWithBackup,'SaveToStream',TypeInfo(_T166),[
+TypeInfo(TStream)], pointer(8));
+
+end;
+initialization
+__RegisteredMethods := TList.Create;
+_mreg_0;
+{RegisterProc(nil,'RegisterSaveClass',mtProc,TypeInfo(_T2),[
+TypeInfo(TSaveObjectClass),
+TypeInfo(TIDEObjectClass),
+TypeInfo(String),
+TypeInfo(String)],Addr(RegisterSaveClass),cRegister)}
+
+{RegisterProc(nil,'RegisterOpenClass',mtProc,TypeInfo(_T3),[
+TypeInfo(TOpenObjectClass),
+TypeInfo(String),
+TypeInfo(String),TypeInfo(TObjectParamListItem)],Addr(RegisterOpenClass),cRegister)}
+
+{RegisterProc(nil,'RegisterNewItem',mtProc,TypeInfo(_T4),[
+TypeInfo(TIDEObjectClass),
+TypeInfo(String),
+TypeInfo(String),
+TypeInfo(String),
+TypeInfo(String)],Addr(RegisterNewItem),cRegister)}
+
+{RegisterProc(nil,'FindOpenClass',mtProc,TypeInfo(_T9),[
+TypeInfo(String),TypeInfo(TOpenObjectClass)],Addr(FindOpenClass),cRegister)}
+
+{RegRegisterMethod(TCompoundIDEObject,'GetSaveTypes',TypeInfo(_T30),[
+TypeInfo(TIDEObjectClass),
+TypeInfo(TStrings)],Addr(TCompoundIDEObject.GetSaveTypes))}
+
+{RegRegisterMethod(TCompoundIDEObject,'GetOpenTypes',TypeInfo(_T31),[
+TypeInfo(TOpenObjectClass),
+TypeInfo(TStrings)],Addr(TCompoundIDEObject.GetOpenTypes))}
+
+{RegRegisterMethod(TCompoundIDEObject,'FindObjectWithClass',TypeInfo(_T47),[
+TypeInfo(TIDEObjectClass),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.FindObjectWithClass))}
+
+{RegRegisterMethod(TCompoundIDEObject,'NewObjectOfClass',TypeInfo(_T52),[
+TypeInfo(TIDEObjectClass),
+TypeInfo(String),
+TypeInfo(Boolean),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.NewObjectOfClass))}
+
+{RegRegisterMethod(TCompoundIDEObject,'NewRegisteredIDEObject',TypeInfo(_T53),[
+TypeInfo(TIDEObjectClass),
+TypeInfo(Boolean),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.NewRegisteredIDEObject))}
+
+{RegRegisterMethod(TCompoundIDEObject,'OpenFileAs',TypeInfo(_T54),[
+TypeInfo(String),
+TypeInfo(TFilerID),
+TypeInfo(TOpenObjectClass),
+TypeInfo(Boolean),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.OpenFileAs))}
+
+{RegRegisterMethod(TCompoundIDEObject,'OpenLimitedType',TypeInfo(_T62),[
+TypeInfo(TOpenObjectClass),TypeInfo(TIDEObject)],Addr(TCompoundIDEObject.OpenLimitedType))}
+
+{RegRegisterMethod(TCompoundIDEObject,'UnivSaveObject',TypeInfo(_T63),[
+TypeInfo(TIDEObject),
+TypeInfo(TSaveMethod),
+TypeInfo(String),TypeInfo(Boolean)],Addr(TCompoundIDEObject.UnivSaveObject))}
+
+{RegRegisterMethod(TCustomOpenIDEObject,'GetIDEObjectClass',TypeInfo(_T95),[TypeInfo(TIDEObjectClass)], pointer(8))}
+
+{RegRegisterMethod(TIDEObject,'GetDefaultSaveClass',TypeInfo(_T105),[TypeInfo(TSaveObjectClass)], pointer(76))}
+
+{RegRegisterMethod(TIDEObject,'ExportTo',TypeInfo(_T126),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),
+TypeInfo(TSaveObjectClass),TypeInfo(Boolean)], pointer(144))}
+
+{RegRegisterMethod(TIDEObject,'SaveTo',TypeInfo(_T127),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),
+TypeInfo(TSaveObjectClass),TypeInfo(Boolean)],Addr(TIDEObject.SaveTo))}
+
+{RegRegisterMethod(TMasteredIDEObject,'GetMasterObjectClass',TypeInfo(_T160),[TypeInfo(TIDEObjectClass)], pointer(220))}
+
+{RegRegisterMethod(TRecentInfos,'AddToRecentMenu',TypeInfo(_T163),[
+TypeInfo(TMenuItem),
+TypeInfo(TRecentInfoKind),
+TypeInfo(TNotifyEvent),
+TypeInfo(Integer),TypeInfo(Integer)],Addr(TRecentInfos.AddToRecentMenu))}
+
+RegisterEvent(TypeInfo(TOnNewObjectEvent),[
+TypeInfo(TObject),
+TypeInfo(TIDEObject)]);
+
+{RegisterEvent(TypeInfo(TOpenQueryEvent),[
+TypeInfo(TStrings),
+TypeInfo(TFilerID),
+TypeInfo(TStrings),
+TypeInfo(TOpenObjectClass),
+TypeInfo(Boolean)]);}
+
+{RegisterEvent(TypeInfo(TSaveAsQueryEvent),[
+TypeInfo(String),
+TypeInfo(TFilerID),
+TypeInfo(TStrings),
+TypeInfo(TSaveObjectClass)]);}
+
+{RegisterEvent(TypeInfo(TSaveMethod),[
+TypeInfo(TFileName),
+TypeInfo(TFilerID),
+TypeInfo(TSaveObjectClass),TypeInfo(Boolean)]);}
+
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+__RegisterVars;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+__UnRegisterVars;
+__UnregisterProcs;
+end.

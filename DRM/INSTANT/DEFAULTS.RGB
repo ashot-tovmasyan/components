@@ -1,0 +1,170 @@
+object TPersHolder
+  P = <
+    item
+      Name = 'Whitespace'
+      Color = clWhite
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcText
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'String'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Comment'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clNavy
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Identifier'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Integer'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Float'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Reserved words'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Delimiters'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = True
+      UseMemoFont = False
+    end
+    item
+      Name = 'Defines'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clNavy
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Assembler'
+      Color = clWindow
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlue
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'BreakPoint'
+      Color = clRed
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Error line'
+      Color = clMaroon
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcNone
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Marked Block'
+      Color = clNavy
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcSelection
+      UseMemoColor = False
+      UseMemoFont = False
+    end
+    item
+      Name = 'Search Match'
+      Color = clBlack
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      UpdateMemoColors = mcSearchMatch
+      UseMemoColor = False
+      UseMemoFont = False
+    end>
+end

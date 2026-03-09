@@ -1,0 +1,151 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit glyphed_D4;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  activex,
+  dcscript,
+  Windows,
+  Messages,
+  SysUtils,
+  Classes,
+  Graphics,
+  Controls,
+  Forms,
+  Dialogs,
+  StdCtrls,
+  ExtCtrls,
+  ComCtrls,
+  dsgnintf,
+  dcgen,
+  dccommon,
+  dcconsts,
+  consts,
+  dcsystem,
+  dcdreamlib,
+  extdlgs,
+  clipbrd,
+  Buttons,
+  glyphed;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type
+_T0 = procedure  of object;
+
+_T1 = _T0;
+
+_T2 = procedure (p0 : TObject) of object;
+
+_T3 = _T2;
+
+_T4 = _T2;
+
+_T5 = _T2;
+
+_T6 = _T2;
+
+_T7 = _T2;
+
+procedure __RegisterProps;
+begin
+end;
+
+function __DC__Getglyphed__GlyphEditForm(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(glyphed.GlyphEditForm);
+end;
+
+procedure __DC__Setglyphed__GlyphEditForm(Instance : TObject; Params : PVariantArgList);
+begin
+TObject(glyphed.GlyphEditForm):=(VarToObject(OleVariant(Params^[0])));
+end;
+
+var __RegisteredVars : TList;
+procedure __RegisterVars;
+begin
+__RegisteredVars := TList.Create;
+__RegisteredVars.Add(RegisterVar('GlyphEditForm',__DC__Getglyphed__GlyphEditForm,__DC__Setglyphed__GlyphEditForm));
+end;
+
+procedure __UnregisterVars;
+begin
+__RegisteredVars.Free;
+end;
+
+procedure __RegisterConsts0;
+begin
+end;
+
+procedure __UnregisterConsts0;
+begin
+end;
+
+const ClassList : array[0..4] of TClass = (
+TBitmapEdit,
+TGlyphEdit,
+TGlyphEditForm,
+TIconEdit,
+TPictureEdit
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+procedure _mreg_0;
+begin
+RegRegisterMethod(TGlyphEdit,'GetImage',TypeInfo(_T0),NoParams, pointer(48));
+
+RegRegisterMethod(TGlyphEdit,'SetImage',TypeInfo(_T1),NoParams, pointer(52));
+
+RegRegisterMethod(TGlyphEditForm,'ToolButtonLoadClick',TypeInfo(_T2),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.ToolButtonLoadClick));
+
+RegRegisterMethod(TGlyphEditForm,'ToolButtonSaveClick',TypeInfo(_T3),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.ToolButtonSaveClick));
+
+RegRegisterMethod(TGlyphEditForm,'ToolButtonCopyClick',TypeInfo(_T4),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.ToolButtonCopyClick));
+
+RegRegisterMethod(TGlyphEditForm,'ToolButtonPasteClick',TypeInfo(_T5),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.ToolButtonPasteClick));
+
+RegRegisterMethod(TGlyphEditForm,'ClearButtonClick',TypeInfo(_T6),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.ClearButtonClick));
+
+RegRegisterMethod(TGlyphEditForm,'FormCreate',TypeInfo(_T7),[
+TypeInfo(TObject)],Addr(TGlyphEditForm.FormCreate));
+
+end;
+initialization
+_mreg_0;
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+__RegisterVars;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+__UnRegisterVars;
+end.

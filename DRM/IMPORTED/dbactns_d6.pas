@@ -1,0 +1,95 @@
+{*******************************************************}
+{                                                       }
+{  Copyright (c) 1997-2001 Altium Limited               }
+{                                                       }
+{  http://www.dream-com.com                             }
+{  contact@dream-com.com                                }
+{                                                       }
+{*******************************************************}
+Unit DBACTNS_D6;
+interface
+{$I dc.inc}
+{$D-,L-,Y-}
+{$HINTS OFF}
+{$WARNINGS OFF}
+uses
+  activex,
+  dcscript,
+  dcsystem,
+  dcdreamlib,
+  Classes,
+  DB,
+  ActnList,
+  DBActns;
+implementation
+{$IFDEF D3}
+{$ELSE}
+uses ole2;
+type
+  OleVariant = Variant;
+{$ENDIF}
+type
+_T0 = function (p0 : TObject): TDataSet of object;
+
+function __DC__GetTDataSetAction__DataSource(Instance : TObject; Params : PVariantArgList) : OleVariant;
+begin
+result := VarFromObject(TDataSetAction(Instance).DataSource);
+end;
+
+procedure __DC__SetTDataSetAction__DataSource(Instance : TObject; Params : PVariantArgList);
+begin
+TDataSetAction(Instance).DataSource:=TDataSource(VarToObject(OleVariant(Params^[0])));
+end;
+
+procedure __RegisterProps;
+begin
+RegisterProperty(TDataSetAction,'DataSource',__DC__GetTDataSetAction__DataSource,__DC__SetTDataSetAction__DataSource);
+end;
+
+procedure __RegisterConsts0;
+begin
+end;
+
+procedure __UnregisterConsts0;
+begin
+end;
+
+const ClassList : array[0..10] of TClass = (
+TDataSetAction,
+TDataSetCancel,
+TDataSetDelete,
+TDataSetEdit,
+TDataSetFirst,
+TDataSetInsert,
+TDataSetLast,
+TDataSetNext,
+TDataSetPost,
+TDataSetPrior,
+TDataSetRefresh
+);
+procedure __RegisterClasses;
+begin
+RegisterClassesInScript(ClassList);
+end;
+
+procedure __UnRegisterClasses;
+begin
+end;
+
+var __RegisteredMethods : TList;
+procedure _mreg_0;
+begin
+RegRegisterMethod(TDataSetAction,'GetDataSet',TypeInfo(_T0),[
+TypeInfo(TObject),TypeInfo(TDataSet)], pointer(84));
+
+end;
+initialization
+_mreg_0;
+__RegisterClasses;
+__RegisterConsts0;
+__RegisterProps;
+
+finalization
+__UnRegisterClasses;
+__UnregisterConsts0;
+end.
