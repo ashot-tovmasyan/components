@@ -1,0 +1,10 @@
+*.dcu
+*.res
+__history/
+*.exe
+*.dll
+*.dcp
+*.bpl
+*.identcache
+*.local
+*.dsk
